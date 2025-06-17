@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency              'uringmachine',         '0.14'
 
   s.add_development_dependency  'minitest',             '5.25.5'
+  s.add_development_dependency  'rake',                 '13.3.0'
 
   s.name        = 'syntropy'
   s.summary     = 'Syntropic Web Framework'
