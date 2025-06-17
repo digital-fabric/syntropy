@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 3.2'
 
+  s.add_dependency              'json',                 '2.12.2'
   s.add_dependency              'qeweney',              '0.21'
   s.add_dependency              'tp2',                  '0.11.3'
   s.add_dependency              'uringmachine',         '0.14'

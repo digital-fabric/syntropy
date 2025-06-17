@@ -4,12 +4,23 @@ require 'bundler/setup'
 require_relative './coverage' if ENV['COVERAGE']
 require 'uringmachine'
 require 'syntropy'
+require 'qeweney/mock_adapter'
 require 'minitest/autorun'
 
 STDOUT.sync = true
 STDERR.sync = true
 
 module ::Kernel
+  def mock_req(**args)
+    Qeweney::MockAdapter.mock(**args)
+  end
+
+  def capture_exception
+    yield
+  rescue Exception => e
+    e
+  end
+
   def debug(**h)
     k, v = h.first
     h.delete(k)
@@ -44,4 +55,38 @@ module Minitest::Assertions
     msg = message(msg) { "Expected #{mu_pp(act)} to be in range #{mu_pp(exp_range)}" }
     assert exp_range.include?(act), msg
   end
+
+  def assert_response exp_body, exp_content_type, req
+    status = req.response_status
+    msg = message(msg) { "Expected HTTP status 200 OK, but instead got #{status}" }
+    assert_equal 200, status, msg
+
+    actual = req.adapter.body
+    assert_equal exp_body.gsub("\n", ''), actual&.gsub("\n", '')
+
+    return unless exp_content_type
+
+    if Symbol === exp_content_type
+      exp_content_type = Qeweney::MimeTypes[exp_content_type]
+    end
+    actual = req.response_content_type
+    assert_equal exp_content_type, actual
+  end
 end
+
+# Extensions to be used in conjunction with `Qeweney::TestAdapter`
+class Qeweney::Request
+  def response_headers
+    adapter.headers
+  end
+
+  def response_status
+    adapter.status
+  end
+
+  def response_content_type
+    response_headers['Content-Type']
+  end
+end
+
+# puts "Polyphony backend: #{Thread.current.backend.kind}"
