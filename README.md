@@ -81,8 +81,6 @@ end
 But a module can be something completely different:
 
 ```ruby
-require 'utils'
-
 # api/v1.rb
 class APIV1 < Syntropy::RPCAPI
   def initialize(db)
