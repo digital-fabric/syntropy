@@ -1,0 +1,32 @@
+PATH
+  remote: .
+  specs:
+    syntropy (0.1)
+      qeweney (= 0.21)
+      tp2 (= 0.11.3)
+      uringmachine (= 0.14)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    escape_utils (1.3.0)
+    minitest (5.25.5)
+    qeweney (0.21)
+      escape_utils (= 1.3.0)
+    rack (3.1.16)
+    tp2 (0.11.3)
+      qeweney (~> 0.21)
+      rack (~> 3.1.15)
+      uringmachine (~> 0.14)
+    uringmachine (0.14)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  minitest (= 5.25.5)
+  syntropy!
+
+BUNDLED WITH
+   2.6.9
