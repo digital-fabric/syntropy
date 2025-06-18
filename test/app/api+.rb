@@ -3,12 +3,12 @@ class API < Syntropy::RPCAPI
     @count = 0
   end
 
-  def get(ctx)
+  def get(req)
     @count
   end
 
-  def incr!(ctx)
-    if ctx.request.path != '/test/api'
+  def incr!(req)
+    if req.path != '/test/api'
         raise Syntropy::Error.new(Qeweney::Status::TEAPOT, 'Teapot') 
     end
 

@@ -1,58 +1,58 @@
-# frozen_string_literal: true
+# # frozen_string_literal: true
 
-require 'syntropy/errors'
+# require 'syntropy/errors'
 
-module Syntropy
-  class Context
-    attr_reader :request
+# module Syntropy
+#   class Context
+#     attr_reader :request
 
-    def initialize(request)
-      @request = request
-    end
+#     def initialize(request)
+#       @request = request
+#     end
 
-    def params
-      @request.query
-    end
+#     def params
+#       @request.query
+#     end
 
-    def validate_param(name, *clauses)
-      value = @request.query[name]
-      clauses.each do |c|
-        valid = param_is_valid?(value, c)
-        raise(Syntropy::ValidationError, 'Validation error') if !valid
-        value = param_convert(value, c)
-      end
-      value
-    end
+#     def validate_param(name, *clauses)
+#       value = @request.query[name]
+#       clauses.each do |c|
+#         valid = param_is_valid?(value, c)
+#         raise(Syntropy::ValidationError, 'Validation error') if !valid
+#         value = param_convert(value, c)
+#       end
+#       value
+#     end
 
-    BOOL_REGEXP = /^(t|f|true|false|on|off|1|0|yes|no)$/
-    BOOL_TRUE_REGEXP = /^(t|true|on|1|yes)$/
-    INTEGER_REGEXP = /^[\+\-]?[0-9]+$/
-    FLOAT_REGEXP = /^[\+\-]?[0-9]+(\.[0-9]+)?$/
+#     BOOL_REGEXP = /^(t|f|true|false|on|off|1|0|yes|no)$/
+#     BOOL_TRUE_REGEXP = /^(t|true|on|1|yes)$/
+#     INTEGER_REGEXP = /^[\+\-]?[0-9]+$/
+#     FLOAT_REGEXP = /^[\+\-]?[0-9]+(\.[0-9]+)?$/
 
-    def param_is_valid?(value, cond)
-      if cond == :bool
-        return (value && value =~ BOOL_REGEXP)
-      elsif cond == Integer
-        return (value && value =~ INTEGER_REGEXP)
-      elsif cond == Float
-        return (value && value =~ FLOAT_REGEXP)
-      elsif cond.is_a?(Array)
-        return cond.any? { |c| param_is_valid?(value, c) }
-      end
+#     def param_is_valid?(value, cond)
+#       if cond == :bool
+#         return (value && value =~ BOOL_REGEXP)
+#       elsif cond == Integer
+#         return (value && value =~ INTEGER_REGEXP)
+#       elsif cond == Float
+#         return (value && value =~ FLOAT_REGEXP)
+#       elsif cond.is_a?(Array)
+#         return cond.any? { |c| param_is_valid?(value, c) }
+#       end
 
-      cond === value
-    end
+#       cond === value
+#     end
 
-    def param_convert(value, klass)
-      if klass == :bool
-        value = value =~ BOOL_TRUE_REGEXP ? true : false
-      elsif klass == Integer
-        value = value.to_i
-      elsif klass == Float
-        value = value.to_f
-      else
-        value
-      end
-    end
-  end
-end
+#     def param_convert(value, klass)
+#       if klass == :bool
+#         value = value =~ BOOL_TRUE_REGEXP ? true : false
+#       elsif klass == Integer
+#         value = value.to_i
+#       elsif klass == Float
+#         value = value.to_f
+#       else
+#         value
+#       end
+#     end
+#   end
+# end

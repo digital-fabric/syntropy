@@ -1,3 +1,3 @@
-->(ctx) {
-  ctx.request.respond('foobar')
+->(req) {
+  req.respond('foobar')
 }

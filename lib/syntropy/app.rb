@@ -111,7 +111,6 @@ module Syntropy
     end
 
     def render_entry(req, entry)
-      p entry: entry
       case entry[:kind]
       when :not_found
         req.respond('Not found', ':status' => Qeweney::Status::NOT_FOUND)
@@ -122,21 +121,20 @@ module Syntropy
         body = render_markdown(IO.read(entry[:fn]))
         req.respond(body, 'Content-Type' => 'text/html')
       when :module
-        ctx = Syntropy::Context.new(req)
-        call_module(entry, ctx)
+        call_module(entry, req)
       else
         raise "Invalid entry kind"
       end
     end
 
-    def call_module(entry, ctx)
+    def call_module(entry, req)
       entry[:code] ||= load_module(entry)
       if entry[:code] == :invalid
         req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
         return
       end
 
-      entry[:code].call(ctx)
+      entry[:code].call(req)
     rescue StandardError => e
       p e
       p e.backtrace
@@ -156,7 +154,7 @@ module Syntropy
     end
 
     def wrap_template(templ)
-      ->(ctx) {
+      ->(req) {
         body = templ.render
         req.respond(body, 'Content-Type' => 'text/html')
       }

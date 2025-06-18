@@ -48,8 +48,6 @@ class AppRoutingTest < Minitest::Test
     entry = @app.find_route('/test/about/foo')
     assert_equal :markdown, entry[:kind]
     assert_equal full_path('about/foo.md'), entry[:fn]
-
-    pp @app.route_cache
   end
 
   def make_request(*, **)

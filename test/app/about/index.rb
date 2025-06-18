@@ -1,3 +1,3 @@
-->(ctx) {
-  ctx.request.respond('About')
+->(req) {
+  req.respond('About')
 }

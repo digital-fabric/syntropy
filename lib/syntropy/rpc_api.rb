@@ -6,22 +6,22 @@ require 'json'
 
 module Syntropy
   class RPCAPI
-    def call(ctx)
-      response, status = invoke(ctx)
-      ctx.request.respond(
+    def call(req)
+      response, status = invoke(req)
+      req.respond(
         response.to_json,
         ':status'       => status,
         'Content-Type'  => 'application/json'
       )
     end
 
-    def invoke(ctx)
-      q = ctx.validate_param(:q, String)
-      response = case ctx.request.method
+    def invoke(req)
+      q = req.validate_param(:q, String)
+      response = case req.method
       when 'get'
-        send(q.to_sym, ctx)
+        send(q.to_sym, req)
       when 'post'
-        send(:"#{q}!", ctx)
+        send(:"#{q}!", req)
       else
         raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
       end

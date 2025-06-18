@@ -88,12 +88,12 @@ class APIV1 < Syntropy::RPCAPI
   end
 
   # /posts
-  def all(ctx)
+  def all(req)
     @db[:posts].order_by(:stamp.desc).to_a
   end
 
-  def by_id(ctx)
-    id = ctx.validate_param(:id, /^{4,32}$/)
+  def by_id(req)
+    id = req.validate_param(:id, /^{4,32}$/)
     @db[:posts].where(id: id).first
   end
 end
