@@ -18,12 +18,6 @@ class RPCAPITest < Minitest::Test
     @app = TestAPI.new
   end
 
-  def test_kernel_version
-    v = UringMachine.kernel_version
-    assert_kind_of Integer, v
-    assert_in_range 600..700, v
-  end
-
   def test_rpc_api
     req = mock_req(':method' => 'GET', ':path' => '/')
     ctx = Syntropy::Context.new(req)

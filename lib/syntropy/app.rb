@@ -1,0 +1,131 @@
+# frozen_string_literal: true
+
+require 'qeweney'
+require 'syntropy/errors'
+require 'json'
+
+module Syntropy
+  class App
+    attr_reader :route_cache
+
+    def initialize(src_path, mount_path)
+      @src_path = src_path
+      @mount_path = mount_path
+      @route_cache = {}
+
+      @relative_path_re = calculate_relative_path_re(mount_path)
+    end
+
+    def find_route(path, cache: true)
+      cached = @route_cache[path]
+      return cached if cached
+
+      entry = calculate_route(path)
+      if entry[:kind] != :not_found
+        @route_cache[path] = entry if cache
+      end
+      entry
+    end
+
+    def call(req)
+      entry = find_route(req.path)
+      render_entry(req, entry)
+    rescue StandardError => e
+      p e
+      p e.backtrace
+      req.respond(e.message, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
+    end
+
+    private
+
+    def calculate_relative_path_re(mount_path)
+      mount_path = '' if mount_path == '/'
+      /^#{mount_path}(?:\/(.*))?$/
+    end
+
+    FILE_KINDS = {
+      '.rb' => :module,
+      '.md' => :markdown
+    }
+    NOT_FOUND = { kind: :not_found }
+
+    # We don't allow access to path with /.., or entries that start with _
+    FORBIDDEN_RE = /(\/_)|((\/\.\.)\/?)/
+
+    def calculate_route(path)
+      return NOT_FOUND if path =~ FORBIDDEN_RE
+
+      m = path.match(@relative_path_re)
+      return NOT_FOUND if !m
+
+      relative_path = m[1] || ''
+      fs_path = File.join(@src_path, relative_path)
+
+      return file_entry(fs_path) if File.file?(fs_path)
+      return find_index_entry(fs_path) if File.directory?(fs_path)
+
+      entry = find_file_entry_with_extension(fs_path)
+      return entry if entry[:kind] != :not_found
+        
+      find_up_tree_module(path)
+    end
+
+    def file_entry(fn)
+      { fn: fn, kind: FILE_KINDS[File.extname(fn)] || :static }
+    end
+
+    def find_index_entry(dir)
+      find_file_entry_with_extension(File.join(dir, 'index'))
+    end
+
+    def find_file_entry_with_extension(path)
+      fn = "#{path}.html"
+      return file_entry(fn) if File.file?(fn)
+
+      fn = "#{path}.md"
+      return file_entry(fn) if File.file?(fn)
+
+      fn = "#{path}.rb"
+      return file_entry(fn) if File.file?(fn)
+
+      fn = "#{path}+.rb"
+      return file_entry(fn) if File.file?(fn)
+
+      NOT_FOUND
+    end
+
+    def find_up_tree_module(path)
+      parent = parent_path(path)
+      return NOT_FOUND if !parent
+
+      entry = find_route("#{parent}+.rb", cache: false)
+      entry[:kind] == :module ? entry : NOT_FOUND
+    end
+
+    UP_TREE_PATH_RE = /^(.+)?\/[^\/]+$/
+
+    def parent_path(path)
+      m = path.match(UP_TREE_PATH_RE)
+      m && m[1]
+    end
+
+    def render_entry(req, entry)
+      p entry: entry
+      case entry[:kind]
+      when :not_found
+        req.respond('Not found', ':status' => Qeweney::Status::NOT_FOUND)
+      when :static
+        entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
+        req.respond(IO.read(entry[:fn]), 'Content-Type' => entry[:mime_type])
+      when :markdown
+        body = render_markdown(markdown)
+        req.respond(body, 'Content-Type' => 'text/html')
+      when :module
+        ctx = Syntropy::Context.new(req)
+        call_module(entry, ctx)
+      else
+        raise "Invalid entry kind"
+      end
+    end
+  end
+end
