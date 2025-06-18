@@ -6,10 +6,6 @@ require 'json'
 
 module Syntropy
   class RPCAPI
-    def initialize(mount_path)
-      @mount_path = mount_path
-    end
-
     def call(ctx)
       response, status = invoke(ctx)
       ctx.request.respond(

@@ -15,7 +15,7 @@ class RPCAPITest < Minitest::Test
   end
 
   def setup
-    @app = TestAPI.new('/api/v1')
+    @app = TestAPI.new
   end
 
   def test_kernel_version
@@ -25,24 +25,24 @@ class RPCAPITest < Minitest::Test
   end
 
   def test_rpc_api
-    req = mock_req(':method' => 'GET', ':path' => '/foo')
+    req = mock_req(':method' => 'GET', ':path' => '/')
     ctx = Syntropy::Context.new(req)
     @app.call(ctx)
     assert_equal Qeweney::Status::BAD_REQUEST, req.response_status
 
-    req = mock_req(':method' => 'GET', ':path' => '/foo?q=get')
+    req = mock_req(':method' => 'GET', ':path' => '/?q=get')
     ctx = Syntropy::Context.new(req)
     @app.call(ctx)
     assert_equal Qeweney::Status::OK, req.response_status
     assert_equal({ status: 'OK', response: nil }, req.response_json)
 
-    req = mock_req(':method' => 'POST', ':path' => '/foo?q=set&v=foo')
+    req = mock_req(':method' => 'POST', ':path' => '/?q=set&v=foo')
     ctx = Syntropy::Context.new(req)
     @app.call(ctx)
     assert_equal Qeweney::Status::OK, req.response_status
     assert_equal({ status: 'OK', response: true }, req.response_json)
 
-    req = mock_req(':method' => 'GET', ':path' => '/foo?q=get')
+    req = mock_req(':method' => 'GET', ':path' => '/?q=get')
     ctx = Syntropy::Context.new(req)
     @app.call(ctx)
     assert_equal Qeweney::Status::OK, req.response_status

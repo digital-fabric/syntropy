@@ -1,4 +1,5 @@
 ## 0.1 2025-06-17
 
-- Implement context param validation
+- Implement RPC API controller
+- Implement Context with parameter validation
 - Preliminary version
