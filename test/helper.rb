@@ -84,6 +84,15 @@ class Qeweney::Request
     adapter.status
   end
 
+  def response_body
+    adapter.body
+  end
+
+  def response_json
+    raise if response_content_type != 'application/json'
+    JSON.parse(response_body, symbolize_names: true)
+  end
+
   def response_content_type
     response_headers['Content-Type']
   end

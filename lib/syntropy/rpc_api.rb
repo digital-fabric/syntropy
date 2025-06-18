@@ -12,8 +12,6 @@ module Syntropy
 
     def call(ctx)
       response, status = invoke(ctx)
-      p response: response
-      p status: status
       ctx.request.respond(
         response.to_json,
         ':status'       => status,
@@ -22,7 +20,7 @@ module Syntropy
     end
 
     def invoke(ctx)
-      q = ctx.params[:q]
+      q = ctx.validate_param(:q, String)
       response = case ctx.request.method
       when 'get'
         send(q.to_sym, ctx)
@@ -33,7 +31,10 @@ module Syntropy
       end
       [{ status: 'OK', response: response }, Qeweney::Status::OK]
     rescue => e
-      p e.backtrace
+      if !e.is_a?(Syntropy::Error)
+        p e
+        p e.backtrace
+      end
       error_response(e)
     end
 

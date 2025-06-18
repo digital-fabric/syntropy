@@ -10,6 +10,7 @@ class RPCAPITest < Minitest::Test
 
     def set!(ctx)
       @value = ctx.params[:v]
+      true
     end
   end
 
@@ -23,10 +24,28 @@ class RPCAPITest < Minitest::Test
     assert_in_range 600..700, v
   end
 
-  def test_req_harness
+  def test_rpc_api
     req = mock_req(':method' => 'GET', ':path' => '/foo')
     ctx = Syntropy::Context.new(req)
-    ret = @app.call(ctx)
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    @app.call(ctx)
+    assert_equal Qeweney::Status::BAD_REQUEST, req.response_status
+
+    req = mock_req(':method' => 'GET', ':path' => '/foo?q=get')
+    ctx = Syntropy::Context.new(req)
+    @app.call(ctx)
+    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal({ status: 'OK', response: nil }, req.response_json)
+
+    req = mock_req(':method' => 'POST', ':path' => '/foo?q=set&v=foo')
+    ctx = Syntropy::Context.new(req)
+    @app.call(ctx)
+    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal({ status: 'OK', response: true }, req.response_json)
+
+    req = mock_req(':method' => 'GET', ':path' => '/foo?q=get')
+    ctx = Syntropy::Context.new(req)
+    @app.call(ctx)
+    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal({ status: 'OK', response: 'foo' }, req.response_json)
   end
 end
