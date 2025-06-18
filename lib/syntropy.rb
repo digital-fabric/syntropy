@@ -57,4 +57,15 @@ class Qeweney::Request
 end
 
 module Syntropy
+  BANNER = (
+    "\n" +
+    " ooo                                                 \n"  +
+    "ooooo                                                \n"  +
+    " ooo vvv       Syntropy - a web framework for Ruby   \n" +
+    "  o vvvvv      -----------------------------------   \n" +
+    "  |  vvv o                                           \n" +
+    "::|:::|::|::   https://github.com/noteflakes/syntropy\n" +
+    "++++++++++++                                         \n"
+  )
+
 end
