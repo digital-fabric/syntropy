@@ -3,6 +3,7 @@
 require 'qeweney'
 require 'syntropy/errors'
 require 'json'
+require 'papercraft'
 
 module Syntropy
   class App
@@ -118,7 +119,7 @@ module Syntropy
         entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
         req.respond(IO.read(entry[:fn]), 'Content-Type' => entry[:mime_type])
       when :markdown
-        body = render_markdown(markdown)
+        body = render_markdown(IO.read(entry[:fn]))
         req.respond(body, 'Content-Type' => 'text/html')
       when :module
         ctx = Syntropy::Context.new(req)
@@ -126,6 +127,43 @@ module Syntropy
       else
         raise "Invalid entry kind"
       end
+    end
+
+    def call_module(entry, ctx)
+      entry[:code] ||= load_module(entry)
+      if entry[:code] == :invalid
+        req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
+        return
+      end
+
+      entry[:code].call(ctx)
+    rescue StandardError => e
+      p e
+      p e.backtrace
+      req.respond(nil, ':status' => Qeweney::S*tatus::INTERNAL_SERVER_ERROR)
+    end
+
+    def load_module(entry)
+      body = IO.read(entry[:fn])
+      klass = Class.new
+      o = klass.instance_eval(body, entry[:fn], 1)
+
+      if o.is_a?(Papercraft::HTML)
+        return wrap_template(o)
+      else
+        return o
+      end
+    end
+
+    def wrap_template(templ)
+      ->(ctx) {
+        body = templ.render
+        req.respond(body, 'Content-Type' => 'text/html')
+      }
+    end
+
+    def render_markdown(str)
+      Papercraft.markdown(str)
     end
   end
 end

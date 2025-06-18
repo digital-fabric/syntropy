@@ -45,6 +45,10 @@ class AppRoutingTest < Minitest::Test
     entry = @app.find_route('/test/api_1')
     assert_equal :not_found, entry[:kind]
 
+    entry = @app.find_route('/test/about/foo')
+    assert_equal :markdown, entry[:kind]
+    assert_equal full_path('about/foo.md'), entry[:fn]
+
     pp @app.route_cache
   end
 
@@ -73,5 +77,32 @@ class AppRoutingTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/assets/style.css')
     assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+
+    req = make_request(':method' => 'GET', ':path' => '/test/api?q=get')
+    assert_equal({ status: 'OK', response: 0 }, req.response_json)
+
+    req = make_request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
+    assert_equal({ status: 'OK', response: 0 }, req.response_json)
+
+    req = make_request(':method' => 'POST', ':path' => '/test/api?q=incr')
+    assert_equal({ status: 'OK', response: 1 }, req.response_json)
+
+    req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
+    assert_equal({ status: 'Syntropy::Error', message: 'Teapot' }, req.response_json)
+    assert_equal Qeweney::Status::TEAPOT, req.response_status
+
+    req = make_request(':method' => 'GET', ':path' => '/test/bar')
+    assert_equal 'foobar', req.response_body
+
+    req = make_request(':method' => 'GET', ':path' => '/test/about')
+    assert_equal 'About', req.response_body.chomp
+
+    req = make_request(':method' => 'GET', ':path' => '/test/about/foo')
+    assert_equal '<p>Hello from Markdown</p>', req.response_body.chomp
+
+    req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
+    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+
+
   end
 end
