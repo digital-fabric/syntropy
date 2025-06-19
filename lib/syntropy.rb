@@ -57,15 +57,23 @@ class Qeweney::Request
 end
 
 module Syntropy
-  BANNER = (
-    "\n" +
-    " ooo                                                 \n"  +
-    "ooooo                                                \n"  +
-    " ooo vvv       Syntropy - a web framework for Ruby   \n" +
-    "  o vvvvv      -----------------------------------   \n" +
-    "  |  vvv o                                           \n" +
-    "::|:::|::|::   https://github.com/noteflakes/syntropy\n" +
-    "++++++++++++                                         \n"
-  )
+  def colorize(color_code)
+    "\e[#{color_code}m#{self}\e[0m"
+  end
 
+  GREEN = "\e[32m"
+  WHITE = "\e[0m"
+  YELLOW = "\e[33m"
+
+  BANNER = (
+    "\n"\
+    "  #{GREEN}\n"\
+    "  #{GREEN} ooo\n"\
+    "  #{GREEN}ooooo\n"\
+    "  #{GREEN} ooo vvv       #{WHITE}Syntropy - a web framework for Ruby\n"\
+    "  #{GREEN}  o vvvvv     #{WHITE}--------------------------------------\n"\
+    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{WHITE}https://github.com/noteflakes/syntropy\n"\
+    "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
+    "  #{YELLOW}++++++++++++\e[0m\n\n"
+  )
 end
