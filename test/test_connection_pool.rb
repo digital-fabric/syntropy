@@ -67,4 +67,14 @@ class ConnectionPoolTest < Minitest::Test
     assert_equal 4, dbs.uniq.size
     assert_equal 4, @cp.count
   end
+
+  def test_with_db_reentrant
+    dbs = @cp.with_db do |db1|
+      @cp.with_db do |db2|
+        [db1, db2]
+      end
+    end
+
+    assert_equal 1, dbs.uniq.size
+  end
 end

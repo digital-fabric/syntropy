@@ -110,5 +110,3 @@ GroupIdRowset = Syntropy::Dataset {
 users = GroupIdRowset.bind(group_id: 5).to_a
 
 ```
-
-Well ,let's see how little can we get away with as possible. But first,
