@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency              'papercraft',           '1.4'
   s.add_dependency              'tp2',                  '0.11.3'
   s.add_dependency              'uringmachine',         '0.14'
+  s.add_dependency              'extralite',            '2.12'
 
   s.add_development_dependency  'minitest',             '5.25.5'
   s.add_development_dependency  'rake',                 '13.3.0'

@@ -61,7 +61,7 @@ the db connection pool as dependency injection the model:
 
 ```ruby
 db_pool = E2::ConnectionPool.new(fn)
-Posts = Syntropy::Relation.new(db_pool, 'posts')
+Posts = Syntropy::Dataset.new(db_pool, 'posts')
 
 Posts[id: 1] #=> { id: 1, title: 'foo', body: 'bar' }
 Posts.find(id: 1) #=>
@@ -88,7 +88,7 @@ How about CTEs?
 ```ruby
 Users = Syntrop::Dataset.new(db_pool, 'users')
 
-Syntropy::Rowset {
+GroupIdRowset = Syntropy::Dataset {
   with(
     foo: Users,
     bar: -> {
@@ -100,18 +100,15 @@ Syntropy::Rowset {
       from bar
       where user_id == bar.select(:user_id)
     }
+  )
 
+  select_all
+  from baz
+  where id == :group_id
 }
-  with(:foo) {
-    select_all.from(:users)
-  }.
-  with(:bar) {
-    select(:group).from(:foo)
-  }.
-  with(:baz) {
-    select(:id).
-    from(:bar).
-    where(user_id: )
-  }
+
+users = GroupIdRowset.bind(group_id: 5).to_a
 
 ```
+
+Well ,let's see how little can we get away with as possible. But first,

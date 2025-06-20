@@ -3,7 +3,9 @@
 require 'qeweney'
 
 require 'syntropy/errors'
-# require 'syntropy/context'
+
+require 'syntropy/connection_pool'
+
 require 'syntropy/rpc_api'
 require 'syntropy/app'
 
