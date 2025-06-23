@@ -6,6 +6,7 @@ require 'syntropy/errors'
 
 require 'syntropy/connection_pool'
 
+require 'syntropy/module'
 require 'syntropy/rpc_api'
 require 'syntropy/app'
 

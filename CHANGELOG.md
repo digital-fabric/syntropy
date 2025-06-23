@@ -1,3 +1,6 @@
+- Implement basic module loading
+- Implement ConnectionPool
+
 ## 0.1 2025-06-17
 
 - Move context inside Request object
