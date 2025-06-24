@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'syntropy'
+require 'optparse'
+
+opts = {
+  banner: Syntropy::BANNER,
+  logger: true
+}
+
+parser = OptionParser.new do |o|
+  o.banner = 'Usage: syntropy [options] DIR'
+
+  o.on('-b', '--bind BIND', String,
+       'Bind address (default: http://0.0.0.0:1234). You can specify this flag multiple times to bind to multiple addresses.') do
+    opts[:bind] ||= []
+    opts[:bind] << it
+  end
+
+  o.on('-s', '--silent', 'Silent mode') do
+    opts[:banner] = nil
+    opts[:logger] = nil
+  end
+
+  o.on('-w', '--watch', 'Watch for changed files') do
+    opts[:watch_files] = 0.1
+  end
+
+  o.on('-h', '--help', 'Show this help message') do
+    puts o
+    exit
+  end
+
+  o.on('-v', '--version', 'Show version') do
+    require 'syntropy/version'
+    puts "Syntropy version #{Syntropy::VERSION}"
+    exit
+  end
+end
+
+RubyVM::YJIT.enable rescue nil
+
+begin
+  parser.parse!
+rescue StandardError => e
+  puts e.message
+  puts e.backtrace.join("\n")
+  exit
+end
+
+opts[:location] = ARGV.shift || '.'
+
+if !File.directory?(opts[:location])
+  puts "#{File.expand_path(opts[:location])} Not a directory"
+  exit
+end
+
+opts[:machine] = UM.new
+app = Syntropy::App.new(opts[:machine], opts[:location], '/', watch_files: 0.05)
+TP2.run(opts) { app.(it) }

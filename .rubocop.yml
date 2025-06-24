@@ -1,0 +1,196 @@
+AllCops:
+  TargetRubyVersion: 3.2
+  RubyInterpreters:
+    - ruby
+  Exclude:
+    - "**/*.gemspec"
+    - "test/**/*.rb"
+    - "examples/**/*.rb"
+    - "Gemfile*"
+# Style/LambdaCall:
+#   Enabled: false
+# Style/ModuleFunction:
+#   Enabled: false
+# Style/RegexpLiteral:
+#   Enabled: false
+
+# Naming/MemoizedInstanceVariableName:
+#   Enabled: false
+
+# Style/Alias:
+#   EnforcedStyle: prefer_alias_method
+
+# Style/SpecialGlobalVars:
+#   Enabled: false
+
+# Style/ClassAndModuleChildren:
+#   Enabled: false
+
+# Metrics/AbcSize:
+#   Enabled: false
+
+# Style/MixinUsage:
+#   Enabled: false
+
+# Style/MultilineBlockChain:
+#   Enabled: false
+
+# Lint/RescueException:
+#   Enabled: false
+
+# Lint/InheritException:
+#   Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false
+
+# Style/TrivialAccessors:
+#   Enabled: false
+
+# Lint/MissingSuper:
+#   Enabled: false
+
+# Style/GlobalVars:
+#   Exclude:
+#     - lib/polyphony/auto_run.rb
+#     - lib/polyphony/extensions/core.rb
+#     - examples/**/*.rb
+
+Layout/HashAlignment:
+  Enabled: false
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
+# Naming/AccessorMethodName:
+#   Exclude:
+#     - lib/polyphony/extensions/fiber.rb
+#     - examples/**/*.rb
+
+# Naming/MethodName:
+#   Exclude:
+#     - test/test_signal.rb
+
+# Lint/SuppressedException:
+#   Exclude:
+#     - examples/**/*.rb
+
+Metrics/MethodLength:
+  Max: 14
+#   Exclude:
+#     - lib/polyphony/extensions/io.rb
+#     - lib/polyphony/extensions/fiber.rb
+#     - lib/polyphony/extensions/thread.rb
+#     - lib/polyphony/adapters/open3.rb
+#     - test/**/*.rb
+#     - examples/**/*.rb
+
+# Metrics/ModuleLength:
+#   Exclude:
+#     - lib/polyphony/core/global_api.rb
+#     - examples/**/*.rb
+
+# Metrics/ClassLength:
+#   Exclude:
+#     - lib/polyphony/extensions/io.rb
+#     - lib/polyphony/extensions/fiber.rb
+#     - lib/polyphony/extensions/object.rb
+#     - lib/polyphony/extensions/thread.rb
+#     - test/**/*.rb
+#     - examples/**/*.rb
+
+# Metrics/CyclomaticComplexity:
+#   Exclude:
+#     - lib/polyphony/extensions/fiber.rb
+
+# Metrics/PerceivedComplexity:
+#   Exclude:
+#     - lib/polyphony/extensions/fiber.rb
+
+# Style/RegexpLiteral:
+#   Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+# Style/Documentation:
+#   Exclude:
+#     - test/**/*.rb
+#     - examples/**/*.rb
+#     - lib/polyphony/adapters/**/*.rb
+
+# Style/FormatString:
+#   Exclude:
+#     - test/**/*.rb
+#     - examples/**/*.rb
+
+# Style/FormatStringToken:
+#   Exclude:
+#     - test/**/*.rb
+#     - examples/**/*.rb
+
+Naming/MethodParameterName:
+  Enabled: false
+
+# Security/MarshalLoad:
+#   Exclude:
+#     - examples/**/*.rb
+
+# Lint/ShadowedArgument:
+#   Exclude:
+#     - lib/polyphony/extensions/fiber.rb
+
+# Style/HashEachMethods:
+#   Enabled: true
+
+# Style/HashTransformKeys:
+#   Enabled: true
+
+# Style/HashTransformValues:
+#   Enabled: true
+
+# Layout/EmptyLinesAroundAttributeAccessor:
+#   Enabled: true
+
+# Layout/SpaceAroundMethodCallOperator:
+#   Enabled: true
+
+# Lint/DeprecatedOpenSSLConstant:
+#   Enabled: true
+
+# Lint/MixedRegexpCaptureTypes:
+#   Enabled: true
+
+# Lint/RaiseException:
+#   Enabled: true
+
+# Lint/StructNewOverride:
+#   Enabled: true
+
+Style/NegatedIf:
+  Enabled: false
+# Style/NegatedWhile:
+#   Enabled: false
+
+# Style/CombinableLoops:
+#   Enabled: false
+
+# Style/InfiniteLoop:
+#   Enabled: false
+
+# Style/RedundantReturn:
+#   Enabled: false
+
+# Style/ExponentialNotation:
+#   Enabled: true
+
+# Style/RedundantRegexpCharacterClass:
+#   Enabled: true
+
+# Style/RedundantRegexpEscape:
+#   Enabled: true
+
+# Style/SlicingWithRange:
+#   Enabled: true
+
+# Style/RaiseArgs:
+#   Exclude:
+#     - lib/polyphony/extensions/fiber.rb

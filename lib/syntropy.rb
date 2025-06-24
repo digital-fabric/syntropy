@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require 'qeweney'
+require 'uringmachine'
+require 'tp2'
 
 require 'syntropy/errors'
-
 require 'syntropy/connection_pool'
-
 require 'syntropy/module'
 require 'syntropy/rpc_api'
 require 'syntropy/app'
