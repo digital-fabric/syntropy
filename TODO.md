@@ -1,21 +1,5 @@
 ## Server tool
 
-```
-$ bundle exec syntropy ./site
-   ooo                                                 
-  ooooo                                                
-   ooo vvv       Syntropy - a web framework for Ruby   
-    o vvvvv      -----------------------------------   
-    |  vvv o                                           
-  ::|:::|::|::   https://github.com/noteflakes/syntropy
-  ++++++++++++
-
-2025-06-18 19:19:03 { "level": "info", "ts": xxxxx, "msg": "yyyyy" }
-...
-```
-
-Also maybe:
-
 ```bash
 $ bundle exec syntropy --dev ./site
 $ bundle exec syntropy --workers 4 ./site
@@ -34,6 +18,7 @@ And the config file:
 Syntropy.config do
   root './site'
   workers 4
+  log { |req| }
 end
 ```
 

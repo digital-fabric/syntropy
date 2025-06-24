@@ -1,3 +1,6 @@
+## 0.2 2025-06-24
+
+- Add CLI tool
 - Implement basic module loading
 - Implement ConnectionPool
 
