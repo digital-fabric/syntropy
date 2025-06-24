@@ -14,7 +14,7 @@ class FileWatchTest < Minitest::Test
     queue = UM::Queue.new
 
     f = @machine.spin do
-      Syntropy.file_watch(@machine, @root, freq: 0.01) { @machine.push(queue, it) }
+      Syntropy.file_watch(@machine, @root, period: 0.01) { @machine.push(queue, it) }
     end
     @machine.sleep(0.05)
     assert_equal 0, queue.count

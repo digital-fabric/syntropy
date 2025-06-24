@@ -1,3 +1,3 @@
-->(req) {
+export ->(req) {
   req.respond('foobar')
 }

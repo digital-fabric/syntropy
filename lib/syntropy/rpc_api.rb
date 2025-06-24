@@ -6,6 +6,10 @@ require 'json'
 
 module Syntropy
   class RPCAPI
+    def initialize(env)
+      @env = env
+    end
+
     def call(req)
       response, status = invoke(req)
       req.respond(

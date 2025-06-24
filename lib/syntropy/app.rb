@@ -6,19 +6,28 @@ require 'papercraft'
 
 require 'syntropy/errors'
 require 'syntropy/file_watch'
+require 'syntropy/module'
 
 module Syntropy
   class App
     attr_reader :route_cache
 
-    def initialize(src_path, mount_path, env = {})
+    def initialize(machine, src_path, mount_path, env = {})
+      @machine = machine
       @src_path = src_path
       @mount_path = mount_path
       @route_cache = {}
       @env = env
 
       @relative_path_re = calculate_relative_path_re(mount_path)
-      if env[:watch_file_changes]
+      if (wf = env[:watch_files])
+        period = wf.is_a?(Numeric) ? wf : 0.1
+        machine.spin do
+          Syntropy.file_watch(@machine, src_path, period: period) { invalidate_cache(it) }
+        rescue Exception => e
+          p e
+          p e.backtrace
+        end
       end
     end
 
@@ -31,6 +40,15 @@ module Syntropy
         @route_cache[path] = entry if cache
       end
       entry
+    end
+
+    def invalidate_cache(fn)
+      invalidated_keys = []
+      @route_cache.each do |k, v|
+        invalidated_keys << k if v[:fn] == fn
+      end
+
+      invalidated_keys.each { @route_cache.delete(it) }
     end
 
     def call(req)
@@ -143,13 +161,15 @@ module Syntropy
     rescue StandardError => e
       p e
       p e.backtrace
-      req.respond(nil, ':status' => Qeweney::S*tatus::INTERNAL_SERVER_ERROR)
+      req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
     end
 
     def load_module(entry)
-      body = IO.read(entry[:fn])
-      klass = Class.new
-      o = klass.instance_eval(body, entry[:fn], 1)
+      loader = Syntropy::ModuleLoader.new(@src_path, @env)
+      ref = entry[:fn].gsub(%r{^#{@src_path}\/}, '').gsub(/\.rb$/, '')
+      o = loader.load(ref)
+      # klass = Class.new
+      # o = klass.instance_eval(body, entry[:fn], 1)
 
       if o.is_a?(Papercraft::HTML)
         return wrap_template(o)

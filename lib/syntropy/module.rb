@@ -32,6 +32,8 @@ module Syntropy
       when Symbol
         # TODO: verify export_value denotes a valid method
         mod_ctx.new(@env)
+      when Proc
+        export_value
       else
         export_value.new(@env)
       end

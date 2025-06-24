@@ -1,5 +1,6 @@
 class API < Syntropy::RPCAPI
-  def initialize
+  def initialize(env)
+    super(env)
     @count = 0
   end
 
@@ -9,11 +10,11 @@ class API < Syntropy::RPCAPI
 
   def incr!(req)
     if req.path != '/test/api'
-        raise Syntropy::Error.new(Qeweney::Status::TEAPOT, 'Teapot') 
+        raise Syntropy::Error.new(Qeweney::Status::TEAPOT, 'Teapot')
     end
 
     @count += 1
   end
 end
 
-API.new
+export API

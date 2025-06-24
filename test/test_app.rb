@@ -6,7 +6,12 @@ class AppRoutingTest < Minitest::Test
   APP_ROOT = File.join(__dir__, 'app')
 
   def setup
-    @app = Syntropy::App.new(APP_ROOT, '/test')
+    @machine = UM.new
+
+    @tmp_path = '/test/tmp'
+    @tmp_fn = File.join(APP_ROOT, "tmp.rb")
+
+    @app = Syntropy::App.new(@machine, APP_ROOT, '/test', watch_files: 0.05)
   end
 
   def full_path(fn)
@@ -100,7 +105,21 @@ class AppRoutingTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
     assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+  end
 
+  def test_app_file_watching
+    @machine.sleep 0.2
 
+    req = make_request(':method' => 'GET', ':path' => @tmp_path)
+    assert_equal 'foo', req.response_body
+
+    orig_body = IO.read(@tmp_fn)
+    IO.write(@tmp_fn, orig_body.gsub('foo', 'bar'))
+    @machine.sleep(0.5)
+
+    req = make_request(':method' => 'GET', ':path' => @tmp_path)
+    assert_equal 'bar', req.response_body
+  ensure
+    IO.write(@tmp_fn, orig_body) if orig_body
   end
 end

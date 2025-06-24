@@ -15,7 +15,7 @@ class RPCAPITest < Minitest::Test
   end
 
   def setup
-    @app = TestAPI.new
+    @app = TestAPI.new({})
   end
 
   def test_rpc_api

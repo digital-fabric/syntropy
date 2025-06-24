@@ -8,6 +8,7 @@ class ConnectionPoolTest < Minitest::Test
     @fn = "/tmp/#{rand(100000)}.db"
     @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
 
+    FileUtils.rm(@fn) rescue nil
     @standalone_db = Extralite::Database.new(@fn)
     @standalone_db.execute("create table foo (x,y, z)")
     @standalone_db.execute("insert into foo values (1, 2, 3)")
@@ -42,7 +43,7 @@ class ConnectionPoolTest < Minitest::Test
     assert_equal 2, dbs.size
     assert_equal 2, dbs.uniq.size
     assert_equal 2, @cp.count
-    
+
     records = @standalone_db.query("select * from foo order by x")
     assert_equal [
       {x: 1, y: 2, z: 3},
