@@ -21,6 +21,7 @@ class ModuleTest < Minitest::Test
     mod = @loader.load('_lib/callable')
     assert_kind_of Syntropy::Module, mod
     assert_equal 'barbarbar', mod.call(3)
+    assert_raises(NoMethodError) { mod.foo(2) }
     assert_equal 42, mod.bar
 
     mod = @loader.load('_lib/klass')

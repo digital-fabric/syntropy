@@ -1,20 +1,25 @@
 # frozen_string_literal: true
 
 require 'qeweney'
-require 'syntropy/errors'
 require 'json'
 require 'papercraft'
+
+require 'syntropy/errors'
+require 'syntropy/file_watch'
 
 module Syntropy
   class App
     attr_reader :route_cache
 
-    def initialize(src_path, mount_path)
+    def initialize(src_path, mount_path, env = {})
       @src_path = src_path
       @mount_path = mount_path
       @route_cache = {}
+      @env = env
 
       @relative_path_re = calculate_relative_path_re(mount_path)
+      if env[:watch_file_changes]
+      end
     end
 
     def find_route(path, cache: true)
@@ -67,7 +72,7 @@ module Syntropy
 
       entry = find_file_entry_with_extension(fs_path)
       return entry if entry[:kind] != :not_found
-        
+
       find_up_tree_module(path)
     end
 
