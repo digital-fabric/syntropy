@@ -12,22 +12,20 @@ module Syntropy
   class App
     attr_reader :route_cache
 
-    def initialize(machine, src_path, mount_path, env = {})
+    def initialize(machine, src_path, mount_path, opts = {})
       @machine = machine
-      @src_path = src_path
+      @src_path = File.expand_path(src_path)
       @mount_path = mount_path
       @route_cache = {}
-      @env = env
+      @opts = opts
 
       @relative_path_re = calculate_relative_path_re(mount_path)
-      if (wf = env[:watch_files])
-        period = wf.is_a?(Numeric) ? wf : 0.1
-        machine.spin do
-          Syntropy.file_watch(@machine, src_path, period: period) { invalidate_cache(it) }
-        rescue Exception => e
-          p e
-          p e.backtrace
-        end
+      @machine.spin do
+        # we do startup stuff asynchronously, in order to first let TP2 do its
+        # setup tasks
+        @machine.sleep 0.25
+        @opts[:logger]&.call("Serving from #{File.expand_path(@src_path)}")
+        start_file_watcher if opts[:watch_files]
       end
     end
 
@@ -42,15 +40,6 @@ module Syntropy
       entry
     end
 
-    def invalidate_cache(fn)
-      invalidated_keys = []
-      @route_cache.each do |k, v|
-        invalidated_keys << k if v[:fn] == fn
-      end
-
-      invalidated_keys.each { @route_cache.delete(it) }
-    end
-
     def call(req)
       entry = find_route(req.path)
       render_entry(req, entry)
@@ -61,6 +50,32 @@ module Syntropy
     end
 
     private
+
+    def start_file_watcher
+      @opts[:logger]&.call('Watching for module file changes...', nil)
+      wf = @opts[:watch_files]
+      period = wf.is_a?(Numeric) ? wf : 0.1
+      @machine.spin do
+        Syntropy.file_watch(@machine, @src_path, period: period) do
+          @opts[:logger]&.call("Detected changed file: #{it}")
+          invalidate_cache(it)
+        rescue Exception => e
+          p e
+          p e.backtrace
+          exit!
+        end
+      end
+    end
+
+    def invalidate_cache(fn)
+      invalidated_keys = []
+      @route_cache.each do |k, v|
+        @opts[:logger]&.call("Invalidate cache for #{k}", nil)
+        invalidated_keys << k if v[:fn] == fn
+      end
+
+      invalidated_keys.each { @route_cache.delete(it) }
+    end
 
     def calculate_relative_path_re(mount_path)
       mount_path = '' if mount_path == '/'
@@ -95,7 +110,7 @@ module Syntropy
     end
 
     def file_entry(fn)
-      { fn: fn, kind: FILE_KINDS[File.extname(fn)] || :static }
+      { fn: File.expand_path(fn), kind: FILE_KINDS[File.extname(fn)] || :static }
     end
 
     def find_index_entry(dir)
@@ -138,19 +153,23 @@ module Syntropy
       when :not_found
         req.respond('Not found', ':status' => Qeweney::Status::NOT_FOUND)
       when :static
-        entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
-        req.respond(IO.read(entry[:fn]), 'Content-Type' => entry[:mime_type])
+        respond_static(req, entry)
       when :markdown
         body = render_markdown(IO.read(entry[:fn]))
         req.respond(body, 'Content-Type' => 'text/html')
       when :module
-        call_module(entry, req)
+        call_module(req, entry)
       else
-        raise "Invalid entry kind"
+        raise 'Invalid entry kind'
       end
     end
 
-    def call_module(entry, req)
+    def respond_static(req, entry)
+      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
+      req.respond(IO.read(entry[:fn]), 'Content-Type' => entry[:mime_type])
+    end
+
+    def call_module(req, entry)
       entry[:code] ||= load_module(entry)
       if entry[:code] == :invalid
         req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
@@ -165,17 +184,13 @@ module Syntropy
     end
 
     def load_module(entry)
-      loader = Syntropy::ModuleLoader.new(@src_path, @env)
+      loader = Syntropy::ModuleLoader.new(@src_path, @opts)
       ref = entry[:fn].gsub(%r{^#{@src_path}\/}, '').gsub(/\.rb$/, '')
       o = loader.load(ref)
       # klass = Class.new
       # o = klass.instance_eval(body, entry[:fn], 1)
 
-      if o.is_a?(Papercraft::HTML)
-        return wrap_template(o)
-      else
-        return o
-      end
+      o.is_a?(Papercraft::HTML) ? wrap_template(o) : o
     end
 
     def wrap_template(templ)

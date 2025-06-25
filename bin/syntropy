@@ -56,6 +56,10 @@ if !File.directory?(opts[:location])
   exit
 end
 
+
+
 opts[:machine] = UM.new
-app = Syntropy::App.new(opts[:machine], opts[:location], '/', watch_files: 0.05)
-TP2.run(opts) { app.(it) }
+opts[:logger] = opts[:logger] && TP2::Logger.new(opts[:machine], **opts)
+
+app = Syntropy::App.new(opts[:machine], opts[:location], '/', opts)
+TP2.run(opts) { app.call(it) }
