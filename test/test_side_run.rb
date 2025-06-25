@@ -29,9 +29,15 @@ class SideRunTest < Minitest::Test
   end
 
   def test_side_run_convenience_method
-    x = Syntropy.side_run(@machine) { 42 }
+    Syntropy.machine = nil
+    assert_raises { Syntropy.side_run { 42 } }
+
+    Syntropy.machine = @machine
+    x = Syntropy.side_run { 42 }
     assert_equal 42, x
 
-    assert_raises(Bad) { Syntropy.side_run(@machine) { raise Bad } }
+    assert_raises(Bad) { Syntropy.side_run { raise Bad } }
+  ensure
+  Syntropy.machine = nil
   end
 end
