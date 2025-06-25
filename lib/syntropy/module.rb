@@ -1,21 +1,33 @@
 # frozen_string_literal: true
 
+require 'papercraft'
+
 module Syntropy
   class ModuleLoader
     def initialize(root, env)
       @root = root
       @env = env
-      @loaded = {}
+      @loaded = {} # maps ref to code
+      @fn_map = {} # maps filename to ref
     end
 
     def load(ref)
       @loaded[ref] ||= load_module(ref)
     end
 
+    def unload(fn)
+      ref = @fn_map[fn]
+      return if !ref
+
+      @loaded.delete(ref)
+      @fn_map.delete(fn)
+    end
+
     private
 
     def load_module(ref)
-      fn = File.join(@root, "#{ref}.rb")
+      fn = File.expand_path(File.join(@root, "#{ref}.rb"))
+      @fn_map[fn] = ref
       raise RuntimeError, "File not found #{fn}" if !File.file?(fn)
 
       mod_body = IO.read(fn)
@@ -32,6 +44,8 @@ module Syntropy
       when Symbol
         # TODO: verify export_value denotes a valid method
         mod_ctx.new(@env)
+      when String
+        ->(req) { req.respond(export_value) }
       when Proc
         export_value
       else
@@ -55,6 +69,10 @@ module Syntropy
 
     def self.export(ref)
       @__export_value__ = ref
+    end
+
+    def self.templ(&block)
+      Papercraft.html(&block)
     end
 
     def self.__export_value__

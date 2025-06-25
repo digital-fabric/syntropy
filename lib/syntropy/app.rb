@@ -27,6 +27,8 @@ module Syntropy
         @opts[:logger]&.call("Serving from #{File.expand_path(@src_path)}")
         start_file_watcher if opts[:watch_files]
       end
+
+      @module_loader ||= Syntropy::ModuleLoader.new(@src_path, @opts)
     end
 
     def find_route(path, cache: true)
@@ -73,6 +75,7 @@ module Syntropy
       end
 
       invalidated_keys.each { @route_cache.delete(it) }
+      @module_loader.unload(fn)
     end
 
     def calculate_relative_path_re(mount_path)
@@ -182,13 +185,12 @@ module Syntropy
     end
 
     def load_module(entry)
-      loader = Syntropy::ModuleLoader.new(@src_path, @opts)
       ref = entry[:fn].gsub(%r{^#{@src_path}/}, '').gsub(/\.rb$/, '')
-      o = loader.load(ref)
-      # klass = Class.new
-      # o = klass.instance_eval(body, entry[:fn], 1)
-
-      o.is_a?(Papercraft::HTML) ? wrap_template(o) : o
+      o = @module_loader.load(ref)
+      o.is_a?(Papercraft::Template) ? wrap_template(o) : o
+    rescue StandardError => e
+      @opts[:logger]&.call("Error while loading module #{ref}: #{e.message}")
+      :invalid
     end
 
     def wrap_template(templ)
