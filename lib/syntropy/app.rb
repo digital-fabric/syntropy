@@ -23,7 +23,7 @@ module Syntropy
       @machine.spin do
         # we do startup stuff asynchronously, in order to first let TP2 do its
         # setup tasks
-        @machine.sleep 0.25
+        @machine.sleep 0.15
         @opts[:logger]&.call("Serving from #{File.expand_path(@src_path)}")
         start_file_watcher if opts[:watch_files]
       end
@@ -34,9 +34,7 @@ module Syntropy
       return cached if cached
 
       entry = calculate_route(path)
-      if entry[:kind] != :not_found
-        @route_cache[path] = entry if cache
-      end
+      @route_cache[path] = entry if entry[:kind] != :not_found && cache
       entry
     end
 
@@ -79,7 +77,7 @@ module Syntropy
 
     def calculate_relative_path_re(mount_path)
       mount_path = '' if mount_path == '/'
-      /^#{mount_path}(?:\/(.*))?$/
+      %r{^#{mount_path}(?:/(.*))?$}
     end
 
     FILE_KINDS = {
@@ -89,7 +87,7 @@ module Syntropy
     NOT_FOUND = { kind: :not_found }
 
     # We don't allow access to path with /.., or entries that start with _
-    FORBIDDEN_RE = /(\/_)|((\/\.\.)\/?)/
+    FORBIDDEN_RE = %r{(/_)|((/\.\.)/?)}
 
     def calculate_route(path)
       return NOT_FOUND if path =~ FORBIDDEN_RE
@@ -141,7 +139,7 @@ module Syntropy
       entry[:kind] == :module ? entry : NOT_FOUND
     end
 
-    UP_TREE_PATH_RE = /^(.+)?\/[^\/]+$/
+    UP_TREE_PATH_RE = %r{^(.+)?/[^/]+$}
 
     def parent_path(path)
       m = path.match(UP_TREE_PATH_RE)
@@ -185,7 +183,7 @@ module Syntropy
 
     def load_module(entry)
       loader = Syntropy::ModuleLoader.new(@src_path, @opts)
-      ref = entry[:fn].gsub(%r{^#{@src_path}\/}, '').gsub(/\.rb$/, '')
+      ref = entry[:fn].gsub(%r{^#{@src_path}/}, '').gsub(/\.rb$/, '')
       o = loader.load(ref)
       # klass = Class.new
       # o = klass.instance_eval(body, entry[:fn], 1)
@@ -194,7 +192,7 @@ module Syntropy
     end
 
     def wrap_template(templ)
-      ->(req) {
+      lambda { |req|
         body = templ.render
         req.respond(body, 'Content-Type' => 'text/html')
       }

@@ -9,7 +9,7 @@ class AppRoutingTest < Minitest::Test
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, "tmp.rb")
+    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
     @app = Syntropy::App.new(@machine, APP_ROOT, '/test', watch_files: 0.05)
   end
