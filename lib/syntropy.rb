@@ -8,6 +8,7 @@ require 'syntropy/errors'
 require 'syntropy/connection_pool'
 require 'syntropy/module'
 require 'syntropy/rpc_api'
+require 'syntropy/side_run'
 require 'syntropy/app'
 
 class Qeweney::Request
@@ -60,12 +61,22 @@ class Qeweney::Request
 end
 
 module Syntropy
+  class << self
+    attr_accessor :machine
+
+    def side_run(&block)
+      raise 'Syntropy.machine not set' if !@machine
+
+      SideRun.call(@machine, &block)
+    end
+  end
+
   def colorize(color_code)
     "\e[#{color_code}m#{self}\e[0m"
   end
 
   GREEN = "\e[32m"
-  WHITE = "\e[0m"
+  CLEAR = "\e[0m"
   YELLOW = "\e[33m"
 
   BANNER = (
@@ -73,9 +84,9 @@ module Syntropy
     "  #{GREEN}\n"\
     "  #{GREEN} ooo\n"\
     "  #{GREEN}ooooo\n"\
-    "  #{GREEN} ooo vvv       #{WHITE}Syntropy - a web framework for Ruby\n"\
-    "  #{GREEN}  o vvvvv     #{WHITE}--------------------------------------\n"\
-    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{WHITE}https://github.com/noteflakes/syntropy\n"\
+    "  #{GREEN} ooo vvv       #{CLEAR}Syntropy - a web framework for Ruby\n"\
+    "  #{GREEN}  o vvvvv     #{CLEAR}--------------------------------------\n"\
+    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{CLEAR}https://github.com/noteflakes/syntropy\n"\
     "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
     "#{YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\e[0m\n\n"
   )

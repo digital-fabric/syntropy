@@ -1,3 +1,6 @@
+- Add side_run API for running tasks on a side thread
+- Add support for rendering markdown with layout
+
 ## 0.3 2025-06-25
 
 - Implement module reloading on file change

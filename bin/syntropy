@@ -57,8 +57,8 @@ if !File.directory?(opts[:location])
 end
 
 
-
-opts[:machine] = UM.new
+# We set Syntropy.machine so we can reference it from anywhere
+opts[:machine] = Syntropy.machine = UM.new
 opts[:logger] = opts[:logger] && TP2::Logger.new(opts[:machine], **opts)
 
 app = Syntropy::App.new(opts[:machine], opts[:location], '/', opts)
