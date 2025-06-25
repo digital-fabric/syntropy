@@ -37,11 +37,15 @@ databases in a concurrent environment.
 Syntropy is based on:
 
 - [UringMachine](https://github.com/digital-fabric/uringmachine) - a lean mean
-  [io_uring](https://unixism.net/loti/what_is_io_uring.html) machine for Ruby
+  [io_uring](https://unixism.net/loti/what_is_io_uring.html) machine for Ruby.
 - [TP2](https://github.com/noteflakes/tp2) - an io_uring-based web server for
-  concurrent Ruby apps
+  concurrent Ruby apps.
+- [Qeweney](https://github.com/digital-fabric/qeweney) a uniform interface for
+  working with HTTP requests and responses.
+- [Papercraft](https://github.com/digital-fabric/papercraft) HTML templating
+  with plain Ruby.
 - [Extralite](https://github.com/digital-fabric/extralite) a fast and innovative
-  SQLite wrapper for Ruby
+  SQLite wrapper for Ruby.
 
 ## Routing
 
@@ -53,7 +57,7 @@ site/
 ├ _layout/
 | └ default.rb
 ├ _articles/
-| └ 2025-06-01-hello_world.md
+| └ 2025-01-01-hello_world.md
 ├ api/
 | └ v1.rb
 ├ assets/
