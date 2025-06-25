@@ -77,6 +77,6 @@ module Syntropy
     "  #{GREEN}  o vvvvv     #{WHITE}--------------------------------------\n"\
     "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{WHITE}https://github.com/noteflakes/syntropy\n"\
     "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
-    "  #{YELLOW}++++++++++++\e[0m\n\n"
+    "#{YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\e[0m\n\n"
   )
 end
