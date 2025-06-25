@@ -1,0 +1,7 @@
+localhost {
+  reverse_proxy noteflakescom-backend-1:1234
+}
+
+my-awesome-domain.com {
+  reverse_proxy noteflakescom-backend-1:1234
+}

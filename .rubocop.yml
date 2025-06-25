@@ -9,6 +9,14 @@ AllCops:
     - "Gemfile*"
 Style/LambdaCall:
   Enabled: false
+
+Style/BlockDelimiters:
+  Enabled: false
+
+Style/Semicolon:
+  Exclude:
+    - cmd/setup/template/site/site/articles/cage.rb
+
 # Style/ModuleFunction:
 #   Enabled: false
 # Style/RegexpLiteral:

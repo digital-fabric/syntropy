@@ -1,0 +1,51 @@
+services:
+  backend:
+    build: .
+    privileged: true
+    restart: always
+    ports:
+      - 127.0.0.1:1234:1234
+    # expose:
+    #   - 1234
+    volumes:
+      - .:/home/app
+    deploy:
+      # replicas: 1
+      resources:
+        limits:
+          memory: 500M
+    # restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1M"
+        max-file: "10"
+
+    # healthcheck:
+    #   test: "curl 'http://localhost:1234/?q=ping'"
+    #   interval: "30s"
+    #   timeout: "3s"
+    #   start_period: "5s"
+    #   retries: 3
+
+  proxy:
+    depends_on:
+      - backend
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ./proxy/etc/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    # env_file:
+      # - ./conf/caddy.env
+      # - ./conf/caddy_sensitive.env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1M"
+        max-file: "10"
