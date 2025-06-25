@@ -19,7 +19,6 @@ module Syntropy
       ref = @fn_map[fn]
       return if !ref
 
-      p unload: ref, fn: fn
       @loaded.delete(ref)
       @fn_map.delete(fn)
     end
