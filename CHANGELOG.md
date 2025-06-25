@@ -1,3 +1,7 @@
+## 0.3 2025-06-25
+
+- Implement module reloading on file change
+
 ## 0.2 2025-06-24
 
 - Add CLI tool
