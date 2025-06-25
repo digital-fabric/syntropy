@@ -22,15 +22,31 @@
 | Syntropy: A tendency towards complexity, structure, order, organization of
 ever more advantageous and orderly patterns.
 
-Syntropy is a WIP web framework for building multi-page and single-page apps.
+Syntropy is a web framework for building multi-page and single-page apps.
 Syntropy uses file tree-based routing, and provides controllers for a number of
 common patterns, such as a SPA with client-side rendering, a standard
 server-rendered MPA, a REST API etc.
 
+Syntropy also provides tools for working with lists of items represented as
+files (ala Jekyll and other static site generators), allowing you to build
+read-only apps (such as a markdown blog) without using a database.
+
+For interactive apps, Syntropy provides basic tools for working with SQLite
+databases in a concurrent environment.
+
+Syntropy is based on:
+
+- [UringMachine](https://github.com/digital-fabric/uringmachine) - a lean mean
+  [io_uring](https://unixism.net/loti/what_is_io_uring.html) machine for Ruby
+- [TP2](https://github.com/noteflakes/tp2) - an io_uring-based web server for
+  concurrent Ruby apps
+- [Extralite](https://github.com/digital-fabric/extralite) a fast and innovative
+  SQLite wrapper for Ruby
+
 ## Routing
 
-Routing is performed automatically by following the tree structure of the
-Syntropy app. A simple example:
+Syntropy routes request by following the tree structure of the Syntropy app. A
+simple example:
 
 ```
 site/
@@ -50,9 +66,8 @@ site/
 └ robots.txt
 ```
 
-The routing follows the file hierarchy, and Syntropy knows how to serve static
-asset files (CSS, JS, images...) as well as render markdown files and run custom
-Ruby code.
+Syntropy knows how to serve static asset files (CSS, JS, images...) as well as
+render markdown files and run modules written in Ruby.
 
 ## What does a Syntropic Ruby module look like?
 
@@ -67,7 +82,7 @@ def articles
   Syntropy.stamped_file_entries('/_articles')
 end
 
-@@layout.apply(title: 'archive') {
+export @@layout.apply(title: 'archive') {
   div {
     ul {
       articles.each { |article|
@@ -98,8 +113,8 @@ class APIV1 < Syntropy::RPCAPI
   end
 end
 
-APIV1.new(Syntropy.env.open_db)
+export APIV1
 ```
 
-Basically, the return value of the module is a template or a resource that
+Basically, the exported value can be a template, a callable or a class that
 responds to the request.
