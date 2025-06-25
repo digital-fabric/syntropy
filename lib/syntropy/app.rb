@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-require 'qeweney'
 require 'json'
+require 'yaml'
+
+require 'qeweney'
 require 'papercraft'
 
 require 'syntropy/errors'
@@ -68,6 +70,8 @@ module Syntropy
     end
 
     def invalidate_cache(fn)
+      @module_loader.unload(fn)
+
       invalidated_keys = []
       @route_cache.each do |k, v|
         @opts[:logger]&.call("Invalidate cache for #{k}", nil)
@@ -75,7 +79,6 @@ module Syntropy
       end
 
       invalidated_keys.each { @route_cache.delete(it) }
-      @module_loader.unload(fn)
     end
 
     def calculate_relative_path_re(mount_path)
@@ -156,7 +159,7 @@ module Syntropy
       when :static
         respond_static(req, entry)
       when :markdown
-        body = render_markdown(IO.read(entry[:fn]))
+        body = render_markdown(entry[:fn])
         req.respond(body, 'Content-Type' => 'text/html')
       when :module
         call_module(req, entry)
@@ -188,7 +191,7 @@ module Syntropy
       ref = entry[:fn].gsub(%r{^#{@src_path}/}, '').gsub(/\.rb$/, '')
       o = @module_loader.load(ref)
       o.is_a?(Papercraft::Template) ? wrap_template(o) : o
-    rescue StandardError => e
+    rescue Exception => e
       @opts[:logger]&.call("Error while loading module #{ref}: #{e.message}")
       :invalid
     end
@@ -200,8 +203,47 @@ module Syntropy
       }
     end
 
-    def render_markdown(str)
-      Papercraft.markdown(str)
+    def render_markdown(fn)
+      atts, md = parse_markdown_file(fn)
+
+      if atts[:layout]
+        layout = @module_loader.load("_layout/#{atts[:layout]}")
+        html = layout.apply { emit_markdown(md) }.render
+      else
+        html = Papercraft.markdown(md)
+      end
+      html
+    end
+
+    DATE_REGEXP = /(\d{4}\-\d{2}\-\d{2})/
+    FRONT_MATTER_REGEXP = /\A(---\s*\n.*?\n?)^((---|\.\.\.)\s*$\n?)/m
+    YAML_OPTS = {
+      permitted_classes: [Date],
+      symbolize_names: true
+    }
+
+    # Parses the markdown file at the given path.
+    #
+    # @param path [String] file path
+    # @return [Array] an tuple containing properties<Hash>, contents<String>
+    def parse_markdown_file(path)
+      content = IO.read(path) || ''
+      atts = {}
+
+      # Parse date from file name
+      if (m = path.match(DATE_REGEXP))
+        atts[:date] ||= Date.parse(m[1])
+      end
+
+      if (m = content.match(FRONT_MATTER_REGEXP))
+        front_matter = m[1]
+        content = m.post_match
+
+        yaml = YAML.safe_load(front_matter, **YAML_OPTS)
+        atts = atts.merge(yaml)
+      end
+
+      [atts, content]
     end
   end
 end

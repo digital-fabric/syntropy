@@ -1,0 +1,40 @@
+body {
+  font-family: sans-serif;
+}
+
+article.mesostic {
+  width: 600px;
+  margin: 2em auto;
+  font-size: 1.4em;
+
+  * {
+    font-family: monospace;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  content {
+    display: grid;
+    margin: 2em 0;
+    grid-template-columns: 1fr auto 1fr;
+
+    span {
+      display: inline-block;
+    }
+    span:nth-child(3n + 1) {
+      text-align: right;
+    }
+
+    span:nth-child(3n + 2) {
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+
+  author {
+    display: block;
+    text-align: right;
+  }
+}

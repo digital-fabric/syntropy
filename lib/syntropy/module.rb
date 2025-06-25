@@ -19,6 +19,7 @@ module Syntropy
       ref = @fn_map[fn]
       return if !ref
 
+      p unload: ref, fn: fn
       @loaded.delete(ref)
       @fn_map.delete(fn)
     end
@@ -28,19 +29,22 @@ module Syntropy
     def load_module(ref)
       fn = File.expand_path(File.join(@root, "#{ref}.rb"))
       @fn_map[fn] = ref
-      raise RuntimeError, "File not found #{fn}" if !File.file?(fn)
+      raise "File not found #{fn}" if !File.file?(fn)
 
       mod_body = IO.read(fn)
       mod_ctx = Class.new(Syntropy::Module)
       mod_ctx.loader = self
-      # mod_ctx = .new(self, @env)
       mod_ctx.module_eval(mod_body, fn, 1)
 
       export_value = mod_ctx.__export_value__
 
+      wrap_module(mod_ctx, export_value)
+    end
+
+    def wrap_module(mod_ctx, export_value)
       case export_value
       when nil
-        raise RuntimeError, 'No export found'
+        raise 'No export found'
       when Symbol
         # TODO: verify export_value denotes a valid method
         mod_ctx.new(@env)
