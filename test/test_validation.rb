@@ -27,7 +27,7 @@ class ValidationTest < Minitest::Test
     assert_raises(VE) { @req.validate_param(:q, Integer) }
     assert_raises(VE) { @req.validate_param(:q, Float) }
     assert_raises(VE) { @req.validate_param(:q, nil) }
-    
+
     assert_raises(VE) { @req.validate_param(:y, Integer, 1..100) }
 
     assert_raises(VE) { @req.validate_param(:y, :bool) }
