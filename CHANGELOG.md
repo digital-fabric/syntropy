@@ -1,3 +1,8 @@
+## 0.4 2025-07-03
+
+- Improve errors API
+- Add HTTP method validation
+- Refactor Qeweney::Request extensions
 - Add side_run API for running tasks on a side thread
 - Add support for rendering markdown with layout
 
