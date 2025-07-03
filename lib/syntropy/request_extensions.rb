@@ -8,6 +8,41 @@ module Syntropy
       @ctx ||= {}
     end
 
+    def validate_http_method(*accepted)
+      raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED) if !accepted.include?(method)
+    end
+
+    def respond_by_http_method(map)
+      value = map[self.method]
+      raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED) if !value
+
+      value = value.() if value.is_a?(Proc)
+      (body, headers) = value
+      respond(body, headers)
+    end
+
+    def respond_on_get(body, headers = {})
+      case self.method
+      when 'head'
+        respond(nil, headers)
+      when 'get'
+        respond(body, headers)
+      else
+        raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+      end
+    end
+
+    def respond_on_post(body, headers = {})
+      case self.method
+      when 'head'
+        respond(nil, headers)
+      when 'post'
+        respond(body, headers)
+      else
+        raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+      end
+    end
+
     def validate_param(name, *clauses)
       value = query[name]
       clauses.each do |c|

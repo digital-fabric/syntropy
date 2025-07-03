@@ -45,6 +45,9 @@ module Syntropy
     def call(req)
       entry = find_route(req.path)
       render_entry(req, entry)
+    rescue Syntropy::Error => e
+      msg = e.message
+      req.respond(msg.empty? ? nil : msg, ':status' => e.http_status)
     rescue StandardError => e
       p e
       p e.backtrace
@@ -155,25 +158,47 @@ module Syntropy
     def render_entry(req, entry)
       case entry[:kind]
       when :not_found
-        req.respond('Not found', ':status' => Qeweney::Status::NOT_FOUND)
+        respond_not_found(req, entry)
       when :static
         respond_static(req, entry)
       when :markdown
-        body = render_markdown(entry[:fn])
-        req.respond(body, 'Content-Type' => 'text/html')
+        respond_markdown(req, entry)
       when :module
-        call_module(req, entry)
+        respond_module(req, entry)
       else
         raise 'Invalid entry kind'
       end
     end
 
-    def respond_static(req, entry)
-      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
-      req.respond(IO.read(entry[:fn]), 'Content-Type' => entry[:mime_type])
+    def respond_not_found(req, _entry)
+      headers = { ':status' => Qeweney::Status::NOT_FOUND }
+      case req.method
+      when 'head'
+        req.respond(nil, headers)
+      else
+        req.respond('Not found', headers)
+      end
     end
 
-    def call_module(req, entry)
+    def respond_static(req, entry)
+      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
+      headers = { 'Content-Type' => entry[:mime_type] }
+      req.respond_by_http_method(
+        'head'  => [nil, headers],
+        'get'   => -> { [IO.read(entry[:fn]), headers] }
+      )
+    end
+
+    def respond_markdown(req, entry)
+      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
+      headers = { 'Content-Type' => entry[:mime_type] }
+      req.respond_by_http_method(
+        'head'  => [nil, headers],
+        'get'   => -> { [render_markdown(entry[:fn]), headers] }
+      )
+    end
+
+    def respond_module(req, entry)
       entry[:code] ||= load_module(entry)
       if entry[:code] == :invalid
         req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
@@ -181,6 +206,8 @@ module Syntropy
       end
 
       entry[:code].call(req)
+    rescue Syntropy::Error => e
+      req.respond(nil, ':status' => e.http_status)
     rescue StandardError => e
       p e
       p e.backtrace

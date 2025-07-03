@@ -11,7 +11,7 @@ module Syntropy
     end
 
     def call(req)
-      response, status = invoke(req)
+      response, status = __invoke__(req)
       req.respond(
         response.to_json,
         ':status'       => status,
@@ -19,15 +19,18 @@ module Syntropy
       )
     end
 
-    def invoke(req)
-      q = req.validate_param(:q, String)
+    private
+
+    def __invoke__(req)
+      q = req.validate_param(:q, String).to_sym
       response = case req.method
       when 'get'
-        send(q.to_sym, req)
+        __invoke_get__(q, req)
       when 'post'
-        send(:"#{q}!", req)
+        __invoke_post__(q, req)
       else
-        raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+        e = Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+        raise e
       end
       [{ status: 'OK', response: response }, Qeweney::Status::OK]
     rescue => e
@@ -35,14 +38,35 @@ module Syntropy
         p e
         p e.backtrace
       end
-      error_response(e)
+      __error_response__(e)
+    end
+
+    def __invoke_get__(sym,  req)
+      return send(sym, req) if respond_to?(sym)
+
+      status = (
+        respond_to?(:"#{sym}!") ?
+        Qeweney::Status::METHOD_NOT_ALLOWED : Qeweney::Status::NOT_FOUND
+      )
+      raise Syntropy::Error.new(status)
+    end
+
+    def __invoke_post__(sym, req)
+      sym_post = :"#{sym}!"
+      return send(sym_post, req) if respond_to?(sym_post)
+
+      status = (
+        respond_to?(sym) ?
+        Qeweney::Status::METHOD_NOT_ALLOWED : Qeweney::Status::NOT_FOUND
+      )
+      raise Syntropy::Error.new(status)
     end
 
     INTERNAL_SERVER_ERROR = Qeweney::Status::INTERNAL_SERVER_ERROR
 
-    def error_response(err)
+    def __error_response__(err)
       http_status = err.respond_to?(:http_status) ? err.http_status : INTERNAL_SERVER_ERROR
-      error_name = err.class.name
+      error_name = err.class.name.split('::').last
       [{ status: error_name, message: err.message }, http_status]
     end
   end
