@@ -29,8 +29,7 @@ module Syntropy
       when 'post'
         __invoke_post__(q, req)
       else
-        e = Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
-        raise e
+        raise Syntropy::Error.method_not_allowed
       end
       [{ status: 'OK', response: response }, Qeweney::Status::OK]
     rescue => e
@@ -44,22 +43,16 @@ module Syntropy
     def __invoke_get__(sym,  req)
       return send(sym, req) if respond_to?(sym)
 
-      status = (
-        respond_to?(:"#{sym}!") ?
-        Qeweney::Status::METHOD_NOT_ALLOWED : Qeweney::Status::NOT_FOUND
-      )
-      raise Syntropy::Error.new(status)
+      err = respond_to?(:"#{sym}!") ? Syntropy::Error.method_not_allowed : Syntropy::Error.not_found
+      raise err
     end
 
     def __invoke_post__(sym, req)
       sym_post = :"#{sym}!"
       return send(sym_post, req) if respond_to?(sym_post)
 
-      status = (
-        respond_to?(sym) ?
-        Qeweney::Status::METHOD_NOT_ALLOWED : Qeweney::Status::NOT_FOUND
-      )
-      raise Syntropy::Error.new(status)
+      err = respond_to?(sym) ? Syntropy::Error.method_not_allowed : Syntropy::Error.not_found
+      raise err
     end
 
     INTERNAL_SERVER_ERROR = Qeweney::Status::INTERNAL_SERVER_ERROR

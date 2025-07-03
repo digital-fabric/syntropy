@@ -3,6 +3,8 @@
 require_relative 'helper'
 
 class AppRoutingTest < Minitest::Test
+  Status = Qeweney::Status
+
   APP_ROOT = File.join(__dir__, 'app')
 
   def setup
@@ -64,26 +66,26 @@ class AppRoutingTest < Minitest::Test
   def test_app_rendering
     req = make_request(':method' => 'GET', ':path' => '/')
     assert_equal 'Not found', req.response_body
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    assert_equal Status::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'HEAD', ':path' => '/')
     assert_nil req.response_body
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    assert_equal Status::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/')
     assert_equal 'Not found', req.response_body
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    assert_equal Status::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test')
-    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal Status::OK, req.response_status
     assert_equal '<h1>Hello, world!</h1>', req.response_body
 
     req = make_request(':method' => 'HEAD', ':path' => '/test')
-    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal Status::OK, req.response_status
     assert_nil req.response_body
 
     req = make_request(':method' => 'POST', ':path' => '/test')
-    assert_equal Qeweney::Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
     assert_nil req.response_body
 
     req = make_request(':method' => 'GET', ':path' => '/test/index')
@@ -99,20 +101,20 @@ class AppRoutingTest < Minitest::Test
 
     req = make_request(':method' => 'POST', ':path' => '/test/index.html')
     assert_nil req.response_body
-    assert_equal Qeweney::Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/assets/style.css')
     assert_equal '* { color: beige }', req.response_body
     assert_equal 'text/css', req.response_headers['Content-Type']
 
     req = make_request(':method' => 'GET', ':path' => '/assets/style.css')
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    assert_equal Status::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/api?q=get')
     assert_equal({ status: 'OK', response: 0 }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api?q=get')
-    assert_equal Qeweney::Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: '' }, req.response_json)
 
     req = make_request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
@@ -122,28 +124,28 @@ class AppRoutingTest < Minitest::Test
     assert_equal({ status: 'OK', response: 1 }, req.response_json)
 
     req = make_request(':method' => 'GET', ':path' => '/test/api?q=incr')
-    assert_equal Qeweney::Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: '' }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
-    assert_equal Qeweney::Status::TEAPOT, req.response_status
+    assert_equal Status::TEAPOT, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
-    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal Status::OK, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
-    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal Status::OK, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/baz')
     assert_equal 'foobar', req.response_body
-    assert_equal Qeweney::Status::OK, req.response_status
+    assert_equal Status::OK, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/baz')
     assert_nil req.response_body
-    assert_equal Qeweney::Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/about')
     assert_equal 'About', req.response_body.chomp
@@ -152,7 +154,7 @@ class AppRoutingTest < Minitest::Test
     assert_equal '<p>Hello from Markdown</p>', req.response_body.chomp
 
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
-    assert_equal Qeweney::Status::NOT_FOUND, req.response_status
+    assert_equal Status::NOT_FOUND, req.response_status
   end
 
   def test_app_file_watching

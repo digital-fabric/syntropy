@@ -13,6 +13,8 @@ require 'syntropy/app'
 require 'syntropy/request_extensions'
 
 module Syntropy
+    Status = Qeweney::Status
+
   class << self
     attr_accessor :machine
 

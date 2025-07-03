@@ -9,12 +9,12 @@ module Syntropy
     end
 
     def validate_http_method(*accepted)
-      raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED) if !accepted.include?(method)
+      raise Syntropy::Error.method_not_allowed if !accepted.include?(method)
     end
 
     def respond_by_http_method(map)
       value = map[self.method]
-      raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED) if !value
+      raise Syntropy::Error.method_not_allowed if !value
 
       value = value.() if value.is_a?(Proc)
       (body, headers) = value
@@ -28,7 +28,7 @@ module Syntropy
       when 'get'
         respond(body, headers)
       else
-        raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+      raise Syntropy::Error.method_not_allowed
       end
     end
 
@@ -39,7 +39,7 @@ module Syntropy
       when 'post'
         respond(body, headers)
       else
-        raise Syntropy::Error.new(Qeweney::Status::METHOD_NOT_ALLOWED)
+      raise Syntropy::Error.method_not_allowed
       end
     end
 
