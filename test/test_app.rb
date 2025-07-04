@@ -2,7 +2,7 @@
 
 require_relative 'helper'
 
-class AppRoutingTest < Minitest::Test
+class AppTest < Minitest::Test
   Status = Qeweney::Status
 
   APP_ROOT = File.join(__dir__, 'app')
@@ -13,7 +13,12 @@ class AppRoutingTest < Minitest::Test
     @tmp_path = '/test/tmp'
     @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
-    @app = Syntropy::App.new(@machine, APP_ROOT, '/test', watch_files: 0.05)
+    @app = Syntropy::App.load(
+      machine: @machine,
+      location: APP_ROOT,
+      mount_path: '/test',
+      watch_files: 0.05
+    )
   end
 
   def full_path(fn)
@@ -171,5 +176,32 @@ class AppRoutingTest < Minitest::Test
     assert_equal 'bar', req.response_body
   ensure
     IO.write(@tmp_fn, orig_body) if orig_body
+  end
+end
+
+class CustomAppTest < Minitest::Test
+  Status = Qeweney::Status
+
+  APP_ROOT = File.join(__dir__, 'app_custom')
+
+  def setup
+    @machine = UM.new
+    @app = Syntropy::App.load(
+      machine: @machine,
+      location: APP_ROOT,
+      mount_path: '/'
+    )
+  end
+
+  def make_request(*, **)
+    req = mock_req(*, **)
+    @app.call(req)
+    req
+  end
+
+  def test_app_with_site_rb_file
+    req = make_request(':method' => 'GET', ':path' => '/foo/bar')
+    assert_nil req.response_body
+    assert_equal Status::TEAPOT, req.response_status
   end
 end

@@ -12,6 +12,26 @@ require 'syntropy/module'
 
 module Syntropy
   class App
+    class << self
+      def load(opts)
+        site_file_app(opts) || default_app(opts)
+      end
+
+      private
+
+      def site_file_app(opts)
+        site_fn = File.join(opts[:location], '_site.rb')
+        return nil if !File.file?(site_fn)
+
+        loader = Syntropy::ModuleLoader.new(opts[:location], opts)
+        loader.load('_site')
+      end
+
+      def default_app(opts)
+        new(opts[:machine], opts[:location], opts[:mount_path] || '/', opts)
+      end
+    end
+
     attr_reader :route_cache
 
     def initialize(machine, src_path, mount_path, opts = {})

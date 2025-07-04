@@ -1,7 +1,24 @@
+- Add support for site-wide _site.rb file:
+
+  ```Ruby
+  # site/_site.rb
+  # just a regular module
+
+  export ->(req) {
+    ...
+  }
+
+  # more specifically, for the sake of running multiple domains
+  export Syntropy.route_by_domain(
+    'noteflakes.com' => 'noteflakes.com',
+    'tolkora.net' => 'tolkora.net'
+  )
+  ```
+
 - Middleware
 
   ```Ruby
-  # site/_middleware.rb or site/_hook.rb
+  # site/_hook.rb
   export ->(req, &app) do
     app.call(req)
   rescue Syntropy::Error => e
@@ -15,7 +32,30 @@
   export ->(req, err) do
     render_error_page(req, err.http_status)
   end
+
+  # a _site.rb file can be used to wrap a whole app
+  # site/_site.rb
+
+  # this means we route according to the host header, with each
+  export Syntropy.route_by_host
+
+  # we can also rewrite requests:
+  rewriter = Syntropy
+    .select { it.host =~ /^tolkora\.(org|com)$/ }
+    .terminate { it.redirect_permanent('https://tolkora.net') }
+
+  # This is actuall a pretty interesting DSL design:
+  # a chain of operations that compose functions. So, we can select a
+  export rewriter.wrap(default_app)
+
+  # composing
+  export rewriter.wrap(Syntropy.some_custom_app.wrap(app))
+
+  # or maybe
+  export rewriter << some_other_middleware << app
   ```
+
+
 
 
 - CLI tool for setting up a site repo:

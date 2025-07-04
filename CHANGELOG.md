@@ -1,3 +1,5 @@
+- Add support for _site.rb file
+
 ## 0.4 2025-07-03
 
 - Improve errors API
