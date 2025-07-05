@@ -1,3 +1,6 @@
+## 0.5 2025-07-05
+
+- Refactor App class to use Router
 - Refactor routing functionality into separate Router class
 - Add support for _site.rb file
 
