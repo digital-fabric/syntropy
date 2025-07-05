@@ -1,3 +1,7 @@
+## 0.6 2025-07-05
+
+- Add support for middleware and error handlers
+
 ## 0.5 2025-07-05
 
 - Refactor App class to use Router
