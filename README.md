@@ -59,6 +59,7 @@ site/
 ├ _articles/
 | └ 2025-01-01-hello_world.md
 ├ api/
+| ├ _hook.rb
 | └ v1.rb
 ├ assets/
 | ├ css/
@@ -73,10 +74,30 @@ site/
 Syntropy knows how to serve static asset files (CSS, JS, images...) as well as
 render markdown files and run modules written in Ruby.
 
+Some conventions employed in Syntropy-based web apps:
+
+- Files and directories starting with an underscore, e.g. `/_layout` are
+  considered private, and are not exposed to HTTP clients.
+- Normally, a module route only responds to its exact path. To respond to any
+  subtree path, add a plus sign to the end of the module name, e.g. `/api+.rb`.
+- A `_hook.rb` module is invoked on each request routed to anywhere in the
+  corresponding subtree. For example, a hook defined in `/api/_hook.rb` will be
+  used on requests to `/api`, `/api/foo`, `/api/bar` etc.
+- As a corollary, each route "inherits" all hooks defined up the tree. For
+  example, a request to `/api/foo` will invoke hooks defined in `/api/_hook.rb`
+  and `/_hook.rb`.
+- In a similar fashion to hooks, error handlers can be defined for different
+  subtrees in a `_error.rb` module. For each route, in case of an exception,
+  Syntropy will invoke the closest-found error handler module up the tree. For
+  example, an error raised while responding to a request to `/api/foo` will
+  prefer the error handler in `/api/_error.rb`, rather than `/_error.rb`.
+- The Syntrpy router accepts clean URLs for Ruby modules and Markdown files. It
+  also accepts clean URLs for `index.html` files.
+
 ## What does a Syntropic Ruby module look like?
 
-Consider `archive.rb` in the example above. We want to get a list of articles
-and render it with the given layout:
+Consider `site/archive.rb` in the file tree above. We want to get a list of
+articles and render it using the given layout:
 
 ```ruby
 # archive.rb
@@ -97,7 +118,7 @@ export @@layout.apply(title: 'archive') {
 }
 ```
 
-But a module can be something completely different:
+But a module can also be something completely different:
 
 ```ruby
 # api/v1.rb
@@ -121,4 +142,46 @@ export APIV1
 ```
 
 Basically, the exported value can be a template, a callable or a class that
-responds to the request.
+responds to the request. Here's a minimal module that responds with a hello
+world:
+
+```ruby
+export ->(req) { req.respond('Hello, world!') }
+```
+
+## Hooks (a.k.a. Middleware)
+
+A hook is a piece of code that can intercept HTTP requests before they are
+passed off to the correspending route. Hooks are applied to the subtree of the
+directory in which they reside.
+
+Hooks can be used for a variety of purposes:
+
+- Parameter validation
+- Authentication, authorization & session management
+- Logging
+- Request rewriting / redirecting
+
+When multiple hooks are defined up the tree for a particular route, they are
+chained together such that each hook is invoked starting from the file tree root
+and down to the route path.
+
+Hooks are normally implemented as Procs (or closures) with the following
+signature:
+
+```ruby
+->(req, app) { ... }
+```
+
+... where req is the request object, and app is the callable that runs the app
+code. Here's an example of an authorization hook:
+
+```ruby
+export ->(req, app) {
+  if (!req.cookies[:session_id])
+    req.redirect('/signin')
+  else
+    app.(req)
+  end
+}
+```
