@@ -1,8 +1,6 @@
 - Refactor routing code into a separate Router class.
 - The Router class is in charge of:
   - caching routes
-  - loading modules
-  - unloading modules on file change
   - calculating middleware for routes
     - middleware is defined in `_hook.rb` modules
       - interface: ->(req, next)

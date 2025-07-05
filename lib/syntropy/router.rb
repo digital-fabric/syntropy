@@ -2,8 +2,6 @@
 
 module Syntropy
   class Router
-    attr_reader :cache
-
     def initialize(opts, module_loader = nil)
       raise 'Invalid location given' if !File.directory?(opts[:location])
 
@@ -30,6 +28,10 @@ module Syntropy
     def start_file_watcher
       @opts[:logger]&.call('Watching for file changes...', nil)
       @machine.spin { file_watcher_loop }
+    end
+
+    def calc_route_proc_with_hooks(entry, proc)
+      compose_up_tree_hooks(entry[:fn], proc)
     end
 
     private
@@ -203,6 +205,36 @@ module Syntropy
 
     def remove_entry_cache_keys(entry)
       entry[:cache_keys]&.each_key { @cache.delete(it) }.clear
+    end
+
+    def compose_up_tree_hooks(path, proc)
+      parent = File.dirname(path)
+      proc = hook_wrap_if_exists(File.join(parent, '_hook.rb'), proc)
+      proc = error_handler_wrap_if_exists(File.join(parent, '_error.rb'), proc)
+      return proc if parent == @root
+
+      compose_up_tree_hooks(parent, proc)
+    end
+
+    def hook_wrap_if_exists(hook_fn, proc)
+      return proc if !File.file?(hook_fn)
+
+      ref = path_rel(hook_fn).gsub(/\.rb$/, '')
+      hook_proc = @module_loader.load(ref)
+      ->(req) { hook_proc.(req, proc) }
+    end
+
+    def error_handler_wrap_if_exists(error_handler_fn, proc)
+      return proc if !File.file?(error_handler_fn)
+
+      ref = path_rel(error_handler_fn).gsub(/\.rb$/, '')
+      error_proc = @module_loader.load(ref)
+
+      proc do |req|
+        proc.(req)
+      rescue StandardError => e
+        error_proc.(req, e)
+      end
     end
   end
 end

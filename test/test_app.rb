@@ -140,6 +140,18 @@ class AppTest < Minitest::Test
   ensure
     IO.write(@tmp_fn, orig_body) if orig_body
   end
+
+  def test_middleware
+    req = make_request(':method' => 'HEAD', ':path' => '/test?foo=42')
+    assert_equal Status::OK, req.response_status
+    assert_nil req.response_body
+    assert_equal '42', req.ctx[:foo]
+
+    req = make_request(':method' => 'HEAD', ':path' => '/test/about/raise?foo=43')
+    assert_equal Status::INTERNAL_SERVER_ERROR, req.response_status
+    assert_equal '<h1>Raised error</h1>', req.response_body
+    assert_equal '43', req.ctx[:foo]
+  end
 end
 
 class CustomAppTest < Minitest::Test

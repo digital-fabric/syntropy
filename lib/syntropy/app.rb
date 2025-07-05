@@ -65,21 +65,32 @@ module Syntropy
     private
 
     def render_entry(req, entry)
+      kind = entry[:kind]
+      return respond_not_found(req) if kind == :not_found
+
+      entry[:proc] ||= calculate_route_proc(entry)
+      entry[:proc].(req)
+    end
+
+    def calculate_route_proc(entry)
+      render_proc = route_render_proc(entry)
+      @router.calc_route_proc_with_hooks(entry, render_proc)
+    end
+
+    def route_render_proc(entry)
       case entry[:kind]
-      when :not_found
-        respond_not_found(req, entry)
       when :static
-        respond_static(req, entry)
+        ->(req) { respond_static(req, entry) }
       when :markdown
-        respond_markdown(req, entry)
+        ->(req) { respond_markdown(req, entry) }
       when :module
-        respond_module(req, entry)
+        load_module(entry)
       else
         raise 'Invalid entry kind'
       end
     end
 
-    def respond_not_found(req, _entry)
+    def respond_not_found(req)
       headers = { ':status' => Qeweney::Status::NOT_FOUND }
       case req.method
       when 'head'
