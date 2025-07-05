@@ -33,6 +33,7 @@ module Syntropy
       mod_body = IO.read(fn)
       mod_ctx = Class.new(Syntropy::Module)
       mod_ctx.loader = self
+      mod_ctx.env = @env
       mod_ctx.module_eval(mod_body, fn, 1)
 
       export_value = mod_ctx.__export_value__
@@ -66,6 +67,10 @@ module Syntropy
       @loader = loader
     end
 
+    def self.env=(env)
+      @env = env
+    end
+
     def self.import(ref)
       @loader.load(ref)
     end
@@ -74,12 +79,29 @@ module Syntropy
       @__export_value__ = ref
     end
 
-    def self.templ(&block)
+    def self.template(&block)
       Papercraft.html(&block)
+    end
+
+    def self.route_by_host
+      root = @env[:location]
+      sites = Dir[File.join(root, '*')]
+        .select { File.directory?(it) }
+        .inject({}) { |h, fn|
+          name = File.basename(fn)
+          opts = @env.merge(location: fn)
+          h[name] = Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
+          h
+        }
+      ->(req) {
+        site = sites[req.host]
+        site ? site.call(req) : req.respond(nil, ':status' => Status::BAD_REQUEST)
+      }
     end
 
     def self.__export_value__
       @__export_value__
     end
+
   end
 end

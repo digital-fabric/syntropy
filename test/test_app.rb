@@ -180,3 +180,36 @@ class CustomAppTest < Minitest::Test
     assert_equal Status::TEAPOT, req.response_status
   end
 end
+
+class MultiSiteAppTest < Minitest::Test
+  Status = Qeweney::Status
+
+  APP_ROOT = File.join(__dir__, 'app_multi_site')
+
+  def setup
+    @machine = UM.new
+    @app = Syntropy::App.load(
+      machine: @machine,
+      location: APP_ROOT,
+      mount_path: '/'
+    )
+  end
+
+  def make_request(*, **)
+    req = mock_req(*, **)
+    @app.call(req)
+    req
+  end
+
+  def test_route_by_host
+    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'blah')
+    assert_nil req.response_body
+    assert_equal Status::BAD_REQUEST, req.response_status
+
+    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'foo.bar')
+    assert_equal '<h1>foo.bar</h1>', req.response_body.chomp
+
+    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'bar.baz')
+    assert_equal '<h1>bar.baz</h1>', req.response_body.chomp
+  end
+end

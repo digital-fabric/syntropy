@@ -149,6 +149,54 @@ world:
 export ->(req) { req.respond('Hello, world!') }
 ```
 
+## Module Export / Import
+
+Modules communicate with the Syntropy framework and with other modules using
+`export` and `import`. Each module must export a single object, which can be a
+controller class, a callable (a proc/closure) or a template. The exported object
+is used by Syntropy as the entrypoint for the route.
+
+But modules can also import other modules. This permits the use of layouts:
+
+```ruby
+# site/_layout/default.rb
+export template { |**props|
+  header {
+    h1 'Foo'
+  }
+  content {
+    emit_yield(**props)
+  }
+}
+
+# site/index.rb
+layout = import '_layout/default'
+
+export layout.apply { |**props|
+  p 'o hi!'
+}
+```
+
+A module can also be written as a set of methods without any explicit class
+definition. This allows writing modules in a more functional style:
+
+```ruby
+# site/_lib/utils.rb
+
+def foo
+  42
+end
+
+export self
+
+# site/index.rb
+Utils = import '_lib/utils'
+
+export template {
+  h1 "foo = #{Utils.foo}"
+}
+```
+
 ## Hooks (a.k.a. Middleware)
 
 A hook is a piece of code that can intercept HTTP requests before they are
@@ -166,15 +214,16 @@ When multiple hooks are defined up the tree for a particular route, they are
 chained together such that each hook is invoked starting from the file tree root
 and down to the route path.
 
-Hooks are normally implemented as Procs (or closures) with the following
-signature:
+Hooks are implemented as modules named `_hook.rb`, that export procs (or
+callables) with the following signature:
 
 ```ruby
-->(req, app) { ... }
+# **/_hook.rb
+export ->(req, app) { ... }
 ```
 
-... where req is the request object, and app is the callable that runs the app
-code. Here's an example of an authorization hook:
+... where req is the request object, and app is the callable that code. Here's
+an example of an authorization hook:
 
 ```ruby
 export ->(req, app) {
@@ -185,3 +234,22 @@ export ->(req, app) {
   end
 }
 ```
+
+## Error handlers
+
+An error handler can be defined separately for each subtree. When an exception
+is raised that is not rescued by the application code, Syntropy will look for an
+error handler up the file tree, and will invoke the first error handler found.
+
+Error handlers are implemented as modules named `_error.rb`, that export procs (or
+callables) with the following signature:
+
+```ruby
+# **/_error.rb
+->(req, err) { ... }
+```
+
+Using different error handlers for parts of the route tree allows different
+error responses for each route. For example, the error response for an API route
+can be a JSON object, while the error response for a browser page route can be a
+custom HTML page.

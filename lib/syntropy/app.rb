@@ -32,20 +32,20 @@ module Syntropy
       end
     end
 
-    def initialize(machine, src_path, mount_path, opts = {})
+    def initialize(machine, location, mount_path, opts = {})
       @machine = machine
-      @src_path = File.expand_path(src_path)
+      @location = File.expand_path(location)
       @mount_path = mount_path
       @opts = opts
 
-      @module_loader = Syntropy::ModuleLoader.new(@src_path, @opts)
+      @module_loader = Syntropy::ModuleLoader.new(@location, @opts)
       @router = Syntropy::Router.new(@opts, @module_loader)
 
       @machine.spin do
         # we do startup stuff asynchronously, in order to first let TP2 do its
         # setup tasks
         @machine.sleep 0.15
-        @opts[:logger]&.call("Serving from #{File.expand_path(@src_path)}")
+        @opts[:logger]&.call("Serving from #{File.expand_path(@location)}")
         @router.start_file_watcher if opts[:watch_files]
       end
     end
@@ -135,7 +135,7 @@ module Syntropy
     end
 
     def load_module(entry)
-      ref = entry[:fn].gsub(%r{^#{@src_path}/}, '').gsub(/\.rb$/, '')
+      ref = entry[:fn].gsub(%r{^#{@location}/}, '').gsub(/\.rb$/, '')
       o = @module_loader.load(ref)
       o.is_a?(Papercraft::Template) ? wrap_template(o) : o
     rescue Exception => e
