@@ -1,4 +1,4 @@
-->(**props) {
+export template { |**props|
   header {
     h1 'Foo'
   }

@@ -29,4 +29,10 @@ class ModuleTest < Minitest::Test
     @env[:baz] += 1
     assert_equal 43, mod.bar
   end
+
+  def test_export_self
+    mod = @loader.load('_lib/self')
+    assert_kind_of Syntropy::Module, mod
+    assert_equal :bar, mod.foo
+  end
 end
