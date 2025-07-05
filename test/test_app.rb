@@ -21,47 +21,6 @@ class AppTest < Minitest::Test
     )
   end
 
-  def full_path(fn)
-    File.join(APP_ROOT, fn)
-  end
-
-  def test_find_route
-    entry = @app.find_route('/')
-    assert_equal :not_found, entry[:kind]
-
-    entry = @app.find_route('/test')
-    assert_equal :static, entry[:kind]
-    assert_equal full_path('index.html'), entry[:fn]
-
-    entry = @app.find_route('/test/about')
-    assert_equal :module, entry[:kind]
-    assert_equal full_path('about/index.rb'), entry[:fn]
-
-    entry = @app.find_route('/test/../test_app.rb')
-    assert_equal :not_found, entry[:kind]
-
-    entry = @app.find_route('/test/_layout/default')
-    assert_equal :not_found, entry[:kind]
-
-    entry = @app.find_route('/test/api')
-    assert_equal :module, entry[:kind]
-    assert_equal full_path('api+.rb'), entry[:fn]
-
-    entry = @app.find_route('/test/api/foo/bar')
-    assert_equal :module, entry[:kind]
-    assert_equal full_path('api+.rb'), entry[:fn]
-
-    entry = @app.find_route('/test/api/foo/../bar')
-    assert_equal :not_found, entry[:kind]
-
-    entry = @app.find_route('/test/api_1')
-    assert_equal :not_found, entry[:kind]
-
-    entry = @app.find_route('/test/about/foo')
-    assert_equal :markdown, entry[:kind]
-    assert_equal full_path('about/foo.md'), entry[:fn]
-  end
-
   def make_request(*, **)
     req = mock_req(*, **)
     @app.call(req)
@@ -133,6 +92,10 @@ class AppTest < Minitest::Test
     assert_equal({ status: 'Error', message: '' }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
+    assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
+    assert_equal Status::TEAPOT, req.response_status
+
+    req = make_request(':method' => 'POST', ':path' => '/test/api/foo/bar?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
     assert_equal Status::TEAPOT, req.response_status
 

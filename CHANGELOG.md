@@ -1,3 +1,4 @@
+- Refactor routing functionality into separate Router class
 - Add support for _site.rb file
 
 ## 0.4 2025-07-03
