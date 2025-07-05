@@ -32,8 +32,7 @@ module Syntropy
 
       mod_body = IO.read(fn)
       mod_ctx = Class.new(Syntropy::Module)
-      mod_ctx.loader = self
-      mod_ctx.env = @env
+      mod_ctx.prepare(loader: self, env: @env)
       mod_ctx.module_eval(mod_body, fn, 1)
 
       export_value = mod_ctx.__export_value__
@@ -63,45 +62,56 @@ module Syntropy
       @env = env
     end
 
-    def self.loader=(loader)
-      @loader = loader
-    end
+    class << self
+      def prepare(loader:, env:)
+        @loader = loader
+        @env = env
+        const_set(:MODULE, self)
+      end
 
-    def self.env=(env)
-      @env = env
-    end
+      attr_reader :__export_value__
 
-    def self.import(ref)
-      @loader.load(ref)
-    end
+      def import(ref)
+        @loader.load(ref)
+      end
 
-    def self.export(ref)
-      @__export_value__ = ref
-    end
+      def export(ref)
+        @__export_value__ = ref
+      end
 
-    def self.template(&block)
-      Papercraft.html(&block)
-    end
+      def template(&block)
+        Papercraft.html(&block)
+      end
 
-    def self.route_by_host
-      root = @env[:location]
-      sites = Dir[File.join(root, '*')]
-        .select { File.directory?(it) }
-        .inject({}) { |h, fn|
+      def route_by_host(map = nil)
+        root = @env[:location]
+        sites = Dir[File.join(root, '*')]
+                .select { File.directory?(it) }
+                .each_with_object({}) { |fn, h|
           name = File.basename(fn)
           opts = @env.merge(location: fn)
           h[name] = Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
-          h
         }
-      ->(req) {
-        site = sites[req.host]
-        site ? site.call(req) : req.respond(nil, ':status' => Status::BAD_REQUEST)
-      }
-    end
 
-    def self.__export_value__
-      @__export_value__
-    end
+        map&.each do |k, v|
+          sites[k] = sites[v]
+        end
 
+        lambda { |req|
+          site = sites[req.host]
+          site ? site.call(req) : req.respond(nil, ':status' => Status::BAD_REQUEST)
+        }
+      end
+
+      def page_list(ref)
+        full_path = File.join(@env[:location], ref)
+        raise 'Not a directory' if !File.directory?(full_path)
+
+        Dir[File.join(full_path, '*.md')].sort.map {
+          atts, markdown = Syntropy.parse_markdown_file(it, @env)
+          { atts:, markdown: }
+        }
+      end
+    end
   end
 end

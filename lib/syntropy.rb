@@ -4,14 +4,15 @@ require 'qeweney'
 require 'uringmachine'
 require 'tp2'
 
-require 'syntropy/errors'
+require 'syntropy/app'
 require 'syntropy/connection_pool'
+require 'syntropy/errors'
+require 'syntropy/markdown'
 require 'syntropy/module'
+require 'syntropy/request_extensions'
+require 'syntropy/router'
 require 'syntropy/rpc_api'
 require 'syntropy/side_run'
-require 'syntropy/router'
-require 'syntropy/app'
-require 'syntropy/request_extensions'
 
 module Syntropy
   Status = Qeweney::Status
@@ -34,7 +35,7 @@ module Syntropy
   CLEAR = "\e[0m"
   YELLOW = "\e[33m"
 
-  BANNER = (
+  BANNER =
     "\n"\
     "  #{GREEN}\n"\
     "  #{GREEN} ooo\n"\
@@ -44,5 +45,4 @@ module Syntropy
     "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{CLEAR}https://github.com/noteflakes/syntropy\n"\
     "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
     "#{YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\e[0m\n\n"
-  )
 end

@@ -151,46 +151,15 @@ module Syntropy
     end
 
     def render_markdown(fn)
-      atts, md = parse_markdown_file(fn)
+      atts, md = Syntropy.parse_markdown_file(fn, @opts)
 
       if atts[:layout]
         layout = @module_loader.load("_layout/#{atts[:layout]}")
-        html = layout.apply { emit_markdown(md) }.render
+        html = layout.apply(**atts) { emit_markdown(md) }.render
       else
         html = Papercraft.markdown(md)
       end
       html
-    end
-
-    DATE_REGEXP = /(\d{4}\-\d{2}\-\d{2})/
-    FRONT_MATTER_REGEXP = /\A(---\s*\n.*?\n?)^((---|\.\.\.)\s*$\n?)/m
-    YAML_OPTS = {
-      permitted_classes: [Date],
-      symbolize_names: true
-    }
-
-    # Parses the markdown file at the given path.
-    #
-    # @param path [String] file path
-    # @return [Array] an tuple containing properties<Hash>, contents<String>
-    def parse_markdown_file(path)
-      content = IO.read(path) || ''
-      atts = {}
-
-      # Parse date from file name
-      if (m = path.match(DATE_REGEXP))
-        atts[:date] ||= Date.parse(m[1])
-      end
-
-      if (m = content.match(FRONT_MATTER_REGEXP))
-        front_matter = m[1]
-        content = m.post_match
-
-        yaml = YAML.safe_load(front_matter, **YAML_OPTS)
-        atts = atts.merge(yaml)
-      end
-
-      [atts, content]
     end
   end
 end
