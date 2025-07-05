@@ -15,6 +15,10 @@ class API < Syntropy::RPCAPI
 
     @count += 1
   end
+
+  def req(req)
+    { query: req.query, headers: req.headers }
+  end
 end
 
 export API

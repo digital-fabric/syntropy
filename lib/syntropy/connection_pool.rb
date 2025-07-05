@@ -34,9 +34,7 @@ module Syntropy
     private
 
     def checkout
-      if @queue.count == 0 && @count < @max_conn
-        return create_db
-      end
+      return make_db_instance if @queue.count == 0 && @count < @max_conn
 
       @machine.shift(@queue)
     end
@@ -45,16 +43,11 @@ module Syntropy
       @machine.push(@queue, db)
     end
 
-    def create_db
-      db = Extralite::Database.new(@fn, wal: true)
-      setup_db(db)
-      @count += 1
-      db
-    end
-
-    def setup_db(db)
-      # setup WAL, sync
-      # setup concurrency stuff
+    def make_db_instance
+      Extralite::Database.new(@fn, wal: true).tap do
+        @count += 1
+        it.on_progress(mode: :at_least_once, period: 320, tick: 10) { @machine.snooze }
+      end
     end
   end
 end
