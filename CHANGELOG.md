@@ -1,3 +1,8 @@
+## 0.7 2025-07-05
+
+- Implement `Module.route_by_host`
+- Add snoozing on DB progress
+
 ## 0.6 2025-07-05
 
 - Add support for middleware and error handlers
