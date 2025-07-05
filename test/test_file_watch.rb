@@ -14,21 +14,21 @@ class FileWatchTest < Minitest::Test
     queue = UM::Queue.new
 
     f = @machine.spin do
-      Syntropy.file_watch(@machine, @root, period: 0.01) { @machine.push(queue, it) }
+      Syntropy.file_watch(@machine, @root, period: 0.01) { |event, fn| @machine.push(queue, [event, fn]) }
     end
     @machine.sleep(0.05)
     assert_equal 0, queue.count
 
     fn = File.join(@root, 'foo.bar')
     IO.write(fn, 'abc')
-    assert_equal fn, @machine.shift(queue)
+    assert_equal [:added, fn], @machine.shift(queue)
 
     fn = File.join(@root, 'foo.bar')
     IO.write(fn, 'def')
-    assert_equal fn, @machine.shift(queue)
+    assert_equal [:modified, fn], @machine.shift(queue)
 
     FileUtils.rm(fn)
-    assert_equal fn, @machine.shift(queue)
+    assert_equal [:removed, fn], @machine.shift(queue)
   ensure
     @machine.schedule(f, UM::Terminate)
     # @machine.join(f)

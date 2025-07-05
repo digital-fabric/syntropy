@@ -9,6 +9,7 @@ require 'syntropy/connection_pool'
 require 'syntropy/module'
 require 'syntropy/rpc_api'
 require 'syntropy/side_run'
+require 'syntropy/router'
 require 'syntropy/app'
 require 'syntropy/request_extensions'
 

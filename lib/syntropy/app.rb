@@ -81,9 +81,9 @@ module Syntropy
       wf = @opts[:watch_files]
       period = wf.is_a?(Numeric) ? wf : 0.1
       @machine.spin do
-        Syntropy.file_watch(@machine, @src_path, period: period) do
-          @opts[:logger]&.call("Detected changed file: #{it}")
-          invalidate_cache(it)
+        Syntropy.file_watch(@machine, @src_path, period: period) do |_event, fn|
+          @opts[:logger]&.call("Detected changed file: #{fn}")
+          invalidate_cache(fn)
         rescue Exception => e
           p e
           p e.backtrace

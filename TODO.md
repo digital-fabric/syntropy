@@ -1,19 +1,25 @@
-- Add support for site-wide _site.rb file:
+- Refactor routing code into a separate Router class.
+- The Router class is in charge of:
+  - caching routes
+  - loading modules
+  - unloading modules on file change
+  - calculating middleware for routes
+    - middleware is defined in `_hook.rb` modules
+      - interface: ->(req, next)
+    - a special case for handling errors is `_error.rb`
+      - interface: ->(req, err)
+  - dispatching routes
+    - error handling:
+      - on uncaught error, if an `_error.rb` file exists in the same directory
+        or up the file tree
+    - middleware:
+      - a closure is created from the composition of the different hooks
+        defined, from the route's directory and up the file
+    - error handlers and middleware closures are cached as part of the route's
+      entry
+    - on file change for any _hook.rb or _error.rb files, all route entries in
+      the corresponding subtree are invalidated
 
-  ```Ruby
-  # site/_site.rb
-  # just a regular module
-
-  export ->(req) {
-    ...
-  }
-
-  # more specifically, for the sake of running multiple domains
-  export Syntropy.route_by_domain(
-    'noteflakes.com' => 'noteflakes.com',
-    'tolkora.net' => 'tolkora.net'
-  )
-  ```
 
 - Middleware
 

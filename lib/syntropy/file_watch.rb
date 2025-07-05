@@ -8,15 +8,16 @@ module Syntropy
 
     queue = Thread::Queue.new
     listener = Listen.to(*roots) do |modified, added, removed|
-      fns = (modified + added + removed).uniq
-      fns.each { queue.push(it) }
+      modified.each { queue.push([:modified, it]) }
+      added.each    { queue.push([:added, it]) }
+      removed.each  { queue.push([:removed, it]) }
     end
     listener.start
 
     loop do
       machine.sleep(period) while queue.empty?
-      fn = queue.shift
-      block.call(fn)
+      event, fn = queue.shift
+      block.call(event, fn)
     end
   rescue StandardError => e
     p e
