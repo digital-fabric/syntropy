@@ -1,3 +1,8 @@
+## 0.8 2025-07-05
+
+- Add `MODULE` constant for referencing the module
+- Implement `Module.page_list`
+
 ## 0.7 2025-07-05
 
 - Implement `Module.route_by_host`
