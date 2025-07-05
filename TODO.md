@@ -1,42 +1,33 @@
-- Refactor routing code into a separate Router class.
-- The Router class is in charge of:
-  - caching routes
-  - calculating middleware for routes
-    - middleware is defined in `_hook.rb` modules
-      - interface: ->(req, next)
-    - a special case for handling errors is `_error.rb`
-      - interface: ->(req, err)
-  - dispatching routes
-    - error handling:
-      - on uncaught error, if an `_error.rb` file exists in the same directory
-        or up the file tree
-    - middleware:
-      - a closure is created from the composition of the different hooks
-        defined, from the route's directory and up the file
-    - error handlers and middleware closures are cached as part of the route's
-      entry
-    - on file change for any _hook.rb or _error.rb files, all route entries in
-      the corresponding subtree are invalidated
+- Some standard middleware:
 
-
-- Middleware
+  - request rewriter
+  - logger
+  - auth
+  - selector + terminator
 
   ```Ruby
-  # site/_hook.rb
-  export ->(req, &app) do
-    app.call(req)
-  rescue Syntropy::Error => e
-    render_error_page(req, e.http_status)
+  # For the chainable DSL shown below, we need to create a custom class:
+  class Syntropy::Middleware::Selector
+    def initialize(select_proc, terminator_proc = nil)
+      @select_proc = select_proc
+      @terminator_proc = terminator_proc
+    end
+
+    def to_proc
+      ->(req, proc) {
+        @select_proc.(req) ? @terminator_proc.(req) : proc(req)
+      }
+    end
+
+    def terminate(&proc)
+      @terminator_proc = proc
+    end
   end
 
-  # an alternative, at least for errors is a _error.rb file:
-  # site/_error.rb
-  # Just a normal callable:
-  #
-  export ->(req, err) do
-    render_error_page(req, err.http_status)
-  end
+  def Syntropy
+  ```
 
+  ```Ruby
   # a _site.rb file can be used to wrap a whole app
   # site/_site.rb
 
