@@ -15,7 +15,7 @@ module Syntropy
       @loaded[ref] ||= load_module(ref)
     end
 
-    def unload(fn)
+    def invalidate(fn)
       ref = @fn_map[fn]
       return if !ref
 

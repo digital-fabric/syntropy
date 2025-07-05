@@ -21,11 +21,15 @@ module Syntropy
       @x  = {} # maps directories to hook chains
 
       scan_routes
-      start_file_watcher if opts[:watch_files]
     end
 
     def [](path)
       get_route_entry(path)
+    end
+
+    def start_file_watcher
+      @opts[:logger]&.call('Watching for file changes...', nil)
+      @machine.spin { file_watcher_loop }
     end
 
     private
@@ -128,7 +132,16 @@ module Syntropy
     def find_route_entry(path)
       return NOT_FOUND if path =~ FORBIDDEN_RE
 
-      @routes[path] || find_up_tree_module(path) || NOT_FOUND
+      @routes[path] || find_index_route(path) || find_up_tree_module(path) || NOT_FOUND
+    end
+
+    INDEX_OPT_EXT_RE = /^(.*)\/index(?:\.(?:rb|md|html))?$/
+
+    def find_index_route(path)
+      m = path.match(INDEX_OPT_EXT_RE)
+      return nil if !m
+
+      @routes[m[1]]
     end
 
     def find_up_tree_module(path)
@@ -139,11 +152,6 @@ module Syntropy
       return entry if entry && entry[:handle_subtree]
 
       find_up_tree_module(parent_path)
-    end
-
-    def start_file_watcher
-      @opts[:logger]&.call('Watching for file changes...', nil)
-      @machine.spin { file_watcher_loop }
     end
 
     def file_watcher_loop
@@ -163,21 +171,33 @@ module Syntropy
       @module_loader&.invalidate(fn)
       case event
       when :added
-        add_route(fn)
-        @cache.clear # TODO: remove only relevant cache entries
+        handle_added_file(fn)
       when :removed
-        entry = @files[fn]
-        if entry
-          remove_entry_cache_keys(entry)
-          @routes.delete(entry[:canonical_path])
-          @files.delete(fn)
-        end
+        handle_removed_file(fn)
       when :modified
-        entry = @files[fn]
-        if entry && entry[:kind] == :module
-          # invalidate the entry proc, so it will be recalculated
-          entry[:proc] = nil
-        end
+        handle_modified_file(fn)
+      end
+    end
+
+    def handle_added_file(fn)
+      add_route(fn)
+      @cache.clear # TODO: remove only relevant cache entries
+    end
+
+    def handle_removed_file(fn)
+      entry = @files[fn]
+      if entry
+        remove_entry_cache_keys(entry)
+        @routes.delete(entry[:canonical_path])
+        @files.delete(fn)
+      end
+    end
+
+    def handle_modified_file(fn)
+      entry = @files[fn]
+      if entry && entry[:kind] == :module
+        # invalidate the entry proc, so it will be recalculated
+        entry[:proc] = nil
       end
     end
 

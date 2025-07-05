@@ -17,6 +17,7 @@ class RouterTest < Minitest::Test
       mount_path: '/test',
       watch_files: 0.05
     )
+    @router.start_file_watcher
   end
 
   def full_path(fn)
