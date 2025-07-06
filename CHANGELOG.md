@@ -1,3 +1,8 @@
+## 0.8.4 2025-07-07
+
+- Update TP2
+- Fix Router#path_parent to not break on double slash
+
 ## 0.8.3 2025-07-06
 
 - Correctly handle HEAD requests for template modules
