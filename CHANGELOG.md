@@ -1,3 +1,7 @@
+## 0.8.2 2025-07-06
+
+- Update deps
+
 ## 0.8.1 2025-07-06
 
 - Ignore site directories starting with underscore in `route_by_host`
