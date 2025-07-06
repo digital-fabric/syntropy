@@ -86,6 +86,7 @@ module Syntropy
       def route_by_host(map = nil)
         root = @env[:location]
         sites = Dir[File.join(root, '*')]
+                .reject { File.basename(it) =~ /^_/ }
                 .select { File.directory?(it) }
                 .each_with_object({}) { |fn, h|
           name = File.basename(fn)
