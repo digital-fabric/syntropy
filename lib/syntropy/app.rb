@@ -143,10 +143,13 @@ module Syntropy
       :invalid
     end
 
-    def wrap_template(templ)
+    def wrap_template(template)
       lambda { |req|
-        body = templ.render
-        req.respond(body, 'Content-Type' => 'text/html')
+        headers = { 'Content-Type' => template.mime_type }
+        req.respond_by_http_method(
+          'head'  => [nil, headers],
+          'get'   => -> { [template.render, headers] }
+        )
       }
     end
 

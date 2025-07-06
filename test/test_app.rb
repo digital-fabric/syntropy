@@ -121,6 +121,9 @@ class AppTest < Minitest::Test
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo')
     assert_equal '<p>Hello from Markdown</p>', req.response_body.chomp
 
+    req = make_request(':method' => 'HEAD', ':path' => '/test/about/foo')
+    assert_nil req.response_body
+
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
     assert_equal Status::NOT_FOUND, req.response_status
   end

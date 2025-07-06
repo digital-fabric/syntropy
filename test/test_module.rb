@@ -19,10 +19,9 @@ class ModuleTest < Minitest::Test
     assert_raises(RuntimeError) { @loader.load('_lib/missing-export') }
 
     mod = @loader.load('_lib/callable')
-    assert_kind_of Syntropy::Module, mod
+    assert_kind_of Proc, mod
     assert_equal 'barbarbar', mod.call(3)
     assert_raises(NoMethodError) { mod.foo(2) }
-    assert_equal 42, mod.bar
 
     mod = @loader.load('_lib/klass')
     assert_equal :bar, mod.foo

@@ -1,3 +1,7 @@
+- Test HEAD requests for:
+  - markdown
+  - static files
+
 - Some standard middleware:
 
   - request rewriter

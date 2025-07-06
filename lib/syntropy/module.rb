@@ -45,8 +45,9 @@ module Syntropy
       when nil
         raise 'No export found'
       when Symbol
+        o = mod_ctx.new(@env)
         # TODO: verify export_value denotes a valid method
-        mod_ctx.new(@env)
+        ->(req) { o.send(export_value, req) }
       when String
         ->(req) { req.respond(export_value) }
       when Proc
