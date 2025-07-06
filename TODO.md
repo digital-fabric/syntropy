@@ -1,6 +1,13 @@
-- Test HEAD requests for:
-  - markdown
-  - static files
+- add support for applets
+
+  - can be implemented as separate gems
+  - can route requests to a different directory (i.e. inside the gem directory)
+  - simple way to instantiate and setup the applet
+  - as a first example, implement an auth/signin applet:
+    - session hook
+    - session persistence
+    - login page
+    - support for custom behaviour and custom workflows (2FA, signin using OTP etc.)
 
 - Some standard middleware:
 

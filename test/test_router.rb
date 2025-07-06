@@ -24,7 +24,7 @@ class RouterTest < Minitest::Test
     File.join(APP_ROOT, fn)
   end
 
-  def test_find_route
+  def test_routing
     # entry = @router['/']
     # assert_equal :not_found, entry[:kind]
 
@@ -49,6 +49,9 @@ class RouterTest < Minitest::Test
     entry = @router['/test/api/foo/bar']
     assert_equal :module, entry[:kind]
     assert_equal full_path('api+.rb'), entry[:fn]
+
+    entry = @router['/test/api//foo/bar']
+    assert_equal :not_found, entry[:kind]
 
     entry = @router['/test/api/foo/../bar']
     assert_equal :not_found, entry[:kind]
@@ -86,5 +89,28 @@ class RouterTest < Minitest::Test
     assert_nil entry[:proc]
   ensure
     IO.write(@tmp_fn, orig_body) if orig_body
+  end
+
+  def test_malformed_path_routing
+    entry = @router['//xmlrpc.php?rsd']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/test//xmlrpc.php?rsd']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/test///xmlrpc.php?rsd']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/test///xmlrpc.php?rsd']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/test/./qsdf']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/test/../../lib/syntropy.rb']
+    assert_equal :not_found, entry[:kind]
+
+    entry = @router['/../../lib/syntropy.rb']
+    assert_equal :not_found, entry[:kind]
   end
 end

@@ -84,7 +84,8 @@ module Syntropy
     def path_parent(path)
       return nil if path == '/'
 
-      path.match(PATH_PARENT_RE)[1] || '/'
+      m = path.match(PATH_PARENT_RE)
+      m && (m[1] || '/')
     end
 
     MD_EXT_RE = /\.md$/
