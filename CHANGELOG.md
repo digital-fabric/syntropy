@@ -1,3 +1,7 @@
+## 0.8.3 2025-07-06
+
+- Correctly handle HEAD requests for template modules
+
 ## 0.8.2 2025-07-06
 
 - Update deps
