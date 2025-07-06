@@ -1,3 +1,7 @@
+## 0.8.1 2025-07-06
+
+- Ignore site directories starting with underscore in `route_by_host`
+
 ## 0.8 2025-07-05
 
 - Add `MODULE` constant for referencing the module
