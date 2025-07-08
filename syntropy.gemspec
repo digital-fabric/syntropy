@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'json',          '2.12.2'
   s.add_dependency 'papercraft',    '1.4'
   s.add_dependency 'qeweney',       '0.21'
-  s.add_dependency 'tp2',           '0.14'
+  s.add_dependency 'tp2',           '0.14.1'
   s.add_dependency 'uringmachine',  '0.16'
 
   s.add_dependency 'listen',        '3.9.0'
