@@ -67,6 +67,7 @@ module Syntropy
       def prepare(loader:, env:)
         @loader = loader
         @env = env
+        @machine = env[:machine]
         const_set(:MODULE, self)
       end
 
