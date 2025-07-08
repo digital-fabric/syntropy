@@ -91,10 +91,10 @@ module Syntropy
                 .reject { File.basename(it) =~ /^_/ }
                 .select { File.directory?(it) }
                 .each_with_object({}) { |fn, h|
-          name = File.basename(fn)
-          opts = @env.merge(location: fn)
-          h[name] = Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
-        }
+                  name = File.basename(fn)
+                  opts = @env.merge(location: fn)
+                  h[name] = Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
+                }
 
         map&.each do |k, v|
           sites[k] = sites[v]
