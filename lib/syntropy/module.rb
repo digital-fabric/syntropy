@@ -115,6 +115,13 @@ module Syntropy
           { atts:, markdown: }
         }
       end
+
+      def app(location = nil, mount_path = nil)
+        location ||= @env[:location]
+        mount_path ||= @env[:mount_path]
+        opts = @env.merge(location:, mount_path:)
+        Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
+      end
     end
   end
 end
