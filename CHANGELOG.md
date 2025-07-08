@@ -1,3 +1,9 @@
+## 0.9 2025-07-08
+
+- Update TP2
+- Add `Module.app` method for loading arbitrary apps
+- Set `Module@machine`
+
 ## 0.8.4 2025-07-07
 
 - Update TP2
