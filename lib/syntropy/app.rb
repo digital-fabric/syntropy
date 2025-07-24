@@ -45,7 +45,9 @@ module Syntropy
         # we do startup stuff asynchronously, in order to first let TP2 do its
         # setup tasks
         @machine.sleep 0.15
-        @opts[:logger]&.call("Serving from #{File.expand_path(@location)}")
+        @opts[:logger]&.info(
+          message: "Serving from #{File.expand_path(@location)}"
+        )
         @router.start_file_watcher if opts[:watch_files]
       end
     end
@@ -139,7 +141,10 @@ module Syntropy
       o = @module_loader.load(ref)
       o.is_a?(Papercraft::Template) ? wrap_template(o) : o
     rescue Exception => e
-      @opts[:logger]&.call("Error while loading module #{ref}: #{e.message}")
+      @opts[:logger]&.error(
+        message:  "Error while loading module #{ref}",
+        error:    e
+      )
       :invalid
     end
 

@@ -26,7 +26,9 @@ module Syntropy
     end
 
     def start_file_watcher
-      @opts[:logger]&.call('Watching for file changes...', nil)
+      @opts[:logger]&.info(
+        message: 'Watching for file changes...'
+      )
       @machine.spin { file_watcher_loop }
     end
 
@@ -170,7 +172,9 @@ module Syntropy
     end
 
     def handle_changed_file(event, fn)
-      @opts[:logger]&.call("Detected changed file: #{event} #{fn}")
+      @opts[:logger]&.info(
+        message: "Detected changed file: #{event} #{fn}"
+      )
       @module_loader&.invalidate(fn)
       case event
       when :added

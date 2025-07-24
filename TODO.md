@@ -1,3 +1,5 @@
+- a way to inject cookies into the response
+
 - add support for applets
 
   - can be implemented as separate gems
