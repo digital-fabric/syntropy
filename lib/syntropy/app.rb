@@ -4,7 +4,7 @@ require 'json'
 require 'yaml'
 
 require 'qeweney'
-require 'papercraft'
+require 'p2'
 
 require 'syntropy/errors'
 require 'syntropy/file_watch'
@@ -139,7 +139,7 @@ module Syntropy
     def load_module(entry)
       ref = entry[:fn].gsub(%r{^#{@location}/}, '').gsub(/\.rb$/, '')
       o = @module_loader.load(ref)
-      o.is_a?(Papercraft::Template) ? wrap_template(o) : o
+      o.is_a?(P2::Template) ? wrap_template(o) : o
     rescue Exception => e
       @opts[:logger]&.error(
         message:  "Error while loading module #{ref}",
@@ -148,9 +148,10 @@ module Syntropy
       :invalid
     end
 
-    def wrap_template(template)
+    def wrap_template(wrapper)
+      template = wrapper.proc
       lambda { |req|
-        headers = { 'Content-Type' => template.mime_type }
+        headers = { 'Content-Type' => 'text/html' }
         req.respond_by_http_method(
           'head'  => [nil, headers],
           'get'   => -> { [template.render, headers] }
@@ -165,7 +166,7 @@ module Syntropy
         layout = @module_loader.load("_layout/#{atts[:layout]}")
         html = layout.apply(**atts) { emit_markdown(md) }.render
       else
-        html = Papercraft.markdown(md)
+        html = P2.markdown(md)
       end
       html
     end

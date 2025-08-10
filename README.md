@@ -42,8 +42,7 @@ Syntropy is based on:
   concurrent Ruby apps.
 - [Qeweney](https://github.com/digital-fabric/qeweney) a uniform interface for
   working with HTTP requests and responses.
-- [Papercraft](https://github.com/digital-fabric/papercraft) HTML templating
-  with plain Ruby.
+- [P2](https://github.com/digital-fabric/p2) HTML templating with plain Ruby.
 - [Extralite](https://github.com/digital-fabric/extralite) a fast and innovative
   SQLite wrapper for Ruby.
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'papercraft'
+require 'p2'
 
 module Syntropy
   class ModuleLoader
@@ -32,7 +32,7 @@ module Syntropy
 
       mod_body = IO.read(fn)
       mod_ctx = Class.new(Syntropy::Module)
-      mod_ctx.prepare(loader: self, env: @env)
+      mod_ctx.prepare(loader: self, env: @env, ref: ref)
       mod_ctx.module_eval(mod_body, fn, 1)
 
       export_value = mod_ctx.__export_value__
@@ -64,10 +64,11 @@ module Syntropy
     end
 
     class << self
-      def prepare(loader:, env:)
+      def prepare(loader:, env:, ref:)
         @loader = loader
         @env = env
         @machine = env[:machine]
+        @ref = ref
         const_set(:MODULE, self)
       end
 
@@ -81,9 +82,13 @@ module Syntropy
         @__export_value__ = ref
       end
 
-      def template(&block)
-        Papercraft.html(&block)
+      def template(proc = nil, &block)
+        proc ||= block
+        raise "No template block/proc given" if !proc
+        
+        P2::Template.new(proc)
       end
+      alias_method :html, :template
 
       def route_by_host(map = nil)
         root = @env[:location]
