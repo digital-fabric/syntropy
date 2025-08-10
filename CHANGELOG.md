@@ -1,3 +1,8 @@
+## 0.10 2025-08-10
+
+- Add query, execute methods to ConnectionPool
+- Switch from Papercraft to P2
+
 ## 0.9.2 2025-07-24
 
 - Fix logging
