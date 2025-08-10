@@ -31,6 +31,14 @@ module Syntropy
       end
     end
 
+    def query(sql, *, **, &)
+      with_db { it.query(sql, *, **, &) }
+    end
+
+    def execute(sql, *, **)
+      with_db { it.execute(sql, *, **) }
+    end
+
     private
 
     def checkout
