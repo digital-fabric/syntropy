@@ -1,3 +1,7 @@
+## 0.10.1 2025-08-10
+
+- Fix ModuleLoader.wrap_module to work correctly with P2::Template
+
 ## 0.10 2025-08-10
 
 - Add query, execute methods to ConnectionPool
