@@ -50,7 +50,7 @@ module Syntropy
         ->(req) { o.send(export_value, req) }
       when String
         ->(req) { req.respond(export_value) }
-      when Proc
+      when Proc, P2::Template
         export_value
       else
         export_value.new(@env)
