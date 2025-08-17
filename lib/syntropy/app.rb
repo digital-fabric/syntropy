@@ -116,7 +116,7 @@ module Syntropy
       headers = { 'Content-Type' => entry[:mime_type] }
       req.respond_by_http_method(
         'head'  => [nil, headers],
-        'get'   => -> { [render_markdown(entry[:fn]), headers] }
+        'get'   => -> { [render_markdown(entry), headers] }
       )
     end
 
@@ -139,7 +139,7 @@ module Syntropy
     def load_module(entry)
       ref = entry[:fn].gsub(%r{^#{@location}/}, '').gsub(/\.rb$/, '')
       o = @module_loader.load(ref)
-      o.is_a?(P2::Template) ? wrap_template(o) : o
+      wrap_module(o)
     rescue Exception => e
       @opts[:logger]&.error(
         message:  "Error while loading module #{ref}",
@@ -148,7 +148,18 @@ module Syntropy
       :invalid
     end
 
-    def wrap_template(wrapper)
+    def wrap_module(mod)
+      case mod
+      when P2::Template
+        wrap_p2_template(mod)
+      when Papercraft::Template
+        wrap_papercraft_template(mod)
+      else
+        mod
+      end
+    end
+
+    def wrap_p2_template(wrapper)
       template = wrapper.proc
       lambda { |req|
         headers = { 'Content-Type' => 'text/html' }
@@ -159,16 +170,36 @@ module Syntropy
       }
     end
 
-    def render_markdown(fn)
-      atts, md = Syntropy.parse_markdown_file(fn, @opts)
+    def wrap_papercraft_template(template)
+      lambda { |req|
+        headers = { 'Content-Type' => template.mime_type }
+        req.respond_by_http_method(
+          'head'  => [nil, headers],
+          'get'   => -> { [template.render, headers] }
+        )
+      }
+      
+    end
 
-      if atts[:layout]
-        layout = @module_loader.load("_layout/#{atts[:layout]}")
-        html = layout.apply(**atts) { emit_markdown(md) }.render
+    def render_markdown(entry)
+      atts, md = Syntropy.parse_markdown_file(entry[:fn], @opts)
+
+      if (layout = atts[:layout])
+        entry[:applied_layouts] ||= {}
+        proc = entry[:applied_layouts][layout] ||= markdown_layout_proc(layout)
+        html = proc.render(md: md, **atts)
       else
         html = P2.markdown(md)
       end
       html
+    end
+
+    def markdown_layout_proc(layout)
+      layout = @module_loader.load("_layout/#{layout}")
+      puts '*' * 40
+      puts layout.proc.compiled_code
+      puts
+      layout.apply { |md:, **atts| markdown(md) }
     end
   end
 end

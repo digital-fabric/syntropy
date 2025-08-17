@@ -164,7 +164,7 @@ export template { |**props|
     h1 'Foo'
   }
   content {
-    emit_yield(**props)
+    render_yield(**props)
   }
 }
 

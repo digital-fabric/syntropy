@@ -5,7 +5,7 @@ export templ { |*a, **b|
       link rel: 'stylesheet', type: 'text/css', href: '/assets/css/style.css'
     }
     body {
-      emit_yield(*a, **b)
+      render_yield(*a, **b)
     }
   }
 }

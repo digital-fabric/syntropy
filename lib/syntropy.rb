@@ -3,6 +3,8 @@
 require 'qeweney'
 require 'uringmachine'
 require 'tp2'
+require 'p2'
+require 'papercraft'
 
 require 'syntropy/app'
 require 'syntropy/connection_pool'
