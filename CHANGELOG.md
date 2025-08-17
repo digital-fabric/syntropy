@@ -1,3 +1,7 @@
+## 0.11 2025-08-17
+
+- Upgrade to P2 2.8
+
 ## 0.10.1 2025-08-10
 
 - Fix ModuleLoader.wrap_module to work correctly with P2::Template
