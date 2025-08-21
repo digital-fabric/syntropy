@@ -36,7 +36,6 @@ module Syntropy
       mod_ctx.module_eval(mod_body, fn, 1)
 
       export_value = mod_ctx.__export_value__
-
       wrap_module(mod_ctx, export_value)
     end
 

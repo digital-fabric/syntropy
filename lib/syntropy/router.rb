@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module Syntropy
+  # The Router class implements a caching router. Routes are calculated
+  # dynamically upon receiving an HTTP request, matching the URL path to the
+  # corresponding file tree.
   class Router
     def initialize(opts, module_loader = nil)
       raise 'Invalid location given' if !File.directory?(opts[:location])
@@ -131,11 +134,18 @@ module Syntropy
     end
 
     # We don't allow access to path with /.., or entries that start with _
-    FORBIDDEN_RE = %r{(/_)|((/\.\.)/?)}
+    NO_ACCESS_RE = %r{(/_)|((/\.\.)/?)}
     NOT_FOUND = { kind: :not_found }.freeze
 
+    # Returns a route entry for the given path using the following rules:
+    # 
+    # - If the path matches that of a given route, return the route.
+    # - If the path ends with an index.(rb|md|html), return the corresponding
+    #   index route.
+    # - Search for an up-tree wildcard module and return it.
+    # - Otherwise, return a not found entry (which will generate a 404 response).
     def find_route_entry(path)
-      return NOT_FOUND if path =~ FORBIDDEN_RE
+      return NOT_FOUND if path =~ NO_ACCESS_RE
 
       @routes[path] || find_index_route(path) || find_up_tree_module(path) || NOT_FOUND
     end

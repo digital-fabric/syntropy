@@ -196,10 +196,9 @@ module Syntropy
 
     def markdown_layout_proc(layout)
       layout = @module_loader.load("_layout/#{layout}")
-      puts '*' * 40
-      puts layout.proc.compiled_code
-      puts
-      layout.apply { |md:, **atts| markdown(md) }
+      layout.apply { |md:, **|
+        markdown(md)
+      }
     end
   end
 end
