@@ -19,7 +19,6 @@ module Syntropy
       @routes       = {} # maps canonical path to route entry (actual routes)
       @files        = {} # maps filename to entry
       @deps         = {} # maps filenames to array of dependent entries
-      @x  = {} # maps directories to hook chains
 
       scan_routes
     end

@@ -25,9 +25,6 @@ class RouterTest < Minitest::Test
   end
 
   def test_routing
-    # entry = @router['/']
-    # assert_equal :not_found, entry[:kind]
-
     entry = @router['/test']
     assert_equal :static, entry[:kind]
     assert_equal full_path('index.html'), entry[:fn]
