@@ -48,7 +48,7 @@ class RoutingTreeTest < Minitest::Test
   def setup
     @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
     make_tmp_file_tree(@root_dir, FILE_TREE)
-    @rt = RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
   end
 
   def test_compute_clean_url_path
@@ -302,7 +302,7 @@ class RoutingTreeTest < Minitest::Test
   end
 
   def test_routing_root_mounted
-    rt = RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
     router = rt.router_proc
 
     route = router.('/docs/df/p2/issues/14', {})
