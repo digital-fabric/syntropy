@@ -46,9 +46,9 @@ class RoutingTreeTest < Minitest::Test
   }
 
   def setup
-    root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(root_dir, FILE_TREE)
-    @rt = RoutingTree.new(root_dir: File.join(root_dir, 'site'), mount_path: '/docs')
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, FILE_TREE)
+    @rt = RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
   end
 
   def test_compute_clean_url_path
@@ -299,5 +299,87 @@ class RoutingTreeTest < Minitest::Test
       File.join(@rt.root_dir, '_hook.rb'),
       File.join(@rt.root_dir, '[org]/[repo]/issues/_hook.rb')
     ], hooks
+  end
+
+  def test_routing_root_mounted
+    rt = RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    router = rt.router_proc
+
+    route = router.('/docs/df/p2/issues/14', {})
+    assert_nil route
+
+    params = {}
+    route = router.('/df/p2/issues/14', params)
+    refute_nil route
+    assert_equal ({ 'org' => 'df', 'repo' => 'p2', 'id' => '14'}), params
+    assert_equal '/[org]/[repo]/issues/[id]', route[:path]
+
+    route = router.('/assets', {})
+    assert_nil route
+
+    route = router.('/assets/foo', {})
+    assert_nil route
+
+    route = router.('/assets/img', {})
+    assert_nil route
+
+    route = router.('/assets/foo/bar.jpg', {})
+    assert_nil route
+
+    route = router.('/assets/img/foo.jpg', {})
+    assert_equal File.join(@rt.root_dir, 'assets/img/foo.jpg'), route[:target][:fn]
+
+    route = router.('/assets/img/bar.jpg', {})
+    assert_nil route
+
+    route = router.('/about', {})
+    assert_equal File.join(@rt.root_dir, 'about.md'), route[:target][:fn]
+
+    route = router.('/foo', params = {})
+    assert_equal File.join(@rt.root_dir, '[org]/index.rb'), route[:target][:fn]
+    assert_equal 'foo', params['org']
+
+    route = router.('/foo/bar', params = {})
+    assert_equal File.join(@rt.root_dir, '[org]/[repo]/index.rb'), route[:target][:fn]
+    assert_equal 'foo', params['org']
+    assert_equal 'bar', params['repo']
+
+    route = router.('/bar/baz/commits', params = {})
+    assert_equal File.join(@rt.root_dir, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
+    assert_equal 'bar', params['org']
+    assert_equal 'baz', params['repo']
+
+    route = router.('/foo/bar/issues', params = {})
+    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
+    assert_equal 'foo', params['org']
+    assert_equal 'bar', params['repo']
+
+    route = router.('/bar/baz/issues/14', params = {})
+    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
+    assert_equal 'bar', params['org']
+    assert_equal 'baz', params['repo']
+    assert_equal '14', params['id']
+
+    route = router.('/foo/bar/issues/14/blah', {})
+    assert_nil route
+
+    route = router.('/foo/bar/baz', {})
+    assert_nil route
+
+    route = router.('/api', {})
+    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+
+    route = router.('/api/foo/bar', {})
+    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+
+    route = router.('/api/foo/bar', {})
+    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+
+    route = router.('/posts', {})
+    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), route[:target][:fn]
+
+    route = router.('/posts/foo', params = {})
+    assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), route[:target][:fn]
+    assert_equal 'foo', params['id']
   end
 end
