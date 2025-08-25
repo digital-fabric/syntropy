@@ -6,6 +6,7 @@ require 'uringmachine'
 require 'syntropy'
 require 'qeweney/mock_adapter'
 require 'minitest/autorun'
+require 'fileutils'
 
 STDOUT.sync = true
 STDERR.sync = true
@@ -47,6 +48,23 @@ module ::Kernel
 
   def monotonic_clock
     ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+  end
+end
+
+class Minitest::Test
+  def make_tmp_file_tree(dir, spec)
+    FileUtils.mkdir(dir) rescue nil
+    spec.each do |k, v|
+      fn = File.join(dir, k.to_s)
+      case v
+      when String
+        IO.write(fn, v)
+      when Hash
+        FileUtils.mkdir(fn) rescue nil
+        make_tmp_file_tree(fn, v)
+      end
+    end
+    dir
   end
 end
 
