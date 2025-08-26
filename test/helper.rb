@@ -49,9 +49,7 @@ module ::Kernel
   def monotonic_clock
     ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
   end
-end
 
-class Minitest::Test
   def make_tmp_file_tree(dir, spec)
     FileUtils.mkdir(dir) rescue nil
     spec.each do |k, v|

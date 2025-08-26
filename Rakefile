@@ -10,7 +10,7 @@ end
 task :release do
   require_relative './lib/syntropy/version'
   version = Syntropy::VERSION
-  
+
   puts 'Building syntropy...'
   `gem build syntropy.gemspec`
 

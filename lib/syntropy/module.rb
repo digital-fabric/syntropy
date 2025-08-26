@@ -84,7 +84,7 @@ module Syntropy
       def template(proc = nil, &block)
         proc ||= block
         raise "No template block/proc given" if !proc
-        
+
         P2::Template.new(proc)
       end
       alias_method :html, :template

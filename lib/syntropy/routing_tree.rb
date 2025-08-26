@@ -4,18 +4,18 @@ module Syntropy
   # The RoutingTree class implements a file-based routing tree with support for
   # static files, markdown files, ruby modules, parametric routes, subtree routes,
   # nested middleware and error handlers.
-  # 
+  #
   # A RoutingTree instance takes the given directory (root_dir) and constructs a
   # tree of route entries corresponding to the directory's contents. Finally, it
   # generates an optimized router proc, which is used by the application to return
   # a route entry for each incoming HTTP request.
-  # 
+  #
   # Once initialized, the routing tree is immutable. When running Syntropy in
   # watch mode, whenever a file or directory is changed, added or deleted, a new
   # routing tree will be constructed, and the old one will be discarded.
-  # 
+  #
   # File-based routing in Syntropy follows some simple rules:
-  # 
+  #
   # - Static files (anything other than markdown files or dynamic Ruby modules)
   #   are routed to according to their location in the file tree.
   # - Index files with  `.md` or `.rb` extension handle requests to their
@@ -60,7 +60,7 @@ module Syntropy
     end
 
     # Returns the generated router proc for the routing tree
-    # 
+    #
     # @return [Proc] router proc
     def router_proc
       @router_proc ||= compile_router_proc
@@ -69,7 +69,7 @@ module Syntropy
     # Returns the first error handler found for the entry. If no error handler
     # exists for the entry itself, the search continues up the tree through the
     # entry's ancestors.
-    # 
+    #
     # @param entry [Hash] route entry
     # @return [String, nil] filename of error handler, or nil if not found
     def route_error_handler(entry)
@@ -80,7 +80,7 @@ module Syntropy
 
     # Returns a list of all hooks found up the tree from the given entry. Hooks
     # are returned ordered from the tree root down to the given entry.
-    # 
+    #
     # @param entry [Hash] route entry
     # @return [Array<String>] list of hook entries
     def route_hooks(entry)
@@ -102,7 +102,7 @@ module Syntropy
 
     # Computes the routing tree, returning the root entry. Route entries are
     # represented as hashes with the following keys:
-    # 
+    #
     # - `:parent` - reference to the parent entry.
     # - `:path` - the URL path for the entry.
     # - `:target` - a hash containing route target information.
@@ -113,15 +113,15 @@ module Syntropy
     #   directory, if exists.
     # - `children` - a hash mapping segment names to the corresponding child
     #   entries.
-    # 
+    #
     # Route entries are created for any directory, and for any *dynamic* files
     # (i.e. markdown or Ruby module files). Files starting with `_` are not
     # considered as routes and will not be included in the routing tree. Static
     # files will also not be included in the routing tree, but instead will be
     # mapped in the static file map (see below).
-    # 
+    #
     # The routing tree is complemented with two maps:
-    # 
+    #
     # - `static_map` - maps URL paths to the corresponding static route entries.
     # - `dynamic_map` - maps URL paths to the corresponding dynamic route entries.
     #
@@ -131,7 +131,7 @@ module Syntropy
     end
 
     # Computes a route entry for a directory.
-    # 
+    #
     # @param dir [String] directory path
     # @param rel_path [String] relative directory path
     # @param parent [Hash, nil] parent entry
@@ -152,7 +152,7 @@ module Syntropy
 
     # Searches for a file of the given name in the given directory. If found,
     # returns the file path.
-    # 
+    #
     # @param dir [String] directory path
     # @param name [String] filename
     # @return [String, nil] file path if found
@@ -162,7 +162,7 @@ module Syntropy
     end
 
     # Returns a hash mapping file/dir names to route entries.
-    # 
+    #
     # @param dir [String] directory path to scan for files
     # @param rel_path [String] directory path relative to root directory
     # @param parent [Hash] directory's corresponding route entry
@@ -181,7 +181,7 @@ module Syntropy
     end
 
     # Returns all entries in the given dir.
-    # 
+    #
     # @param dir [String] directory path
     # @return [Array<String>] array of file entries
     def file_search(dir)
@@ -192,7 +192,7 @@ module Syntropy
     # stripped of their extensions, and index file paths are also converted to the
     # containing directory path. For example, the clean URL path for `/foo/bar.rb`
     # is `/foo/bar`. The Clean URL path for `/bar/baz/index.rb` is `/bar/baz`.
-    # 
+    #
     # @param fn [String] file path
     # @return [String] clean path
     def compute_clean_url_path(fn)
@@ -227,21 +227,21 @@ module Syntropy
         parent[:target] = make_route_target(kind:, fn:)
         parent[:handle_subtree] = (plus == '+') && (kind == :module)
         nil
-      
+
       # /foo.rb, /foo+.rb, /foo.md, /[id].rb, /[id]+.rb
       when (m = fn.match(/\/(\[)?([^\]\/\+]+)(\])?(\+)?(\.(?:rb|md))$/))
         # Module and markdown routes. A + suffix indicates the module also handles
         # requests to the subtree. For example, `/foo/bar.rb` will handle requests
         # to `/foo/bar`, but `/foo/bar+.rb` will also handle requests to
         # `/foo/bar/baz/bug`.
-        #   
+        #
         # parametric, or wildcard, routes convert segments of the URL path into
         # parameters that are added to the HTTP request. Parametric routes are
         # denoted using square brackets around the file/directory name. For
         # example, `/api/posts/[id].rb`` will handle requests to `/api/posts/42`,
         # and will extract the parameter `posts => 42` to add to the incoming
         # request.
-        # 
+        #
         # A + suffix indicates the module also handles the subtree, so e.g.
         # `/api/posts/[id]+.rb` will also handle requests to `/api/posts/42/fans`
         # etc.
@@ -267,7 +267,7 @@ module Syntropy
     end
 
     # Converts a relative URL path to absolute URL path.
-    # 
+    #
     # @param rel_path [String] relative path
     # @return [String] absolute path
     def rel_path_to_abs_path(rel_path)
@@ -276,7 +276,7 @@ module Syntropy
 
     # Returns the key for the given route entry to be used in its parent's
     # children map.
-    # 
+    #
     # @param entry [Hash] route entry
     # @return [String] child key
     def child_key(entry)
@@ -285,7 +285,7 @@ module Syntropy
 
     # Returns a hash representing a route target for the given route target kind
     # and file name.
-    # 
+    #
     # @param kind [Symbol] route target kind
     # @param fn [String] filename
     # @return [Hash] route target hash
@@ -297,7 +297,7 @@ module Syntropy
     end
 
     # Generates and returns a router proc based on the routing tree.
-    # 
+    #
     # @return [Proc] router proc
     def compile_router_proc
       code = generate_routing_tree_code
@@ -307,22 +307,22 @@ module Syntropy
     # Generates the router proc source code. The router proc code is dynamically
     # generated from the routing tree, converting the routing tree structure into
     # Ruby proc of the following signature:
-    # 
+    #
     # ```ruby
     # # @param path [String] URL path
     # # @param params [Hash] Hash receiving parametric route values
     # # @return [Hash, nil] route entry
     # ->(path, params) { ... }
     # ```
-    # 
+    #
     # The generated code performs the following tasks:
-    # 
+    #
     # - Test if the given path corresponds to a static file (using `@static_map`)
     # - Otherwise, split the given path into path segments
     # - Walk through the path segments according to the routing tree structure
     # - Emit parametric route values to the `params` hash
     # - Return the found route entry
-    # 
+    #
     # @return [String] router proc code to be `eval`ed
     def generate_routing_tree_code
       buffer = +''
@@ -352,7 +352,7 @@ module Syntropy
     end
 
     # Generates routing logic code for the given route entry.
-    # 
+    #
     # @param buffer [String] buffer receiving code
     # @param entry [Hash] route entry
     # @param indent [Integer] indent level
@@ -410,7 +410,7 @@ module Syntropy
     end
 
     # Returns the first target found in the given entry's subtree.
-    # 
+    #
     # @param entry [Hash] route entry
     # @return [Hash, nil] route target if exists
     def find_target_in_subtree(entry)
@@ -427,7 +427,7 @@ module Syntropy
     # Emits the given code into the given buffer, with a line break at the end.
     # If the `DEBUG` environment variable is set, adds a source location comment
     # at the end of the line, referencing the callsite.
-    # 
+    #
     # @param buffer [String] code buffer
     # @param code [String] code
     # @return [void]

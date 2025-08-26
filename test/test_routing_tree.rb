@@ -41,7 +41,7 @@ class RoutingTreeTest < Minitest::Test
       'posts': {
         '[id].rb': '',
         'index.rb': ''
-      } 
+      }
     }
   }
 
@@ -125,13 +125,13 @@ class RoutingTreeTest < Minitest::Test
 
     assert_nil assets[:children]['css'][:target]
     assert_equal [], assets[:children]['css'][:children].keys
-    
+
     assert_nil assets[:children]['img'][:target]
     assert_equal [], assets[:children]['img'][:children].keys
   end
 
   def test_static_map
-    map = @rt.static_map    
+    map = @rt.static_map
     assert_equal 2, map.size
 
     o = map['/docs/assets/css/style.css']
@@ -142,7 +142,7 @@ class RoutingTreeTest < Minitest::Test
   end
 
   def test_dynamic_map
-    map = @rt.dynamic_map    
+    map = @rt.dynamic_map
     assert_equal 10, map.size
 
     keys = map.keys.sort

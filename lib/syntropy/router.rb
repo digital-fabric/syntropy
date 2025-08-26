@@ -137,7 +137,7 @@ module Syntropy
     NOT_FOUND = { kind: :not_found }.freeze
 
     # Returns a route entry for the given path using the following rules:
-    # 
+    #
     # - If the path matches that of a given route, return the route.
     # - If the path ends with an index.(rb|md|html), return the corresponding
     #   index route.

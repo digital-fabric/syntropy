@@ -19,6 +19,7 @@ module Syntropy
 
       private
 
+      # for apps with a _site.rb file
       def site_file_app(opts)
         site_fn = File.join(opts[:location], '_site.rb')
         return nil if !File.file?(site_fn)
@@ -27,11 +28,13 @@ module Syntropy
         loader.load('_site')
       end
 
+      # default app
       def default_app(opts)
         new(opts[:machine], opts[:location], opts[:mount_path] || '/', opts)
       end
     end
 
+    # inits state, module loader, router, router file watcher
     def initialize(machine, location, mount_path, opts = {})
       @machine = machine
       @location = File.expand_path(location)
@@ -52,6 +55,10 @@ module Syntropy
       end
     end
 
+    # runs the app on the given request:
+    #
+    # - find route
+    # - call route
     def call(req)
       entry = @router[req.path]
       render_entry(req, entry)
@@ -66,6 +73,7 @@ module Syntropy
 
     private
 
+    # call route with request
     def render_entry(req, entry)
       kind = entry[:kind]
       return respond_not_found(req) if kind == :not_found
@@ -74,11 +82,13 @@ module Syntropy
       entry[:proc].(req)
     end
 
+    # computes a route proc with all hooks
     def calculate_route_proc(entry)
       render_proc = route_render_proc(entry)
       @router.calc_route_proc_with_hooks(entry, render_proc)
     end
 
+    # returns a render proc according to route kind
     def route_render_proc(entry)
       case entry[:kind]
       when :static
@@ -92,6 +102,7 @@ module Syntropy
       end
     end
 
+    # respond with not found
     def respond_not_found(req)
       headers = { ':status' => Qeweney::Status::NOT_FOUND }
       case req.method
@@ -102,6 +113,7 @@ module Syntropy
       end
     end
 
+    # respond with a static file
     def respond_static(req, entry)
       entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
       headers = { 'Content-Type' => entry[:mime_type] }
@@ -111,6 +123,7 @@ module Syntropy
       )
     end
 
+    # respond with markdown
     def respond_markdown(req, entry)
       entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
       headers = { 'Content-Type' => entry[:mime_type] }
@@ -120,6 +133,7 @@ module Syntropy
       )
     end
 
+    # respond with module route
     def respond_module(req, entry)
       entry[:proc] ||= load_module(entry)
       if entry[:proc] == :invalid
@@ -136,6 +150,7 @@ module Syntropy
       req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
     end
 
+    # load a module
     def load_module(entry)
       ref = entry[:fn].gsub(%r{^#{@location}/}, '').gsub(/\.rb$/, '')
       o = @module_loader.load(ref)
@@ -148,6 +163,7 @@ module Syntropy
       :invalid
     end
 
+    # wrap loaded module
     def wrap_module(mod)
       case mod
       when P2::Template
@@ -159,6 +175,7 @@ module Syntropy
       end
     end
 
+    # wrap a P2 template
     def wrap_p2_template(wrapper)
       template = wrapper.proc
       lambda { |req|
@@ -170,6 +187,7 @@ module Syntropy
       }
     end
 
+    # wrap a papercraft template
     def wrap_papercraft_template(template)
       lambda { |req|
         headers = { 'Content-Type' => template.mime_type }
@@ -178,9 +196,10 @@ module Syntropy
           'get'   => -> { [template.render, headers] }
         )
       }
-      
+
     end
 
+    # render a markdown route
     def render_markdown(entry)
       atts, md = Syntropy.parse_markdown_file(entry[:fn], @opts)
 
@@ -194,6 +213,7 @@ module Syntropy
       html
     end
 
+    # returns a markdown template based on the given layout
     def markdown_layout_proc(layout)
       layout = @module_loader.load("_layout/#{layout}")
       layout.apply { |md:, **|
