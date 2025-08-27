@@ -92,6 +92,25 @@ module Syntropy
       hooks
     end
 
+    # Computes a "clean" URL path for the given path. Modules and markdown are
+    # stripped of their extensions, and index file paths are also converted to the
+    # containing directory path. For example, the clean URL path for `/foo/bar.rb`
+    # is `/foo/bar`. The Clean URL path for `/bar/baz/index.rb` is `/bar/baz`.
+    #
+    # @param fn [String] file path
+    # @return [String] clean path
+    def compute_clean_url_path(fn)
+      rel_path = fn.sub(@root_dir, '')
+      case rel_path
+      when /^(.*)\/index\.(md|rb|html)$/
+        Regexp.last_match(1).then { it == '' ? '/' : it }
+      when /^(.*)\.(md|rb|html)$/
+        Regexp.last_match(1)
+      else
+        rel_path
+      end
+    end
+
     private
 
     # Maps extensions to route kind.
@@ -188,26 +207,7 @@ module Syntropy
       Dir[File.join(dir.gsub(/[\[\]]/) { "\\#{it}"}, '*')]
     end
 
-    # Computes a "clean" URL path for the given path. Modules and markdown are
-    # stripped of their extensions, and index file paths are also converted to the
-    # containing directory path. For example, the clean URL path for `/foo/bar.rb`
-    # is `/foo/bar`. The Clean URL path for `/bar/baz/index.rb` is `/bar/baz`.
-    #
-    # @param fn [String] file path
-    # @return [String] clean path
-    def compute_clean_url_path(fn)
-      rel_path = fn.gsub(@root_dir, '')
-      case rel_path
-      when /^(.*)\/index\.(md|rb|html)$/
-        Regexp.last_match(1).then { it == '' ? '/' : it }
-      when /^(.*)\.(md|rb|html)$/
-        Regexp.last_match(1)
-      else
-        rel_path
-      end
-    end
-
-    # Computes a route entry for the given file path.
+    # Computes a route entry and/or target for the given file path.
     #
     # @param fn [String] file path
     # @param rel_path [String] relative path
@@ -216,54 +216,116 @@ module Syntropy
     def compute_route_file(fn:, rel_path:, parent:)
       abs_path = rel_path_to_abs_path(rel_path)
       case
-      # /index.rb, index+.rb, index.md
+      # index.rb, index+.rb, index.md
       when (m = fn.match(/\/index(\+)?(\.(?:rb|md))$/))
-        # Index files (modules or markdown) files) are applied to the immediate
-        # containing directory. A + suffix indicates this route handles requests
-        # to its subtree
+        # Index files (modules or markdown) files) are applied as targets to the
+        # immediate containing directory. A + suffix indicates this route
+        # handles requests to its subtree
         plus, ext = m[1..2]
         kind = FILE_TYPE[ext]
-        @dynamic_map[abs_path] = parent
-        parent[:target] = make_route_target(kind:, fn:)
-        parent[:handle_subtree] = (plus == '+') && (kind == :module)
-        nil
+        handle_subtree = (plus == '+') && (kind == :module)
+        set_index_route_target(parent:, path: abs_path, kind:, fn:, handle_subtree:)
 
-      # /foo.rb, /foo+.rb, /foo.md, /[id].rb, /[id]+.rb
+      # index.html
+      when fn.match(/\/index\.html$/)
+        # HTML index files are applied as targets to the immediate containing
+        # directory. It is considered static and therefore not added to the
+        # routing tree.
+        set_index_route_target(parent:, path: abs_path, kind: :static, fn:)
+
+      # foo.rb, foo+.rb, foo.md, [foo].rb, [foo]+.rb
       when (m = fn.match(/\/(\[)?([^\]\/\+]+)(\])?(\+)?(\.(?:rb|md))$/))
-        # Module and markdown routes. A + suffix indicates the module also handles
-        # requests to the subtree. For example, `/foo/bar.rb` will handle requests
-        # to `/foo/bar`, but `/foo/bar+.rb` will also handle requests to
-        # `/foo/bar/baz/bug`.
+        # Module and markdown route targets. A + suffix indicates the module
+        # also handles requests to the subtree. For example, `/foo/bar.rb` will
+        # handle requests to `/foo/bar`, but `/foo/bar+.rb` will also handle
+        # requests to `/foo/bar/baz/bug`.
         #
         # parametric, or wildcard, routes convert segments of the URL path into
         # parameters that are added to the HTTP request. Parametric routes are
         # denoted using square brackets around the file/directory name. For
-        # example, `/api/posts/[id].rb`` will handle requests to `/api/posts/42`,
-        # and will extract the parameter `posts => 42` to add to the incoming
-        # request.
+        # example, `/api/posts/[id].rb`` will handle requests to
+        # `/api/posts/42`, and will extract the parameter `posts => 42` to add
+        # to the incoming request.
         #
         # A + suffix indicates the module also handles the subtree, so e.g.
-        # `/api/posts/[id]+.rb` will also handle requests to `/api/posts/42/fans`
-        # etc.
+        # `/api/posts/[id]+.rb` will also handle requests to
+        # `/api/posts/42/fans` etc.
         ob, param, cb, plus, ext = m[1..5]
         kind = FILE_TYPE[ext]
-        @dynamic_map[abs_path] = {
-          parent: parent,
+        make_route_entry(
+          parent:,
           path: abs_path,
           param: ob && cb ? param : nil,
           target: make_route_target(kind:, fn:),
           handle_subtree: (plus == '+') && (kind == :module)
-        }
+        )
+
+      # foo.html
+      when (m = fn.match(/\/[^\/]+\.html$/))
+        # HTML files are routed by their clean URL, i.e. without the `.html`
+        # extension. Those are considered as static routes, and do not have
+        # entries in the routing tree. Instead they are stored in the static
+        # map.
+        make_route_entry(
+          parent: parent,
+          path:   abs_path,
+          target: make_route_target(kind: :static, fn:)
+        )
+      
+      # everything else
       else
         # static files resolved using the static map, and are not added to the
         # routing tree, which is used for resolving dynamic routes.
-        @static_map[abs_path] = {
+        make_route_entry(
           parent: parent,
-          path: rel_path,
+          path: abs_path,
           target: { kind: :static, fn: fn }
-        }
-        nil
+        )
       end
+    end
+
+    # Sets an index route target for the given parent entry.
+    # 
+    # @param parent [Hash] parent route entry
+    # @param path [String] route path
+    # @param kind [Symbol] route target kind
+    # @param fn [String] route target filename
+    # @param handle_subtree [bool] whether the target handles the subtree
+    # @return [nil] (prevents addition of an index route)
+    def set_index_route_target(parent:, path:, kind:, fn:, handle_subtree: nil)
+      if is_parametric_route?(parent) || handle_subtree
+        @dynamic_map[path] = parent
+        parent[:target] = make_route_target(kind:, fn:)
+        parent[:handle_subtree] = handle_subtree
+      else
+        @static_map[path] = {
+          parent: parent,
+          path: path,
+          target: { kind:, fn: }
+        }
+      end
+      nil
+    end
+
+    # Creates a new route entry, registering it in the static or dynamic map,
+    # according to its type.
+    # 
+    # @param entry [Hash] route entry
+    def make_route_entry(entry)
+      path = entry[:path]
+      if is_parametric_route?(entry) || entry[:handle_subtree]
+        @dynamic_map[path] = entry
+      else
+        entry[:static] = true
+        @static_map[path] = entry
+      end
+    end
+
+    # returns true if the route or any of its ancestors are parametric.
+    # 
+    # @param entry [Hash] route entry
+    def is_parametric_route?(entry)
+      entry[:param] || (entry[:parent] && is_parametric_route?(entry[:parent]))
     end
 
     # Converts a relative URL path to absolute URL path.
@@ -368,18 +430,29 @@ module Syntropy
         return
       end
 
+      if is_void_route?(entry)
+        parent = entry[:parent]
+        parametric_sibling = parent && parent[:children] && parent[:children]['[]']
+        if parametric_sibling
+          emit_code_line(buffer, "#{ws}return nil")
+          return
+        end
+      end
+
       # Get next segment
       emit_code_line(buffer, "#{ws}case (p = parts[#{segment_idx}])")
 
       # In case of no next segment
       emit_code_line(buffer, "#{ws}when nil")
       if entry[:target]
-        emit_code_line(buffer, "#{ws}  return @dynamic_map[#{entry[:path].inspect}]")
+        map = entry[:static] ? '@static_map' : '@dynamic_map'
+        emit_code_line(buffer, "#{ws}  return #{map}[#{entry[:path].inspect}]")
       else
         emit_code_line(buffer, "#{ws}  return nil")
       end
 
       if entry[:children]
+        param_entry = entry[:children]['[]']
         entry[:children].each do |k, child_entry|
           # skip if wildcard entry (treated in else clause below)
           next if k == '[]'
@@ -389,18 +462,26 @@ module Syntropy
           has_children = child_entry[:children] && !child_entry[:children].empty?
           next if !has_target && !has_children
 
-          emit_code_line(buffer, "#{ws}when #{k.inspect}")
           if has_target && !has_children
+            # use the target
+            next if child_entry[:static]
+
+            emit_code_line(buffer, "#{ws}when #{k.inspect}")
             if_clause = child_entry[:handle_subtree] ? '' : " if !parts[#{segment_idx + 1}]"
             route_value = "@dynamic_map[#{child_entry[:path].inspect}]"
             emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
+
           elsif has_children
+            # otherwise look at the next segment
+            next if is_void_route?(child_entry) && !param_entry
+
+            emit_code_line(buffer, "#{ws}when #{k.inspect}")
             visit_routing_tree_entry(buffer:, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)
           end
         end
 
         # parametric route
-        if (param_entry = entry[:children]['[]'])
+        if param_entry
           emit_code_line(buffer, "#{ws}else")
           emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = p")
           visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
@@ -420,6 +501,23 @@ module Syntropy
       }
 
       nil
+    end
+
+    # Returns true if the given route is not parametric, has no children and is
+    # static, or has children and all are void.
+    # 
+    # @param entry [Hash] route entry
+    # @return [bool]
+    def is_void_route?(entry)
+      return false if entry[:param]
+
+      if entry[:children]
+        return true if !entry[:children]['[]'] && entry[:children]&.values&.all? { is_void_route?(it) }
+      else
+        return true if entry[:static]
+      end
+
+      false
     end
 
     DEBUG = !!ENV['DEBUG']

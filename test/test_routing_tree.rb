@@ -41,6 +41,11 @@ class RoutingTreeTest < Minitest::Test
       'posts': {
         '[id].rb': '',
         'index.rb': ''
+      },
+
+      'old': {
+        'index.html': '',
+        'baz.html': ''
       }
     }
   }
@@ -61,20 +66,19 @@ class RoutingTreeTest < Minitest::Test
     assert_equal '/foo.js', c.(File.join(@rt.root_dir, '/foo.js'))
   end
 
-  def test_routing_tree
+  def test_routing_tree_generation
     root = @rt.root
     assert_equal '/docs', root[:path]
     assert_nil root[:parent]
     assert_nil root[:param]
-    refute_nil root[:target]
-    assert_equal File.join(@rt.root_dir, 'index.rb'), root[:target][:fn]
-    assert_equal ['[]', 'about', 'api', 'assets', 'posts'], root[:children].keys.sort_by(&:to_s)
+    assert_nil root[:target]
+    assert_equal ['[]', 'about', 'api', 'assets', 'old', 'posts'], root[:children].keys.sort_by(&:to_s)
+
+    entry = @rt.static_map['/docs']
+    assert_equal File.join(@rt.root_dir, 'index.rb'), entry[:target][:fn]
 
     about = root[:children]['about']
-    assert_equal '/docs/about', about[:path]
-    assert_equal root, about[:parent]
-    assert_equal ({kind: :markdown, fn: File.join(@rt.root_dir, 'about.md')}), about[:target]
-    assert_nil about[:children]
+    assert_equal File.join(@rt.root_dir, 'about.md'), about[:target][:fn]
 
     org = root[:children]['[]']
     assert_equal '/docs/[org]', org[:path]
@@ -107,7 +111,7 @@ class RoutingTreeTest < Minitest::Test
     posts = root[:children]['posts']
     assert_equal root, posts[:parent]
     assert_equal '/docs/posts', posts[:path]
-    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), posts[:target][:fn]
+    assert_nil posts[:target]
     assert_equal ['[]'], posts[:children].keys.sort_by(&:to_s)
 
     id = posts[:children]['[]']
@@ -117,39 +121,60 @@ class RoutingTreeTest < Minitest::Test
     assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), id[:target][:fn]
     assert_nil id[:children]
 
+    old = root[:children]['old']
+    refute_nil old
+    assert_nil old[:target]
 
     # static files are not added to the routing tree, so the assets entry has no children
     assets = root[:children]['assets']
-    assert_equal ['css', 'img'], assets[:children].keys.sort
+    refute_nil assets
     assert_nil assets[:target]
-
-    assert_nil assets[:children]['css'][:target]
-    assert_equal [], assets[:children]['css'][:children].keys
-
-    assert_nil assets[:children]['img'][:target]
-    assert_equal [], assets[:children]['img'][:children].keys
   end
 
   def test_static_map
     map = @rt.static_map
-    assert_equal 2, map.size
+    assert_equal 7, map.size
+
+    keys = map.keys.sort
+    assert_equal [
+      '/docs', '/docs/about', '/docs/assets/css/style.css',
+      '/docs/assets/img/foo.jpg', '/docs/old', '/docs/old/baz', '/docs/posts'
+    ], keys
 
     o = map['/docs/assets/css/style.css']
     assert_equal File.join(@rt.root_dir, 'assets/css/style.css'), o[:target][:fn]
 
     o = map['/docs/assets/img/foo.jpg']
     assert_equal File.join(@rt.root_dir, 'assets/img/foo.jpg'), o[:target][:fn]
+
+    o = map['/docs/old/baz']
+    assert_equal File.join(@rt.root_dir, 'old/baz.html'), o[:target][:fn]
+
+    o = map['/docs/posts']
+    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), o[:target][:fn]
+
+    o = map['/docs/old/baz']
+    assert_equal File.join(@rt.root_dir, 'old/baz.html'), o[:target][:fn]
+
+    o = map['/docs/old']
+    assert_equal File.join(@rt.root_dir, 'old/index.html'), o[:target][:fn]
+
+    o = map['/docs']
+    assert_equal File.join(@rt.root_dir, 'index.rb'), o[:target][:fn]
+
+    o = map['/docs/about']
+    assert_equal File.join(@rt.root_dir, 'about.md'), o[:target][:fn]
   end
 
   def test_dynamic_map
     map = @rt.dynamic_map
-    assert_equal 10, map.size
+    assert_equal 7, map.size
 
     keys = map.keys.sort
     assert_equal [
-      '/docs', '/docs/[org]', '/docs/[org]/[repo]', '/docs/[org]/[repo]/commits',
-      '/docs/[org]/[repo]/issues', '/docs/[org]/[repo]/issues/[id]', '/docs/about',
-      '/docs/api+', '/docs/posts', '/docs/posts/[id]'
+      '/docs/[org]', '/docs/[org]/[repo]', '/docs/[org]/[repo]/commits',
+      '/docs/[org]/[repo]/issues', '/docs/[org]/[repo]/issues/[id]',
+      '/docs/api+', '/docs/posts/[id]'
     ], keys
 
     # all entries in dynamic map should have targets
@@ -159,15 +184,12 @@ class RoutingTreeTest < Minitest::Test
     assert_equal ({}), map.select { |k, v| k != v[:path] }
 
     assert_equal [
-      'index.rb',
       '[org]/index.rb',
       '[org]/[repo]/index.rb',
       '[org]/[repo]/commits/index.rb',
       '[org]/[repo]/issues/index.rb',
       '[org]/[repo]/issues/[id]/index.rb',
-      'about.md',
       'api+.rb',
-      'posts/index.rb',
       'posts/[id].rb'
     ].map { File.join(@rt.root_dir, it) }, keys.map { map[it][:target][:fn] }
   end
@@ -314,6 +336,9 @@ class RoutingTreeTest < Minitest::Test
   def test_routing_root_mounted
     rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
     router = rt.router_proc
+
+    # pp rt.root
+    # puts
 
     route = router.('/docs/df/p2/issues/14', {})
     assert_nil route
