@@ -48,7 +48,7 @@ module Syntropy
     # @param root_dir [String] root directory of file tree
     # @param mount_path [String] base URL path
     # @return [void]
-    def initialize(root_dir:, mount_path:, env: {})
+    def initialize(root_dir:, mount_path:, **env)
       @root_dir = root_dir
       @mount_path = mount_path
       @static_map = {}
@@ -158,7 +158,7 @@ module Syntropy
     # @return [String, nil] file path if found
     def find_aux_module_entry(dir, name)
       fn = File.join(dir, name)
-      File.file?(fn) ? fn : nil
+      File.file?(fn) ? ({ kind: :module, fn: fn }) : nil
     end
 
     # Returns a hash mapping file/dir names to route entries.
