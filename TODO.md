@@ -1,3 +1,8 @@
+- [ ] Improve serving of static files:
+  - [ ] support for compression
+  - [ ] support for caching headers
+  - [ ] add `Request#render_static_file(route, fn)
+
 ## Support for applets
 
 - can be implemented as separate gems
