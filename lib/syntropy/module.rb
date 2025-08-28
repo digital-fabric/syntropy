@@ -90,14 +90,14 @@ module Syntropy
       alias_method :html, :template
 
       def route_by_host(map = nil)
-        root = @env[:location]
+        root = @env[:root_dir]
         sites = Dir[File.join(root, '*')]
                 .reject { File.basename(it) =~ /^_/ }
                 .select { File.directory?(it) }
                 .each_with_object({}) { |fn, h|
                   name = File.basename(fn)
-                  opts = @env.merge(location: fn)
-                  h[name] = Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
+                  opts = @env.merge(root_dir: fn)
+                  h[name] = Syntropy::App.new(**opts)
                 }
 
         map&.each do |k, v|
@@ -111,7 +111,7 @@ module Syntropy
       end
 
       def page_list(ref)
-        full_path = File.join(@env[:location], ref)
+        full_path = File.join(@env[:root_dir], ref)
         raise 'Not a directory' if !File.directory?(full_path)
 
         Dir[File.join(full_path, '*.md')].sort.map {
@@ -120,11 +120,11 @@ module Syntropy
         }
       end
 
-      def app(location = nil, mount_path = nil)
-        location ||= @env[:location]
+      def app(root_dir = nil, mount_path = nil)
+        root_dir ||= @env[:root_dir]
         mount_path ||= @env[:mount_path]
-        opts = @env.merge(location:, mount_path:)
-        Syntropy::App.new(opts[:machine], opts[:location], opts[:mount_path], opts)
+        opts = @env.merge(root_dir:, mount_path:)
+        Syntropy::App.new(**opts)
       end
     end
   end

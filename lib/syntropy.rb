@@ -12,7 +12,7 @@ require 'syntropy/errors'
 require 'syntropy/markdown'
 require 'syntropy/module'
 require 'syntropy/request_extensions'
-require 'syntropy/router'
+require 'syntropy/routing_tree'
 require 'syntropy/rpc_api'
 require 'syntropy/side_run'
 

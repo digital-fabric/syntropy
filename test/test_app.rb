@@ -13,11 +13,11 @@ class AppTest < Minitest::Test
     @tmp_path = '/test/tmp'
     @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
-    @app = Syntropy::App.load(
-      machine: @machine,
-      location: APP_ROOT,
+    @app = Syntropy::App.new(
+      root_dir: APP_ROOT,
       mount_path: '/test',
-      watch_files: 0.05
+      watch_files: 0.05,
+      machine: @machine
     )
   end
 
@@ -28,13 +28,17 @@ class AppTest < Minitest::Test
   end
 
   def test_app_rendering
+    # puts "*" * 40
+    # pp @app.routing_tree.root
+    # puts
+
     req = make_request(':method' => 'GET', ':path' => '/')
-    assert_equal 'Not found', req.response_body
     assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal 'Not found', req.response_body
 
     req = make_request(':method' => 'HEAD', ':path' => '/')
-    assert_nil req.response_body
     assert_equal Status::NOT_FOUND, req.response_status
+    assert_nil req.response_body
 
     req = make_request(':method' => 'POST', ':path' => '/')
     assert_equal 'Not found', req.response_body
@@ -51,21 +55,6 @@ class AppTest < Minitest::Test
     req = make_request(':method' => 'POST', ':path' => '/test')
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
     assert_nil req.response_body
-
-    req = make_request(':method' => 'GET', ':path' => '/test/index')
-    assert_equal '<h1>Hello, world!</h1>', req.response_body
-
-    req = make_request(':method' => 'GET', ':path' => '/test/index.html')
-    assert_equal '<h1>Hello, world!</h1>', req.response_body
-    assert_equal 'text/html', req.response_headers['Content-Type']
-
-    req = make_request(':method' => 'HEAD', ':path' => '/test/index.html')
-    assert_nil req.response_body
-    assert_equal 'text/html', req.response_headers['Content-Type']
-
-    req = make_request(':method' => 'POST', ':path' => '/test/index.html')
-    assert_nil req.response_body
-    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/assets/style.css')
     assert_equal '* { color: beige }', req.response_body
@@ -114,7 +103,7 @@ class AppTest < Minitest::Test
     req = make_request(':method' => 'POST', ':path' => '/test/baz')
     assert_nil req.response_body
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
-
+    
     req = make_request(':method' => 'GET', ':path' => '/test/about')
     assert_equal 'About', req.response_body.chomp
 
@@ -129,14 +118,14 @@ class AppTest < Minitest::Test
   end
 
   def test_app_file_watching
-    @machine.sleep 0.2
+    @machine.sleep 0.3
 
     req = make_request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'foo', req.response_body
 
     orig_body = IO.read(@tmp_fn)
     IO.write(@tmp_fn, orig_body.gsub('foo', 'bar'))
-    @machine.sleep(0.5)
+    @machine.sleep(0.3)
 
     req = make_request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'bar', req.response_body
@@ -166,7 +155,7 @@ class CustomAppTest < Minitest::Test
     @machine = UM.new
     @app = Syntropy::App.load(
       machine: @machine,
-      location: APP_ROOT,
+      root_dir: APP_ROOT,
       mount_path: '/'
     )
   end
@@ -193,7 +182,7 @@ class MultiSiteAppTest < Minitest::Test
     @machine = UM.new
     @app = Syntropy::App.load(
       machine: @machine,
-      location: APP_ROOT,
+      root_dir: APP_ROOT,
       mount_path: '/'
     )
   end

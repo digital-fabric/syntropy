@@ -8,7 +8,9 @@ require 'p2'
 
 require 'syntropy/errors'
 require 'syntropy/file_watch'
+
 require 'syntropy/module'
+require 'syntropy/routing_tree'
 
 module Syntropy
   class App
@@ -21,191 +23,121 @@ module Syntropy
 
       # for apps with a _site.rb file
       def site_file_app(opts)
-        site_fn = File.join(opts[:location], '_site.rb')
+        site_fn = File.join(opts[:root_dir], '_site.rb')
         return nil if !File.file?(site_fn)
 
-        loader = Syntropy::ModuleLoader.new(opts[:location], opts)
+        loader = Syntropy::ModuleLoader.new(opts[:root_dir], opts)
         loader.load('_site')
       end
 
       # default app
       def default_app(opts)
-        new(opts[:machine], opts[:location], opts[:mount_path] || '/', opts)
+        new(**opts)
       end
     end
 
-    # inits state, module loader, router, router file watcher
-    def initialize(machine, location, mount_path, opts = {})
-      @machine = machine
-      @location = File.expand_path(location)
+    attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :opts
+    def initialize(root_dir:, mount_path:, **opts)
+      @machine = opts[:machine]
+      @root_dir = root_dir
       @mount_path = mount_path
       @opts = opts
 
-      @module_loader = Syntropy::ModuleLoader.new(@location, @opts)
-      @router = Syntropy::Router.new(@opts, @module_loader)
-
-      @machine.spin do
-        # we do startup stuff asynchronously, in order to first let TP2 do its
-        # setup tasks
-        @machine.sleep 0.15
-        @opts[:logger]&.info(
-          message: "Serving from #{File.expand_path(@location)}"
-        )
-        @router.start_file_watcher if opts[:watch_files]
-      end
+      @module_loader = Syntropy::ModuleLoader.new(@root_dir, opts)
+      setup_routing_tree
+      start_app
     end
 
-    # runs the app on the given request:
-    #
-    # - find route
-    # - call route
+    # Processes an incoming HTTP request. Requests are processed by first
+    # looking up the route for the request path, then calling the route proc. If
+    # the route proc is not set, it is computed according to the route target,
+    # and composed recursively into hooks encountered up the routing tree.
+    # 
+    # Normal exceptions (StandardError and descendants) are trapped and passed
+    # to route's error handler. If no such handler is found, the default error
+    # handler is used, which simply generates a textual response containing the
+    # error message, and with the appropriate HTTP status code, according to the
+    # type of error.
+    # 
+    # @param req [Qeweney::Request] HTTP request @
     def call(req)
-      entry = @router[req.path]
-      render_entry(req, entry)
-    rescue Syntropy::Error => e
-      msg = e.message
-      req.respond(msg.empty? ? nil : msg, ':status' => e.http_status)
+      route = @router_proc.(req.path, req.route_params)
+      raise Syntropy::Error.not_found('Not found') if !route
+
+      proc = route[:proc] ||= compute_route_proc(route)
+      return proc.(req)
     rescue StandardError => e
-      p e
-      p e.backtrace
-      req.respond(e.message, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
+      error_handler = get_error_handler(route)
+      error_handler.(req, e)
     end
 
     private
 
-    # call route with request
-    def render_entry(req, entry)
-      kind = entry[:kind]
-      return respond_not_found(req) if kind == :not_found
-
-      entry[:proc] ||= calculate_route_proc(entry)
-      entry[:proc].(req)
+    # Instantiates a routing tree with the app settings, and generates a router
+    # proc.
+    #
+    # @return [void]
+    def setup_routing_tree
+      @routing_tree = Syntropy::RoutingTree.new(
+        root_dir: @root_dir, mount_path: @mount_path, **@opts
+      )
+      @router_proc = @routing_tree.router_proc
     end
 
-    # computes a route proc with all hooks
-    def calculate_route_proc(entry)
-      render_proc = route_render_proc(entry)
-      @router.calc_route_proc_with_hooks(entry, render_proc)
+    # Computes the route proc for the given route, wrapping it in hooks found up
+    # the routing tree.
+    # 
+    # @param route [Hash] route entry
+    # @return [Proc] route proc
+    def compute_route_proc(route)
+      pure = pure_route_proc(route)
+      compose_up_tree_hooks(route, pure)
     end
 
-    # returns a render proc according to route kind
-    def route_render_proc(entry)
-      case entry[:kind]
+    def pure_route_proc(route)
+      case (kind = route[:target][:kind])
       when :static
-        ->(req) { respond_static(req, entry) }
+        static_route_proc(route)
       when :markdown
-        ->(req) { respond_markdown(req, entry) }
+        markdown_route_proc(route)
       when :module
-        load_module(entry)
+        module_route_proc(route)
       else
-        raise 'Invalid entry kind'
+        raise Syntropy::Error, "Invalid route kind: #{kind.inspect}"
       end
     end
 
-    # respond with not found
-    def respond_not_found(req)
-      headers = { ':status' => Qeweney::Status::NOT_FOUND }
-      case req.method
-      when 'head'
-        req.respond(nil, headers)
-      else
-        req.respond('Not found', headers)
-      end
-    end
+    # Returns a proc rendering the given static route
+    def static_route_proc(route)
+      fn = route[:target][:fn]
+      headers = { 'Content-Type' => Qeweney::MimeTypes[File.extname(fn)] }
 
-    # respond with a static file
-    def respond_static(req, entry)
-      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
-      headers = { 'Content-Type' => entry[:mime_type] }
-      req.respond_by_http_method(
-        'head'  => [nil, headers],
-        'get'   => -> { [IO.read(entry[:fn]), headers] }
-      )
-    end
-
-    # respond with markdown
-    def respond_markdown(req, entry)
-      entry[:mime_type] ||= Qeweney::MimeTypes[File.extname(entry[:fn])]
-      headers = { 'Content-Type' => entry[:mime_type] }
-      req.respond_by_http_method(
-        'head'  => [nil, headers],
-        'get'   => -> { [render_markdown(entry), headers] }
-      )
-    end
-
-    # respond with module route
-    def respond_module(req, entry)
-      entry[:proc] ||= load_module(entry)
-      if entry[:proc] == :invalid
-        req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
-        return
-      end
-
-      entry[:proc].call(req)
-    rescue Syntropy::Error => e
-      req.respond(nil, ':status' => e.http_status)
-    rescue StandardError => e
-      p e
-      p e.backtrace
-      req.respond(nil, ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
-    end
-
-    # load a module
-    def load_module(entry)
-      ref = entry[:fn].gsub(%r{^#{@location}/}, '').gsub(/\.rb$/, '')
-      o = @module_loader.load(ref)
-      wrap_module(o)
-    rescue Exception => e
-      @opts[:logger]&.error(
-        message:  "Error while loading module #{ref}",
-        error:    e
-      )
-      :invalid
-    end
-
-    # wrap loaded module
-    def wrap_module(mod)
-      case mod
-      when P2::Template
-        wrap_p2_template(mod)
-      when Papercraft::Template
-        wrap_papercraft_template(mod)
-      else
-        mod
-      end
-    end
-
-    # wrap a P2 template
-    def wrap_p2_template(wrapper)
-      template = wrapper.proc
-      lambda { |req|
-        headers = { 'Content-Type' => 'text/html' }
+      ->(req) {
         req.respond_by_http_method(
           'head'  => [nil, headers],
-          'get'   => -> { [template.render, headers] }
+          'get'   => -> { [IO.read(fn), headers] }
         )
       }
     end
 
-    # wrap a papercraft template
-    def wrap_papercraft_template(template)
-      lambda { |req|
-        headers = { 'Content-Type' => template.mime_type }
+    # Returns a proc rendering the given markdown route
+    def markdown_route_proc(route)
+      headers = { 'Content-Type' => 'text/html' }      
+      
+      ->(req) {
         req.respond_by_http_method(
           'head'  => [nil, headers],
-          'get'   => -> { [template.render, headers] }
+          'get'   => -> { [render_markdown(route), headers] }
         )
       }
-
     end
 
-    # render a markdown route
-    def render_markdown(entry)
-      atts, md = Syntropy.parse_markdown_file(entry[:fn], @opts)
+    def render_markdown(route)
+      atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @opts)
 
       if (layout = atts[:layout])
-        entry[:applied_layouts] ||= {}
-        proc = entry[:applied_layouts][layout] ||= markdown_layout_proc(layout)
+        route[:applied_layouts] ||= {}
+        proc = route[:applied_layouts][layout] ||= markdown_layout_proc(layout)
         html = proc.render(md: md, **atts)
       else
         html = P2.markdown(md)
@@ -215,10 +147,173 @@ module Syntropy
 
     # returns a markdown template based on the given layout
     def markdown_layout_proc(layout)
-      layout = @module_loader.load("_layout/#{layout}")
-      layout.apply { |md:, **|
-        markdown(md)
+      @layouts ||= {}
+      template = @module_loader.load("_layout/#{layout}")
+      @layouts[layout] = template.apply { |md:, **| markdown(md) }
+    end
+
+    def module_route_proc(route)
+      ref = @routing_tree.fn_to_rel_path(route[:target][:fn])
+      # ref = route[:target][:fn].sub(@mount_path, '')
+      mod = @module_loader.load(ref)
+      compute_module_proc(mod)
+    end
+
+    def compute_module_proc(mod)
+      case mod
+      when P2::Template
+        p2_template_proc(mod)
+      when Papercraft::Template
+        papercraft_template_proc(mod)
+      else
+        mod
+      end
+    end
+
+    def p2_template_proc(template)
+      template = template.proc
+      headers = { 'Content-Type' => 'text/html' }
+
+      ->(req) {
+        req.respond_by_http_method(
+          'head'  => [nil, headers],
+          'get'   => -> { [template.render, headers] }
+        )
       }
+    end
+
+    def papercraft_template_proc(template)
+        headers = { 'Content-Type' => template.mime_type }
+      ->(req) {
+        req.respond_by_http_method(
+          'head'  => [nil, headers],
+          'get'   => -> { [template.render, headers] }
+        )
+      }
+    end
+
+    # Composes the given proc into up tree hooks, recursively. Hooks have the
+    # signature `->(req, proc) { ... }` where proc is the pure route proc. Each
+    # hook therefore can decide whether to_ respond itself to the request, pass
+    # in additional parameters, perform any other kind of modification on the
+    # incoming reuqest, or capture the response from the route proc and modify
+    # it.
+    # 
+    # Nested hooks will be invoked from the routing tree root down. For example
+    # `/site/_hook.rb` will wrap `/site/admin/_hook.rb` which wraps the route at
+    # `/site/admin/users.rb`.
+    # 
+    # @param route [Hash] route entry
+    # @param proc [Proc] route proc
+    def compose_up_tree_hooks(route, proc)
+      hook_spec = route[:hook]
+      if hook_spec
+        orig_proc = proc
+        hook_proc = hook_spec[:proc] ||= load_aux_module(hook_spec)
+        proc = ->(req) { hook_proc.(req, orig_proc) }
+      end
+
+      (parent = route[:parent]) ? compose_up_tree_hooks(parent, proc) : proc
+    end
+
+    def load_aux_module(hook_spec)
+      ref = @routing_tree.fn_to_rel_path(hook_spec[:fn])
+      @module_loader.load(ref)
+    end
+
+    DEFAULT_ERROR_HANDLER = ->(req, err) {
+      msg = err.message
+      msg = nil if msg.empty? || (req.method == 'head')
+      req.respond(msg, ':status' => Syntropy::Error.http_status(err))
+    }
+
+    # Returns an error handler for the given route. If route is nil, looks up
+    # the error handler for the routing tree root. If no handler is found,
+    # returns the default error handler.
+    # 
+    # @param route [Hash] route entry
+    # @return [Proc] error handler proc
+    def get_error_handler(route)
+      route_error_handler(route || @routing_tree.root) || DEFAULT_ERROR_HANDLER
+    end
+
+    # Returns the given route's error handler, caching the result.
+    # 
+    # @param route [Hash] route entry
+    # @return [Proc] error handler proc
+    def route_error_handler(route)
+      route[:error_handler] ||= compute_error_handler(route)
+    end
+
+    # Finds and loads the error handler for the given route.
+    # 
+    # @param route [Hash] route entry
+    # @return [Proc, nil] error handler proc or nil
+    def compute_error_handler(route)
+      error_target = find_error_handler(route)
+      return nil if !error_target
+      
+      load_aux_module(error_target)
+    end
+
+    # Finds the closest error handler for the given route. If no error handler
+    # is defined for the route, searches for an error handler up the routing
+    # tree.
+    # 
+    # @param route [Hash] route entry
+    # @return [Hash, nil] error handler target or nil
+    def find_error_handler(route)
+      return route[:error] if route[:error]
+
+      route[:parent] && find_error_handler(route[:parent])
+    end
+
+    # Performs app start up, creating a log message and starting the file
+    # watcher according to app options.
+    # 
+    # @return [void]
+    def start_app
+      @machine.spin do
+        # we do startup stuff asynchronously, in order to first let TP2 do its
+        # setup tasks
+        @machine.sleep 0.2
+        @opts[:logger]&.info(
+          message: "Serving from #{File.expand_path(@location)}"
+        )
+        file_watcher_loop if opts[:watch_files]
+      end
+    end
+
+    # Runs the file watcher loop. When a file change is encountered, invalidates
+    # the corresponding module, and triggers recomputation of the routing tree.
+    # 
+    # @return [void]
+    def file_watcher_loop
+      wf = @opts[:watch_files]
+      period = wf.is_a?(Numeric) ? wf : 0.1
+      Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
+        @module_loader.invalidate(fn)
+        debounce_file_change
+      end
+    rescue Exception => e
+      p e
+      p e.backtrace
+      exit!
+    end
+
+    # Delays responding to a file change, then reloads the routing tree.
+    # 
+    # @return [void]
+    def debounce_file_change
+      if @routing_tree_reloader
+        @machine.schedule(@routing_tree_reloader, UM::Terminate.new)
+      end
+        
+      @routing_tree_reloader = @machine.spin do
+        @machine.sleep(0.1)
+        setup_routing_tree
+        @routing_tree_reloader = nil
+      end
     end
   end
 end

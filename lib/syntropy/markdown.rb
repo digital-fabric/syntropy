@@ -30,9 +30,9 @@ module Syntropy
       atts = atts.merge(yaml)
     end
 
-    if opts[:location]
+    if opts[:root_dir]
       atts[:url] = path
-                   .gsub(/#{opts[:location]}/, '')
+                   .gsub(/#{opts[:root_dir]}/, '')
                    .gsub(/\.md$/, '')
     end
 

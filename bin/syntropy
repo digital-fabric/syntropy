@@ -5,6 +5,7 @@ require 'syntropy'
 require 'optparse'
 
 opts = {
+  mount_path: '/',
   banner: Syntropy::BANNER,
   logger: true
 }
@@ -32,6 +33,10 @@ parser = OptionParser.new do |o|
     exit
   end
 
+  o.on('-m', '--mount', 'Set mount path (default: /)') do
+    opts[:mount_path] = it
+  end
+
   o.on('-v', '--version', 'Show version') do
     require 'syntropy/version'
     puts "Syntropy version #{Syntropy::VERSION}"
@@ -49,10 +54,10 @@ rescue StandardError => e
   exit
 end
 
-opts[:location] = ARGV.shift || '.'
+opts[:root_dir] = ARGV.shift || '.'
 
-if !File.directory?(opts[:location])
-  puts "#{File.expand_path(opts[:location])} Not a directory"
+if !File.directory?(opts[:root_dir])
+  puts "#{File.expand_path(opts[:root_dir])} Not a directory"
   exit
 end
 

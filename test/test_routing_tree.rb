@@ -78,7 +78,10 @@ class RoutingTreeTest < Minitest::Test
     assert_equal File.join(@rt.root_dir, 'index.rb'), entry[:target][:fn]
 
     about = root[:children]['about']
+    assert_equal '/docs/about', about[:path]
+    assert_equal root, about[:parent]
     assert_equal File.join(@rt.root_dir, 'about.md'), about[:target][:fn]
+    assert_nil about[:children]
 
     org = root[:children]['[]']
     assert_equal '/docs/[org]', org[:path]
@@ -152,12 +155,16 @@ class RoutingTreeTest < Minitest::Test
 
     o = map['/docs/posts']
     assert_equal File.join(@rt.root_dir, 'posts/index.rb'), o[:target][:fn]
+    refute_nil o[:parent]
+    assert_equal '/docs', o[:parent][:path]
 
     o = map['/docs/old/baz']
     assert_equal File.join(@rt.root_dir, 'old/baz.html'), o[:target][:fn]
 
     o = map['/docs/old']
     assert_equal File.join(@rt.root_dir, 'old/index.html'), o[:target][:fn]
+    refute_nil o[:parent]
+    assert_equal '/docs', o[:parent][:path]
 
     o = map['/docs']
     assert_equal File.join(@rt.root_dir, 'index.rb'), o[:target][:fn]
