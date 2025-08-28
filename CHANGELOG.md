@@ -1,3 +1,12 @@
+# 0.12 2025-08-28
+
+- Add routing info to request: `#route`, `#route_params`
+- Improve validations
+- Improve errors
+- Reimplement `App`
+- Add support for parametric routes
+- Reimplement `RoutingTree` (was `Router`)
+
 ## 0.11 2025-08-17
 
 - Upgrade to P2 2.8
