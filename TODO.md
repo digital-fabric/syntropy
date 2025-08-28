@@ -1,8 +1,50 @@
-  ## Routing: add support for parameter routes
+## App rewrite
 
-(following the SvelteKit convention: https://svelte.dev/docs/kit/routing):
+- [v] Integration with module loader (which should be refactored into separate
+  file - actually needs a rewrite.)
+- [v] Add `Request#route` which is set to the route entry
+- [v] Add `Request#validate_route_param`, works like `#validate_param`
+- [v] Add possibility to validate with a block:
 
-Implementation in docs repo. The routing tree should be compiled.
+      ```ruby
+      org = validate_route_param(:org) { store.get_org(it) }
+      repo = validate_route_param(:org) { org.get_repo(it) }
+      ```
+
+      Maybe a better possibility is to implement a general `#validate` method:
+
+      ```ruby
+      org = validate(route_param[:org]) { store.get_org(it) }
+      repo = validate(route_param[:org]) { org.get_repo(it) }
+      issue = validate(route_param[:issue_id]) { repo.issues[it] }
+      ```
+
+      This could also be used with POST params:
+
+      ```ruby
+      body = req.read
+      form_data = req.parse_form_data(body, req.headers)
+      category = req.validate(form_data[:category]) { store.categories[it.to_i] }
+      ```
+
+      This could also be expressed as:
+
+      ```ruby
+      body = req.get_form_data
+      category = req.validate(form_data[:category]) { store.categories[it.to_i] }
+      ```
+
+- [ ] Add `Request#get_form_data` extension, with __tests__:
+
+      ```ruby
+      def get_form_data
+        body = read
+        form_data = parse_form_data(body, headers)
+      end
+      ```
+
+- [ ] Tests for Syntropy::Error
+
 
 ## Support for applets
 

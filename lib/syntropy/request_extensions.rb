@@ -61,7 +61,20 @@ module Syntropy
     end
 
     def validate_param(name, *clauses)
-      value = query[name]
+      validate(query[name], *clauses)
+      # value = query[name]
+      # clauses.each do |c|
+      #   valid = param_is_valid?(value, c)
+      #   raise(Syntropy::ValidationError, 'Validation error') if !valid
+
+      #   value = param_convert(value, c)
+      # end
+      # value
+    end
+
+    def validate(value, *clauses)
+      raise Syntropy::ValidationError, 'Validation error' if clauses.empty? && !value
+
       clauses.each do |c|
         valid = param_is_valid?(value, c)
         raise(Syntropy::ValidationError, 'Validation error') if !valid
