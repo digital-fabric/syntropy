@@ -115,6 +115,9 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
     assert_equal Status::NOT_FOUND, req.response_status
+
+    req = make_request(':method' => 'GET', ':path' => '/test/params/abc')
+    assert_equal '/test/params/[foo]-abc', req.response_body.chomp
   end
 
   def test_app_file_watching

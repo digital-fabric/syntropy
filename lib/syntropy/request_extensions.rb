@@ -5,14 +5,22 @@ require 'qeweney'
 module Syntropy
   module RequestExtensions
     attr_reader :route_params
+    attr_accessor :route
 
     def initialize(headers, adapter)
       @headers  = headers
       @adapter  = adapter
+      @route = nil
       @route_params = {}
       @ctx = nil
     end
 
+    def setup_mock_request
+      @route = nil
+      @route_params = {}
+      @ctx = nil
+    end
+    
     def ctx
       @ctx ||= {}
     end

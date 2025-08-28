@@ -59,13 +59,15 @@ module Syntropy
     # error message, and with the appropriate HTTP status code, according to the
     # type of error.
     # 
-    # @param req [Qeweney::Request] HTTP request @
+    # @param req [Qeweney::Request] HTTP request
+    # @return [void]
     def call(req)
       route = @router_proc.(req.path, req.route_params)
       raise Syntropy::Error.not_found('Not found') if !route
 
+      req.route = route
       proc = route[:proc] ||= compute_route_proc(route)
-      return proc.(req)
+      proc.(req)
     rescue StandardError => e
       error_handler = get_error_handler(route)
       error_handler.(req, e)
