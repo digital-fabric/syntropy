@@ -3,37 +3,57 @@
 require 'qeweney'
 
 module Syntropy
+  # The base Syntropy error class
   class Error < StandardError
     Status = Qeweney::Status
 
+    # By default, the HTTP status for errors is 500 Internal Server Error
+    DEFAULT_STATUS = Qeweney::Status::INTERNAL_SERVER_ERROR
+
+    # Returns the HTTP status for the given exception
+    # 
+    # @param err [Exception] exception
+    # @return [Integer, String] HTTP status
     def self.http_status(err)
-      err.is_a?(Error) ?
-        err.http_status :
-        Qeweney::Status::INTERNAL_SERVER_ERROR
+      err.respond_to?(:http_status) ? err.http_status : DEFAULT_STATUS
     end
 
-    # Create class methods for common errors
-    {
-      not_found:          Status::NOT_FOUND,
-      method_not_allowed: Status::METHOD_NOT_ALLOWED,
-      teapot:             Status::TEAPOT
-    }
-    .each { |k, v|
-      singleton_class.define_method(k) { |msg = ''| new(v, msg) }
-    }
+    # Creates an error with status 404 Not Found
+    # 
+    # @return [Syntropy::Error]
+    def self.not_found(msg = '') = new(Status::NOT_FOUND, msg)
+    
+    # Creates an error with status 405 Method Not Allowed
+    # 
+    # @return [Syntropy::Error]
+    def self.method_not_allowed(msg = '') = new(Status::METHOD_NOT_ALLOWED, msg)
+
+    # Creates an error with status 418 I'm a teapot
+    # 
+    # @return [Syntropy::Error]
+    def self.teapot(msg = '') = new(Status::TEAPOT, msg)
 
     attr_reader :http_status
 
-    def initialize(http_status, msg = '')
+    # Initializes a Syntropy error with the given HTTP status and message.
+    # 
+    # @param http_status [Integer, String] HTTP status
+    # @param msg [String] error message
+    # @return [void]
+    def initialize(http_status = DEFAULT_STATUS, msg = '')
       super(msg)
       @http_status = http_status
     end
 
+    # Returns the HTTP status for the error.
+    # 
+    # @return [Integer, String] HTTP status
     def http_status
       @http_status || Qeweney::Status::INTERNAL_SERVER_ERROR
     end
   end
 
+  # ValidationError is raised when a validation has failed.
   class ValidationError < Error
     def initialize(msg)
       super(Qeweney::Status::BAD_REQUEST, msg)
