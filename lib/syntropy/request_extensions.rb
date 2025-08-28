@@ -4,6 +4,15 @@ require 'qeweney'
 
 module Syntropy
   module RequestExtensions
+    attr_reader :route_params
+
+    def initialize(headers, adapter)
+      @headers  = headers
+      @adapter  = adapter
+      @route_params = {}
+      @ctx = nil
+    end
+
     def ctx
       @ctx ||= {}
     end
