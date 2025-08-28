@@ -149,8 +149,13 @@ module Syntropy
     #
     # The routing tree is complemented with two maps:
     #
-    # - `static_map` - maps URL paths to the corresponding static route entries.
-    # - `dynamic_map` - maps URL paths to the corresponding dynamic route entries.
+    # - `static_map` - maps URL paths to the corresponding static route entries,
+    #   which includes all non-parametric routes, as well as all static files.
+    # - `dynamic_map` - maps URL paths to the corresponding parametric route
+    #   entries.
+    #
+    # The reason we use two separate maps is to prevent accidentally hitting a
+    # false lookup for a a URL with segments containing square brackets!
     #
     # @return [Hash] root entry
     def compute_tree
@@ -165,9 +170,9 @@ module Syntropy
     def compute_route_directory(dir:, rel_path:, parent: nil)
       param = (m = File.basename(dir).match(/^\[(.+)\]$/)) ? m[1] : nil
       entry = {
-        parent:     parent,
+        parent:,
         path:       rel_path_to_abs_path(rel_path),
-        param:      param,
+        param:,
         hook:       find_aux_module_entry(dir, '_hook.rb'),
         error:      find_aux_module_entry(dir, '_error.rb')
       }
@@ -185,7 +190,7 @@ module Syntropy
     # @return [String, nil] file path if found
     def find_aux_module_entry(dir, name)
       fn = File.join(dir, name)
-      File.file?(fn) ? ({ kind: :module, fn: fn }) : nil
+      File.file?(fn) ? ({ kind: :module,  fn: }) : nil
     end
 
     # Returns a hash mapping file/dir names to route entries.
@@ -223,76 +228,51 @@ module Syntropy
     # @return [void]
     def compute_route_file(fn:, rel_path:, parent:)
       abs_path = rel_path_to_abs_path(rel_path)
-      case
-      # index.rb, index+.rb, index.md
-      when (m = fn.match(/\/index(\+)?(\.(?:rb|md))$/))
-        # Index files (modules or markdown) files) are applied as targets to the
-        # immediate containing directory. A + suffix indicates this route
-        # handles requests to its subtree
-        plus, ext = m[1..2]
-        kind = FILE_TYPE[ext]
-        handle_subtree = (plus == '+') && (kind == :module)
-        set_index_route_target(parent:, path: abs_path, kind:, fn:, handle_subtree:)
 
+      # index.rb, index+.rb, index.md
+      case
+      when (m = fn.match(/\/index(\+)?(\.(?:rb|md))$/))
+        make_index_module_route(m:, parent:, path: abs_path, fn:)
+        
       # index.html
       when fn.match(/\/index\.html$/)
-        # HTML index files are applied as targets to the immediate containing
-        # directory. It is considered static and therefore not added to the
-        # routing tree.
         set_index_route_target(parent:, path: abs_path, kind: :static, fn:)
 
       # foo.rb, foo+.rb, foo.md, [foo].rb, [foo]+.rb
       when (m = fn.match(/\/(\[)?([^\]\/\+]+)(\])?(\+)?(\.(?:rb|md))$/))
-        # Module and markdown route targets. A + suffix indicates the module
-        # also handles requests to the subtree. For example, `/foo/bar.rb` will
-        # handle requests to `/foo/bar`, but `/foo/bar+.rb` will also handle
-        # requests to `/foo/bar/baz/bug`.
-        #
-        # parametric, or wildcard, routes convert segments of the URL path into
-        # parameters that are added to the HTTP request. Parametric routes are
-        # denoted using square brackets around the file/directory name. For
-        # example, `/api/posts/[id].rb`` will handle requests to
-        # `/api/posts/42`, and will extract the parameter `posts => 42` to add
-        # to the incoming request.
-        #
-        # A + suffix indicates the module also handles the subtree, so e.g.
-        # `/api/posts/[id]+.rb` will also handle requests to
-        # `/api/posts/42/fans` etc.
-        ob, param, cb, plus, ext = m[1..5]
-        kind = FILE_TYPE[ext]
-        make_route_entry(
-          parent:,
-          path: abs_path,
-          param: ob && cb ? param : nil,
-          target: make_route_target(kind:, fn:),
-          handle_subtree: (plus == '+') && (kind == :module)
-        )
-
-      # foo.html
-      when (m = fn.match(/\/[^\/]+\.html$/))
-        # HTML files are routed by their clean URL, i.e. without the `.html`
-        # extension. Those are considered as static routes, and do not have
-        # entries in the routing tree. Instead they are stored in the static
-        # map.
-        make_route_entry(
-          parent: parent,
-          path:   abs_path,
-          target: make_route_target(kind: :static, fn:)
-        )
+        make_module_route(m:, parent:, path: abs_path, fn:)
 
       # everything else
       else
         # static files resolved using the static map, and are not added to the
-        # routing tree, which is used for resolving dynamic routes.
-        make_route_entry(
-          parent: parent,
-          path: abs_path,
-          target: { kind: :static, fn: fn }
-        )
+        # routing tree, which is used for resolving dynamic routes. HTML files
+        # are routed by their clean URL, i.e. without the `.html` extension.
+        target = { kind: :static, fn: }
+        make_route_entry(parent:, path: abs_path, target:)
       end
     end
 
-    # Sets an index route target for the given parent entry.
+    # Creates a route entry for an index module (ruby/markdown). Index files
+    # (modules or markdown) files) are applied as targets to the immediate
+    # containing directory. A + suffix indicates this route handles requests to
+    # its subtree
+    # 
+    # @param m [MatchData] path match data
+    # @param parent [Hash] parent route entry
+    # @param path [String] route path
+    # @param fn [String] route target filename
+    # @return [nil] (prevents addition of an index route)
+    def make_index_module_route(m:, parent:, path:, fn:)
+      plus, ext = m[1..2]
+      kind = FILE_TYPE[ext]
+      handle_subtree = (plus == '+') && (kind == :module)
+      set_index_route_target(parent:, path:, kind:, fn:, handle_subtree:)
+    end
+
+
+    # Sets an index route target for the given parent entry. Index files are
+    # applied as targets to the immediate containing directory. HTML index files
+    # are considered static and therefore not added to the routing tree.
     #
     # @param parent [Hash] parent route entry
     # @param path [String] route path
@@ -303,12 +283,12 @@ module Syntropy
     def set_index_route_target(parent:, path:, kind:, fn:, handle_subtree: nil)
       if is_parametric_route?(parent) || handle_subtree
         @dynamic_map[path] = parent
-        parent[:target] = make_route_target(kind:, fn:)
+        parent[:target] = { kind:, fn: }
         parent[:handle_subtree] = handle_subtree
       else
         @static_map[path] = {
           parent: parent[:parent],
-          path: path,
+          path:,
           target: { kind:, fn: },
           # In case we're at the tree root, we need to copy over the hook and
           # error refs.
@@ -317,6 +297,36 @@ module Syntropy
         }
       end
       nil
+    end
+
+    # Creates a route entry for normal module and markdown files. A + suffix
+    # indicates the module also handles requests to the subtree. For example,
+    # `/foo/bar.rb` will handle requests to `/foo/bar`, but `/foo/bar+.rb` will
+    # also handle requests to `/foo/bar/baz/bug`.
+    #
+    # parametric, or wildcard, routes convert segments of the URL path into
+    # parameters that are added to the HTTP request. Parametric routes are
+    # denoted using square brackets around the file/directory name. For example,
+    # `/api/posts/[id].rb`` will handle requests to `/api/posts/42`, and will
+    # extract the parameter `posts => 42` to add to the incoming request.
+    #
+    # A + suffix indicates the module also handles the subtree, so e.g.
+    # `/api/posts/[id]+.rb` will also handle requests to `/api/posts/42/fans`
+    # etc.
+    #
+    # @param m [MatchData] path match data
+    # @param parent [Hash] parent route entry
+    # @param path [String] route path
+    # @param fn [String] route target filename
+    # @return [Hash] route entry
+    def make_module_route(m:, parent:, path:, fn:)
+      ob, param, cb, plus, ext = m[1..5]
+      kind = FILE_TYPE[ext]
+      make_route_entry(
+        parent:, path:, param: ob && cb ? param : nil,
+        target: { kind:, fn: },
+        handle_subtree: (plus == '+') && (kind == :module)
+      )
     end
 
     # Creates a new route entry, registering it in the static or dynamic map,
@@ -355,19 +365,6 @@ module Syntropy
     # @return [String] child key
     def child_key(entry)
       entry[:param] ? '[]' : File.basename(entry[:path]).gsub(/\+$/, '')
-    end
-
-    # Returns a hash representing a route target for the given route target kind
-    # and file name.
-    #
-    # @param kind [Symbol] route target kind
-    # @param fn [String] filename
-    # @return [Hash] route target hash
-    def make_route_target(kind:, fn:)
-      {
-        kind: kind,
-        fn: fn
-      }
     end
 
     # Generates and returns a router proc based on the routing tree.
