@@ -279,7 +279,7 @@ module Syntropy
           path:   abs_path,
           target: make_route_target(kind: :static, fn:)
         )
-      
+
       # everything else
       else
         # static files resolved using the static map, and are not added to the
@@ -293,7 +293,7 @@ module Syntropy
     end
 
     # Sets an index route target for the given parent entry.
-    # 
+    #
     # @param parent [Hash] parent route entry
     # @param path [String] route path
     # @param kind [Symbol] route target kind
@@ -321,7 +321,7 @@ module Syntropy
 
     # Creates a new route entry, registering it in the static or dynamic map,
     # according to its type.
-    # 
+    #
     # @param entry [Hash] route entry
     def make_route_entry(entry)
       path = entry[:path]
@@ -334,7 +334,7 @@ module Syntropy
     end
 
     # returns true if the route or any of its ancestors are parametric.
-    # 
+    #
     # @param entry [Hash] route entry
     def is_parametric_route?(entry)
       entry[:param] || (entry[:parent] && is_parametric_route?(entry[:parent]))
@@ -517,7 +517,7 @@ module Syntropy
 
     # Returns true if the given route is not parametric, has no children and is
     # static, or has children and all are void.
-    # 
+    #
     # @param entry [Hash] route entry
     # @return [bool]
     def is_void_route?(entry)

@@ -52,13 +52,13 @@ module Syntropy
     # looking up the route for the request path, then calling the route proc. If
     # the route proc is not set, it is computed according to the route target,
     # and composed recursively into hooks encountered up the routing tree.
-    # 
+    #
     # Normal exceptions (StandardError and descendants) are trapped and passed
     # to route's error handler. If no such handler is found, the default error
     # handler is used, which simply generates a textual response containing the
     # error message, and with the appropriate HTTP status code, according to the
     # type of error.
-    # 
+    #
     # @param req [Qeweney::Request] HTTP request
     # @return [void]
     def call(req)
@@ -88,7 +88,7 @@ module Syntropy
 
     # Computes the route proc for the given route, wrapping it in hooks found up
     # the routing tree.
-    # 
+    #
     # @param route [Hash] route entry
     # @return [Proc] route proc
     def compute_route_proc(route)
@@ -124,8 +124,8 @@ module Syntropy
 
     # Returns a proc rendering the given markdown route
     def markdown_route_proc(route)
-      headers = { 'Content-Type' => 'text/html' }      
-      
+      headers = { 'Content-Type' => 'text/html' }
+
       ->(req) {
         req.respond_by_http_method(
           'head'  => [nil, headers],
@@ -200,11 +200,11 @@ module Syntropy
     # in additional parameters, perform any other kind of modification on the
     # incoming reuqest, or capture the response from the route proc and modify
     # it.
-    # 
+    #
     # Nested hooks will be invoked from the routing tree root down. For example
     # `/site/_hook.rb` will wrap `/site/admin/_hook.rb` which wraps the route at
     # `/site/admin/users.rb`.
-    # 
+    #
     # @param route [Hash] route entry
     # @param proc [Proc] route proc
     def compose_up_tree_hooks(route, proc)
@@ -232,7 +232,7 @@ module Syntropy
     # Returns an error handler for the given route. If route is nil, looks up
     # the error handler for the routing tree root. If no handler is found,
     # returns the default error handler.
-    # 
+    #
     # @param route [Hash] route entry
     # @return [Proc] error handler proc
     def get_error_handler(route)
@@ -240,7 +240,7 @@ module Syntropy
     end
 
     # Returns the given route's error handler, caching the result.
-    # 
+    #
     # @param route [Hash] route entry
     # @return [Proc] error handler proc
     def route_error_handler(route)
@@ -248,20 +248,20 @@ module Syntropy
     end
 
     # Finds and loads the error handler for the given route.
-    # 
+    #
     # @param route [Hash] route entry
     # @return [Proc, nil] error handler proc or nil
     def compute_error_handler(route)
       error_target = find_error_handler(route)
       return nil if !error_target
-      
+
       load_aux_module(error_target)
     end
 
     # Finds the closest error handler for the given route. If no error handler
     # is defined for the route, searches for an error handler up the routing
     # tree.
-    # 
+    #
     # @param route [Hash] route entry
     # @return [Hash, nil] error handler target or nil
     def find_error_handler(route)
@@ -272,7 +272,7 @@ module Syntropy
 
     # Performs app start up, creating a log message and starting the file
     # watcher according to app options.
-    # 
+    #
     # @return [void]
     def start_app
       @machine.spin do
@@ -288,7 +288,7 @@ module Syntropy
 
     # Runs the file watcher loop. When a file change is encountered, invalidates
     # the corresponding module, and triggers recomputation of the routing tree.
-    # 
+    #
     # @return [void]
     def file_watcher_loop
       wf = @opts[:watch_files]
@@ -304,13 +304,13 @@ module Syntropy
     end
 
     # Delays responding to a file change, then reloads the routing tree.
-    # 
+    #
     # @return [void]
     def debounce_file_change
       if @routing_tree_reloader
         @machine.schedule(@routing_tree_reloader, UM::Terminate.new)
       end
-        
+
       @routing_tree_reloader = @machine.spin do
         @machine.sleep(0.1)
         setup_routing_tree

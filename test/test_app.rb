@@ -103,7 +103,7 @@ class AppTest < Minitest::Test
     req = make_request(':method' => 'POST', ':path' => '/test/baz')
     assert_nil req.response_body
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
-    
+
     req = make_request(':method' => 'GET', ':path' => '/test/about')
     assert_equal 'About', req.response_body.chomp
 

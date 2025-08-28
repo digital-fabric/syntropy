@@ -11,7 +11,7 @@ module Syntropy
     DEFAULT_STATUS = Qeweney::Status::INTERNAL_SERVER_ERROR
 
     # Returns the HTTP status for the given exception
-    # 
+    #
     # @param err [Exception] exception
     # @return [Integer, String] HTTP status
     def self.http_status(err)
@@ -19,24 +19,24 @@ module Syntropy
     end
 
     # Creates an error with status 404 Not Found
-    # 
+    #
     # @return [Syntropy::Error]
     def self.not_found(msg = '') = new(Status::NOT_FOUND, msg)
-    
+
     # Creates an error with status 405 Method Not Allowed
-    # 
+    #
     # @return [Syntropy::Error]
     def self.method_not_allowed(msg = '') = new(Status::METHOD_NOT_ALLOWED, msg)
 
     # Creates an error with status 418 I'm a teapot
-    # 
+    #
     # @return [Syntropy::Error]
     def self.teapot(msg = '') = new(Status::TEAPOT, msg)
 
     attr_reader :http_status
 
     # Initializes a Syntropy error with the given HTTP status and message.
-    # 
+    #
     # @param http_status [Integer, String] HTTP status
     # @param msg [String] error message
     # @return [void]
@@ -46,7 +46,7 @@ module Syntropy
     end
 
     # Returns the HTTP status for the error.
-    # 
+    #
     # @return [Integer, String] HTTP status
     def http_status
       @http_status || Qeweney::Status::INTERNAL_SERVER_ERROR

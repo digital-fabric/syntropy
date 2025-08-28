@@ -23,7 +23,7 @@ module Syntropy
       @route_params = {}
       @ctx = nil
     end
-    
+
     # Returns the request context
     def ctx
       @ctx ||= {}
@@ -32,7 +32,7 @@ module Syntropy
     # Checks the request's HTTP method against the given accepted values. If not
     # included in the accepted values, raises an exception. Otherwise, returns
     # the request's HTTP method.
-    # 
+    #
     # @param accepted [Array<String>] list of accepted HTTP methods
     # @return [String] request's HTTP method
     def validate_http_method(*accepted)
@@ -45,15 +45,15 @@ module Syntropy
     # for each method. The value for each method is either an array containing
     # the body and header values to use as response, or a proc returning such an
     # array. For example:
-    # 
+    #
     #     req.respond_by_http_method(
     #       'head'  => [nil, headers],
     #       'get'   => -> { [IO.read(fn), headers] }
     #     )
-    #     
+    #
     # If the request's method is not included in the given map, an exception is
     # raised.
-    # 
+    #
     # @param map [Hash] hash mapping HTTP methods to responses
     # @return [void]
     def respond_by_http_method(map)
@@ -67,7 +67,7 @@ module Syntropy
 
     # Responds to GET requests with the given body and headers. Otherwise raises
     # an exception.
-    # 
+    #
     # @param body [String, nil] response body
     # @param headers [Hash] response headers
     # @return [void]
@@ -84,7 +84,7 @@ module Syntropy
 
     # Responds to POST requests with the given body and headers. Otherwise
     # raises an exception.
-    # 
+    #
     # @param body [String, nil] response body
     # @param headers [Hash] response headers
     # @return [void]
@@ -107,9 +107,9 @@ module Syntropy
     # is within the range. A clause can also be an array of two or more clauses,
     # at least one of which should match the value. If the validation fails, an
     # exception is raised. Example:
-    # 
+    #
     #     height = req.validate_param(:height, Integer, 1..100)
-    # 
+    #
     # @param name [Symbol] parameter name
     # @clauses [Array] one or more validation clauses
     # @return [any] validated parameter value
@@ -124,7 +124,7 @@ module Syntropy
     # verifying the value is within the range. A clause can also be an array of
     # two or more clauses, at least one of which should match the value. If the
     # validation fails, an exception is raised.
-    # 
+    #
     # @param value [any] value
     # @clauses [Array] one or more validation clauses
     # @return [any] validated value
@@ -141,7 +141,7 @@ module Syntropy
     end
 
     # Reads the request body and returns form data.
-    # 
+    #
     # @return [Hash] form data
     def get_form_data
       body = read
@@ -162,7 +162,7 @@ module Syntropy
     FLOAT_REGEXP = /^[+-]?[0-9]+(\.[0-9]+)?$/
 
     # Returns true the given value matches the given condition.
-    # 
+    #
     # @param value [any] value
     # @param cond [any] condition
     # @return [bool]
@@ -183,7 +183,7 @@ module Syntropy
     end
 
     # Converts the given value according to the given class.
-    # 
+    #
     # @param value [any] value
     # @param klass [Class] class
     # @return [any] converted value

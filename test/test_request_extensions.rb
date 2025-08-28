@@ -140,7 +140,7 @@ class FormDataTest < Minitest::Test
       'content-type' => 'application/x-www-form-urlencoded'
     }, nil)
     assert_raises(Syntropy::Error) { @req.get_form_data }
-    
+
     @req = mock_req({
       ':method' => 'POST',
       ':path' => '/',
