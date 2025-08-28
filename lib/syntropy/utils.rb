@@ -11,8 +11,7 @@ module Syntropy
               .select { File.directory?(it) }
               .each_with_object({}) { |fn, h|
                 name = File.basename(fn)
-                opts = opts.merge(root_dir: fn)
-                h[name] = Syntropy::App.new(**opts)
+                h[name] = Syntropy::App.new(**env.merge(root_dir: fn))
               }
 
       # copy over map refs
