@@ -15,9 +15,12 @@ require 'syntropy/request_extensions'
 require 'syntropy/routing_tree'
 require 'syntropy/rpc_api'
 require 'syntropy/side_run'
+require 'syntropy/utils'
 
 module Syntropy
   Status = Qeweney::Status
+
+  extend Utilities
 
   class << self
     attr_accessor :machine

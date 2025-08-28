@@ -23,10 +23,10 @@ module Syntropy
 
       # for apps with a _site.rb file
       def site_file_app(opts)
-        site_fn = File.join(opts[:root_dir], '_site.rb')
-        return nil if !File.file?(site_fn)
+        fn = File.join(opts[:root_dir], '_site.rb')
+        return nil if !File.file?(fn)
 
-        loader = Syntropy::ModuleLoader.new(opts[:root_dir], opts)
+        loader = Syntropy::ModuleLoader.new(opts)
         loader.load('_site')
       end
 
@@ -37,13 +37,14 @@ module Syntropy
     end
 
     attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :opts
-    def initialize(root_dir:, mount_path:, **opts)
+    
+    def initialize(**opts)
       @machine = opts[:machine]
-      @root_dir = root_dir
-      @mount_path = mount_path
+      @root_dir = opts[:root_dir]
+      @mount_path = opts[:mount_path]
       @opts = opts
 
-      @module_loader = Syntropy::ModuleLoader.new(@root_dir, opts)
+      @module_loader = Syntropy::ModuleLoader.new(app: self, **opts)
       setup_routing_tree
       start_app
     end
@@ -69,6 +70,8 @@ module Syntropy
       proc = route[:proc] ||= compute_route_proc(route)
       proc.(req)
     rescue StandardError => e
+      # p e
+      # p e.backtrace
       error_handler = get_error_handler(route)
       error_handler.(req, e)
     end

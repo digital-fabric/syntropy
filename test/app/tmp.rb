@@ -3,4 +3,4 @@
 def call(req)
   req.respond('foo')
 end
-export :call
+export self

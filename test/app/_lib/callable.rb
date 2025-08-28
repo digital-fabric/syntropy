@@ -10,4 +10,4 @@ def bar
   @env[:baz]
 end
 
-export :call
+export self
