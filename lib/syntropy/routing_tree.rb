@@ -111,6 +111,14 @@ module Syntropy
       end
     end
 
+    # Converts filename to relative path.
+    #
+    # @param fn [String] filename
+    # @return [String] relative path
+    def fn_to_rel_path(fn)
+      fn.sub(/^#{Regexp.escape(@root_dir)}\//, '').sub(/\.[^\.]+$/, '')
+    end
+
     private
 
     # Maps extensions to route kind.
@@ -299,9 +307,13 @@ module Syntropy
         parent[:handle_subtree] = handle_subtree
       else
         @static_map[path] = {
-          parent: parent,
+          parent: parent[:parent],
           path: path,
-          target: { kind:, fn: }
+          target: { kind:, fn: },
+          # In case we're at the tree root, we need to copy over the hook and
+          # error refs.
+          hook: !parent[:parent] && parent[:hook],
+          error: !parent[:parent] && parent[:error]
         }
       end
       nil
@@ -410,7 +422,7 @@ module Syntropy
 
       emit_code_line(buffer, "  return nil")
       emit_code_line(buffer, "}")
-      buffer
+      buffer#.tap { puts '*' * 40; puts it; puts }
     end
 
     # Generates routing logic code for the given route entry.
