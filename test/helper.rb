@@ -12,8 +12,8 @@ STDOUT.sync = true
 STDERR.sync = true
 
 module ::Kernel
-  def mock_req(**args)
-    Qeweney::MockAdapter.mock(**args).tap { it.setup_mock_request }
+  def mock_req(headers, body = nil)
+    Qeweney::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
   end
 
   def capture_exception
