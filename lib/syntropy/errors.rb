@@ -6,23 +6,31 @@ module Syntropy
   class Error < StandardError
     Status = Qeweney::Status
 
-    attr_reader :http_status
-
-    def initialize(status, msg = '')
-      super(msg)
-      @http_status = status || Qeweney::Status::INTERNAL_SERVER_ERROR
+    def self.http_status(err)
+      err.is_a?(Error) ?
+        err.http_status :
+        Qeweney::Status::INTERNAL_SERVER_ERROR
     end
 
-    class << self
-      # Create class methods for common errors
-      {
-        not_found:          Status::NOT_FOUND,
-        method_not_allowed: Status::METHOD_NOT_ALLOWED,
-        teapot:             Status::TEAPOT
-      }
-      .each { |k, v|
-        define_method(k) { |msg = ''| new(v, msg) }
-      }
+    # Create class methods for common errors
+    {
+      not_found:          Status::NOT_FOUND,
+      method_not_allowed: Status::METHOD_NOT_ALLOWED,
+      teapot:             Status::TEAPOT
+    }
+    .each { |k, v|
+      singleton_class.define_method(k) { |msg = ''| new(v, msg) }
+    }
+
+    attr_reader :http_status
+
+    def initialize(http_status, msg = '')
+      super(msg)
+      @http_status = http_status
+    end
+
+    def http_status
+      @http_status || Qeweney::Status::INTERNAL_SERVER_ERROR
     end
   end
 
