@@ -15,36 +15,36 @@ require 'syntropy/routing_tree'
 module Syntropy
   class App
     class << self
-      def load(opts)
-        site_file_app(opts) || default_app(opts)
+      def load(env)
+        site_file_app(env) || default_app(env)
       end
 
       private
 
       # for apps with a _site.rb file
-      def site_file_app(opts)
-        fn = File.join(opts[:root_dir], '_site.rb')
+      def site_file_app(env)
+        fn = File.join(env[:root_dir], '_site.rb')
         return nil if !File.file?(fn)
 
-        loader = Syntropy::ModuleLoader.new(opts)
+        loader = Syntropy::ModuleLoader.new(env)
         loader.load('_site')
       end
 
       # default app
-      def default_app(opts)
-        new(**opts)
+      def default_app(env)
+        new(**env)
       end
     end
 
-    attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :opts
+    attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :env
     
-    def initialize(**opts)
-      @machine = opts[:machine]
-      @root_dir = opts[:root_dir]
-      @mount_path = opts[:mount_path]
-      @opts = opts
+    def initialize(**env)
+      @machine = env[:machine]
+      @root_dir = File.expand_path(env[:root_dir])
+      @mount_path = env[:mount_path]
+      @env = env
 
-      @module_loader = Syntropy::ModuleLoader.new(app: self, **opts)
+      @module_loader = Syntropy::ModuleLoader.new(app: self, **env)
       setup_routing_tree
       start_app
     end
@@ -84,7 +84,7 @@ module Syntropy
     # @return [void]
     def setup_routing_tree
       @routing_tree = Syntropy::RoutingTree.new(
-        root_dir: @root_dir, mount_path: @mount_path, **@opts
+        root_dir: @root_dir, mount_path: @mount_path, **@env
       )
       @router_proc = @routing_tree.router_proc
     end
@@ -138,7 +138,7 @@ module Syntropy
     end
 
     def render_markdown(route)
-      atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @opts)
+      atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @env)
 
       if (layout = atts[:layout])
         route[:applied_layouts] ||= {}
@@ -294,7 +294,7 @@ module Syntropy
     #
     # @return [void]
     def file_watcher_loop
-      wf = @opts[:watch_files]
+      wf = @env[:watch_files]
       period = wf.is_a?(Numeric) ? wf : 0.1
       Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
         @module_loader.invalidate(fn)

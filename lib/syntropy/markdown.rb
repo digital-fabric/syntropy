@@ -14,7 +14,7 @@ module Syntropy
   #
   # @param path [String] file path
   # @return [Array] an tuple containing properties<Hash>, contents<String>
-  def self.parse_markdown_file(path, opts)
+  def self.parse_markdown_file(path, env)
     content = IO.read(path) || ''
     atts = {}
 
@@ -30,9 +30,9 @@ module Syntropy
       atts = atts.merge(yaml)
     end
 
-    if opts[:root_dir]
+    if env[:root_dir]
       atts[:url] = path
-                   .gsub(/#{opts[:root_dir]}/, '')
+                   .gsub(/#{env[:root_dir]}/, '')
                    .gsub(/\.md$/, '')
     end
 

@@ -4,7 +4,7 @@
 require 'syntropy'
 require 'optparse'
 
-opts = {
+env = {
   mount_path: '/',
   banner: Syntropy::BANNER,
   logger: true
@@ -15,17 +15,17 @@ parser = OptionParser.new do |o|
 
   o.on('-b', '--bind BIND', String,
        'Bind address (default: http://0.0.0.0:1234). You can specify this flag multiple times to bind to multiple addresses.') do
-    opts[:bind] ||= []
-    opts[:bind] << it
+    env[:bind] ||= []
+    env[:bind] << it
   end
 
   o.on('-s', '--silent', 'Silent mode') do
-    opts[:banner] = nil
-    opts[:logger] = nil
+    env[:banner] = nil
+    env[:logger] = nil
   end
 
   o.on('-w', '--watch', 'Watch for changed files') do
-    opts[:watch_files] = 0.1
+    env[:watch_files] = 0.1
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -34,7 +34,7 @@ parser = OptionParser.new do |o|
   end
 
   o.on('-m', '--mount', 'Set mount path (default: /)') do
-    opts[:mount_path] = it
+    env[:mount_path] = it
   end
 
   o.on('-v', '--version', 'Show version') do
@@ -54,17 +54,17 @@ rescue StandardError => e
   exit
 end
 
-opts[:root_dir] = ARGV.shift || '.'
+env[:root_dir] = ARGV.shift || '.'
 
-if !File.directory?(opts[:root_dir])
-  puts "#{File.expand_path(opts[:root_dir])} Not a directory"
+if !File.directory?(env[:root_dir])
+  puts "#{File.expand_path(env[:root_dir])} Not a directory"
   exit
 end
 
 
 # We set Syntropy.machine so we can reference it from anywhere
-opts[:machine] = Syntropy.machine = UM.new
-opts[:logger] = opts[:logger] && TP2::Logger.new(opts[:machine], **opts)
+env[:machine] = Syntropy.machine = UM.new
+env[:logger] = env[:logger] && TP2::Logger.new(env[:machine], **env)
 
-app = Syntropy::App.load(opts)
-TP2.run(opts) { app.call(it) }
+app = Syntropy::App.load(env)
+TP2.run(env) { app.call(it) }
