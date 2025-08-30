@@ -61,6 +61,9 @@ if !File.directory?(env[:root_dir])
   exit
 end
 
+puts env[:banner] if env[:banner]
+env[:banner] = false
+
 
 # We set Syntropy.machine so we can reference it from anywhere
 env[:machine] = Syntropy.machine = UM.new

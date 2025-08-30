@@ -46,7 +46,7 @@ module Syntropy
 
       @module_loader = Syntropy::ModuleLoader.new(app: self, **env)
       setup_routing_tree
-      start_app
+      start
     end
 
     # Processes an incoming HTTP request. Requests are processed by first
@@ -280,15 +280,17 @@ module Syntropy
     # watcher according to app options.
     #
     # @return [void]
-    def start_app
+    def start
       @machine.spin do
         # we do startup stuff asynchronously, in order to first let TP2 do its
         # setup tasks
         @machine.sleep 0.2
-        @opts[:logger]&.info(
-          message: "Serving from #{File.expand_path(@location)}"
+        route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size
+        @env[:logger]&.info(
+          message: "Serving from #{@root_dir} (#{route_count} routes found)"
         )
-        file_watcher_loop if opts[:watch_files]
+
+        file_watcher_loop if @env[:watch_files]
       end
     end
 
