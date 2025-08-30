@@ -1,3 +1,10 @@
+# 0.14 2025-08-30
+
+- Tweak "boot" sequence
+- Update dependencies
+- Log errors in App#call
+- Improve module loading, add logging
+
 # 0.13 2025-08-28
 
 - Reimplement module loading
