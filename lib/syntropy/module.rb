@@ -32,7 +32,7 @@ module Syntropy
 
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: ref)
-      export_value = Syntropy::Module.load(env, code)
+      export_value = Syntropy::Module.load(env, code, fn)
       transform_module_export_value(export_value)
     end
 
@@ -51,10 +51,18 @@ module Syntropy
   end
 
   class Module
-    def self.load(env, code)
+    def self.load(env, code, fn)
       m = new(**env)
-      m.instance_eval(code)
-      m.__export_value__
+      m.instance_eval(code, fn)
+      export_value = m.__export_value__
+      env[:logger]&.info(message: "Loaded module at #{fn}")
+      export_value
+    rescue StandardError => e
+      env[:logger]&.error(
+          message: "Error while loading module #{fn}",
+          error: e
+      )
+      raise
     end
 
     attr_reader 
