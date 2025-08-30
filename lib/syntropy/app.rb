@@ -70,8 +70,11 @@ module Syntropy
       proc = route[:proc] ||= compute_route_proc(route)
       proc.(req)
     rescue StandardError => e
-      # p e
-      # p e.backtrace
+      @env[:logger]&.error(
+        message: "Error while serving request",
+        method: req.method,
+        path: req.path
+      )
       error_handler = get_error_handler(route)
       error_handler.(req, e)
     end
