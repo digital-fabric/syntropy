@@ -1,3 +1,7 @@
+# 0.15 2025-08-31
+
+- Implement invalidation of reverse dependencies on module file change
+
 # 0.14 2025-08-30
 
 - Tweak "boot" sequence
