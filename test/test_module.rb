@@ -44,4 +44,14 @@ class ModuleTest < Minitest::Test
     assert_equal @loader, mod.module_loader
     assert_equal 42, mod.app
   end
+
+  def test_dependency_invalidation
+    mod = @loader.load('_lib/dep')
+    assert_equal ['_lib/self', '_lib/dep'], @loader.modules.keys
+
+    self_fn = @loader.modules['_lib/self'][:fn]
+    @loader.invalidate_fn(self_fn)
+
+    assert_equal [], @loader.modules.keys
+  end
 end

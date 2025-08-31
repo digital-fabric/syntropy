@@ -302,7 +302,8 @@ module Syntropy
       wf = @env[:watch_files]
       period = wf.is_a?(Numeric) ? wf : 0.1
       Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
-        @module_loader.invalidate(fn)
+        @env[:logger]&.info(message: "File change detected", fn: fn)
+        @module_loader.invalidate_fn(fn)
         debounce_file_change
       end
     rescue Exception => e
