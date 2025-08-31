@@ -66,32 +66,6 @@ module Syntropy
       @router_proc ||= compile_router_proc
     end
 
-    # Returns the first error handler found for the entry. If no error handler
-    # exists for the entry itself, the search continues up the tree through the
-    # entry's ancestors.
-    #
-    # @param entry [Hash] route entry
-    # @return [String, nil] filename of error handler, or nil if not found
-    def route_error_handler(entry)
-      return entry[:error] if entry[:error]
-
-      entry[:parent] && route_error_handler(entry[:parent])
-    end
-
-    # Returns a list of all hooks found up the tree from the given entry. Hooks
-    # are returned ordered from the tree root down to the given entry.
-    #
-    # @param entry [Hash] route entry
-    # @return [Array<String>] list of hook entries
-    def route_hooks(entry)
-      hooks = []
-      while entry
-        hooks.unshift(entry[:hook]) if entry[:hook]
-        entry = entry[:parent]
-      end
-      hooks
-    end
-
     # Computes a "clean" URL path for the given path. Modules and markdown are
     # stripped of their extensions, and index file paths are also converted to the
     # containing directory path. For example, the clean URL path for `/foo/bar.rb`

@@ -288,58 +288,6 @@ class RoutingTreeTest < Minitest::Test
     assert_equal 'foo', params['id']
   end
 
-  def test_route_error_handler
-    e = @rt.dynamic_map['/docs/[org]']
-    target = @rt.route_error_handler(e)
-    assert_kind_of Hash, target
-    assert_equal :module, target[:kind]
-    assert_equal File.join(@rt.root_dir, '_error.rb'), target[:fn]
-
-    e = @rt.dynamic_map['/docs/api+']
-    target = @rt.route_error_handler(e)
-    assert_equal :module, target[:kind]
-    assert_equal File.join(@rt.root_dir, '_error.rb'), target[:fn]
-
-    e = @rt.dynamic_map['/docs/[org]/[repo]']
-    target = @rt.route_error_handler(e)
-    assert_equal :module, target[:kind]
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/_error.rb'), target[:fn]
-  end
-
-  def test_route_hooks
-    e = @rt.dynamic_map['/docs/[org]']
-    hooks = @rt.route_hooks(e)
-    assert_equal [
-      { kind: :module, fn: File.join(@rt.root_dir, '_hook.rb') }
-    ], hooks
-
-    e = @rt.dynamic_map['/docs/api+']
-    hooks = @rt.route_hooks(e)
-    assert_equal [
-      { kind: :module, fn: File.join(@rt.root_dir, '_hook.rb') }
-    ], hooks
-
-    e = @rt.dynamic_map['/docs/[org]/[repo]']
-    hooks = @rt.route_hooks(e)
-    assert_equal [
-      { kind: :module, fn: File.join(@rt.root_dir, '_hook.rb') }
-    ], hooks
-
-    e = @rt.dynamic_map['/docs/[org]/[repo]/issues']
-    hooks = @rt.route_hooks(e)
-    assert_equal [
-      { kind: :module, fn: File.join(@rt.root_dir, '_hook.rb') },
-      { kind: :module, fn: File.join(@rt.root_dir, '[org]/[repo]/issues/_hook.rb') }
-    ], hooks
-
-    e = @rt.dynamic_map['/docs/[org]/[repo]/issues/[id]']
-    hooks = @rt.route_hooks(e)
-    assert_equal [
-      { kind: :module, fn: File.join(@rt.root_dir, '_hook.rb') },
-      { kind: :module, fn: File.join(@rt.root_dir, '[org]/[repo]/issues/_hook.rb') }
-    ], hooks
-  end
-
   def test_routing_root_mounted
     rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
     router = rt.router_proc
