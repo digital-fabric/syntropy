@@ -69,6 +69,8 @@ env[:banner] = false
 env[:machine] = Syntropy.machine = UM.new
 env[:logger] = env[:logger] && TP2::Logger.new(env[:machine], **env)
 
+require 'syntropy/version'
+
 env[:logger]&.info(message: "Running Syntropy version #{Syntropy::VERSION}")
 app = Syntropy::App.load(env)
 TP2.run(env) { app.call(it) }
