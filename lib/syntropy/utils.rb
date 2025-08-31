@@ -1,9 +1,9 @@
 # frozen_string_literal: true
- 
+
 module Syntropy
   # Utilities for use in modules
   module Utilities
-    # Returns a request handler that routes request according to 
+    # Returns a request handler that routes request according to
     def route_by_host(env, map = nil)
       root = env[:root_dir]
       sites = Dir[File.join(root, '*')]
@@ -17,7 +17,7 @@ module Syntropy
       # copy over map refs
       map&.each { |k, v| sites[k] = sites[v] }
 
-      # 
+      #
       lambda { |req|
         site = sites[req.host]
         site ? site.call(req) : req.respond(nil, ':status' => Status::BAD_REQUEST)
@@ -36,6 +36,6 @@ module Syntropy
 
     def app(**env)
       Syntropy::App.new(**env)
-    end    
+    end
   end
 end

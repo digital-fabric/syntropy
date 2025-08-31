@@ -207,7 +207,7 @@ module Syntropy
       case
       when (m = fn.match(/\/index(\+)?(\.(?:rb|md))$/))
         make_index_module_route(m:, parent:, path: abs_path, fn:)
-        
+
       # index.html
       when fn.match(/\/index\.html$/)
         set_index_route_target(parent:, path: abs_path, kind: :static, fn:)
@@ -230,7 +230,7 @@ module Syntropy
     # (modules or markdown) files) are applied as targets to the immediate
     # containing directory. A + suffix indicates this route handles requests to
     # its subtree
-    # 
+    #
     # @param m [MatchData] path match data
     # @param parent [Hash] parent route entry
     # @param path [String] route path

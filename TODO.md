@@ -1,5 +1,5 @@
 - [ ] Collection - treat directories and files as collections of data.
-      
+
   Kind of similar to the routing tree, but instead of routes it just takes a
   bunch of files and turns it into a dataset. Each directory is a "table" and is
   composed of zero or more files that form rows in the table. Supported file
@@ -15,9 +15,9 @@
   Articles = @app.collection('_articles/*.md')
   article = Articles.last_by(&:date)
 
-  article.title #=> 
+  article.title #=>
   article.date #=>
-  article.layout #=> 
+  article.layout #=>
   article.render_proc #=> (load layout, apply article)
   article.render #=> (render to HTML)
   ...

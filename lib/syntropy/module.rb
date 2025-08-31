@@ -65,7 +65,7 @@ module Syntropy
       raise
     end
 
-    attr_reader 
+    attr_reader
     def initialize(**env)
       @env = env
       @machine = env[:machine]
@@ -74,7 +74,7 @@ module Syntropy
       @ref = env[:ref]
       singleton_class.const_set(:MODULE, self)
     end
-      
+
     attr_reader :__export_value__
     def export(v)
       @__export_value__ = v

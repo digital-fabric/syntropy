@@ -37,7 +37,7 @@ module Syntropy
     end
 
     attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :env
-    
+
     def initialize(**env)
       @machine = env[:machine]
       @root_dir = File.expand_path(env[:root_dir])
