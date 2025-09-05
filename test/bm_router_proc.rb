@@ -174,7 +174,7 @@ BM.run do
     def setup
       @app = RodaRouter.app
     end
-    
+
     def call
       req = Rack::MockRequest.env_for("http://example.com:8080/hello/world")
       @app.(req)

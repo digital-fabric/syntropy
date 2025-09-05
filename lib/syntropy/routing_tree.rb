@@ -93,7 +93,7 @@ module Syntropy
 
     # Mounts the given applet on the routng tree at the given (absolute) mount
     # path. This method must be called before the router proc is generated.
-    # 
+    #
     # @param path [String] absolute mount path for the applet
     # @param applet [Syntropy::App, Proc] applet
     # @return [void]
@@ -163,7 +163,7 @@ module Syntropy
     # automatically creates intermediate children entries. If a child entry
     # already exists for the given path, an error is raised. The given applet
     # may be an instance of `Syntropy::App` or a proc.
-    # 
+    #
     # @param entry [Hash] route entry on which to mount the applet
     # @param path [String] relative path
     # @param applet [Syntropy::App, Proc] applet
@@ -192,7 +192,7 @@ module Syntropy
 
     # Finds or creates a child entry with the given name on the given parent
     # entry.
-    # 
+    #
     # @param parent [Hash] parent entry
     # @param name [String] child's name
     # @return [Hash] child entry

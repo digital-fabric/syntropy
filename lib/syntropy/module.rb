@@ -6,15 +6,15 @@ module Syntropy
   # The ModuleLoader class implemenets a module loader. It handles loading of
   # modules, tracking of dependencies between modules, and invalidation of
   # loaded modules (following a change to the module file).
-  # 
+  #
   # A module may implement a route endpoint, a layout template, utility methods,
   # classes, or any other functionality needed by the web app.
-  # 
+  #
   # Modules are Ruby files that can import other modules as dependencies. A
   # module must export a single value, which can be a class, a template, a proc,
   # or any other Ruby object. A module can also export itself by calling `export
   # self`.
-  # 
+  #
   # Modules are referenced relative to the web app's root directory, without the
   # `.rb` extension. For example, for a site residing in `/my_site`, the
   # reference `_lib/foo` will point to a module residing in
@@ -23,7 +23,7 @@ module Syntropy
     attr_reader :modules
 
     # Instantiates a module loader
-    # 
+    #
     # @param env [Hash] environment hash
     # @return [void]
     def initialize(env)
@@ -34,7 +34,7 @@ module Syntropy
     end
 
     # Loads a module (if not already loaded) and returns its export value.
-    # 
+    #
     # @param ref [String] module reference
     # @return [any] export value
     def load(ref)
@@ -46,7 +46,7 @@ module Syntropy
     # underlying file (in order to cause reloading of the module). The module
     # will be removed from the modules map, as well as modules dependending on
     # it.
-    # 
+    #
     # @param fn [String] module filename
     # @return [void]
     def invalidate_fn(fn)
@@ -62,7 +62,7 @@ module Syntropy
     # underlying file (in order to cause reloading of the module). The module
     # will be removed from the modules map, as well as modules dependending on
     # it.
-    # 
+    #
     # @param ref [String] module reference
     # @return [void]
     def invalidate_ref(ref)
@@ -74,7 +74,7 @@ module Syntropy
     end
 
     # Registers reverse dependencies for the given module reference.
-    # 
+    #
     # @param ref [String] module reference
     # @param deps [Array<String>] array of dependencies for the given module
     # @return [void]
@@ -82,14 +82,14 @@ module Syntropy
       deps.each do
         entry = @modules[it]
         next if !entry
-          
+
         entry[:reverse_deps] << ref
       end
     end
 
     # Loads a module and returns a module entry. Any dependencies (using
     # `import`) are loaded as well.
-    # 
+    #
     # @param ref [String] module reference
     # @return [Hash] module entry
     def load_module(ref)
@@ -112,7 +112,7 @@ module Syntropy
 
     # Transforms the given export value. If the value is nil, an exception is
     # raised.
-    # 
+    #
     # @param export_value [any] module's export value
     # @return [any] transformed value
     def transform_module_export_value(export_value)
@@ -132,16 +132,16 @@ module Syntropy
   # The Syntropy::Module class implements a reloadable module. A module is a
   # `.rb` source file that implements a route endpoint, a template, utility
   # methods or any other functionality needed by the web app.
-  # 
+  #
   # The following instance variables are available to modules:
-  # 
+  #
   # - `@env`: the app environment hash
   # - `@machine`: a reference to the UringMachine instance
   # - `@module_loader`: a reference to the module loader
   # - `@app`: a reference to the app
   # - `@ref`: the module's logical path (path relative to the app root)
   # - `@logger`: a reference to the app's logger
-  # 
+  #
   # In addition, the module code also has access to the `MODULE` constant which
   # is set to `self`, and may be used to refer to various methods defined in the
   # module.
@@ -161,7 +161,7 @@ module Syntropy
     end
 
     # Initializes a module with the given environment hash.
-    # 
+    #
     # @param env [Hash] environment hash
     # @return [void]
     def initialize(**env)
@@ -179,7 +179,7 @@ module Syntropy
     # Exports the given value. This value will be used as the module's
     # entrypoint. It can be any Ruby value, but for a route module would
     # normally be a proc.
-    # 
+    #
     # @param v [any] export value
     # @return [void]
     def export(v)
@@ -187,7 +187,7 @@ module Syntropy
     end
 
     # Returns the list of module references imported by the module.
-    # 
+    #
     # @return [Array] array of module references
     def __dependencies__
       @__dependencies__ ||= []
@@ -195,7 +195,7 @@ module Syntropy
 
     # Imports the module corresponding to the given reference. The return value
     # is the module's export value.
-    # 
+    #
     # @param ref [String] module reference
     # @return [any] loaded dependency's export value
     def import(ref)
@@ -205,7 +205,7 @@ module Syntropy
     end
 
     # Creates and returns a P2 template created with the given block.
-    # 
+    #
     # @param proc [Proc, nil] template proc or nil
     # @param block [Proc] template block
     # @return [P2::Template] template
@@ -217,7 +217,7 @@ module Syntropy
     end
 
     # Returns a list of pages found at the given ref.
-    # 
+    #
     # @param ref [String] directory reference
     # @return [Array] array of pages found in directory
     def page_list(ref)
@@ -225,7 +225,7 @@ module Syntropy
     end
 
     # Creates and returns a Syntropy app for the given environment.
-    # 
+    #
     # @param env [Hash] environment
     def app(**env)
       Syntropy::App.new(**(@env.merge(env)))

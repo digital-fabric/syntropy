@@ -4,7 +4,7 @@
 # to the client when a file has been changed. The module is signalled by the
 # running app whenever a file change, when in watch mode (`-w`). This route
 # resides by default at `/.syntropy/auto_refresh/watch.sse`.
-# 
+#
 # The complementary client-side party is implemented in a small JS script
 # residing by default at `/.syntropy/auto_refresh/watch.js`.
 

@@ -34,7 +34,7 @@
 
 - [ ] Serving of built-in assets (mostly JS)
   - [ ] JS lib for RPC API
-  
+
 ## Missing for a first public release
 
 - [ ] Logo
@@ -173,7 +173,7 @@ provide a set of tools for making this less painful:
   - Routes
   - Route responses
   - Changes to state / DB
-  - 
+  -
 
 ## Support for applets
 
