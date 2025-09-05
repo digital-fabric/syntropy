@@ -292,9 +292,6 @@ class RoutingTreeTest < Minitest::Test
     rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
     router = rt.router_proc
 
-    # pp rt.root
-    # puts
-
     route = router.('/docs/df/p2/issues/14', {})
     assert_nil route
 
@@ -371,5 +368,43 @@ class RoutingTreeTest < Minitest::Test
     route = router.('/posts/foo', params = {})
     assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), route[:target][:fn]
     assert_equal 'foo', params['id']
+  end
+
+  def test_mount_applet
+    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    applet = ->(req) { :foo }
+    rt.mount_applet('/foo/bar', applet)
+    router = rt.router_proc
+
+    refute_nil rt.dynamic_map['/foo/bar']
+    assert_equal applet, rt.dynamic_map['/foo/bar'][:proc]
+
+    route = router.('/foo/bar', {})
+    assert_equal applet, route[:proc]
+  end
+
+  def test_mount_applet_nested_mount_path
+    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/my/site')
+    applet = ->(req) { :foo }
+    rt.mount_applet('/my/site/foo/bar', applet)
+    router = rt.router_proc
+
+    refute_nil rt.dynamic_map['/my/site/foo/bar']
+    assert_equal applet, rt.dynamic_map['/my/site/foo/bar'][:proc]
+
+    route = router.('/my/site/foo/bar', {})
+    assert_equal applet, route[:proc]
+  end
+
+  def test_mount_applet_clash
+    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    applet = ->(req) { :foo }
+    assert_raises(Syntropy::Error) {
+      rt.mount_applet('/about', applet)
+    }
+
+    assert_raises(Syntropy::Error) {
+      rt.mount_applet('/old/baz', applet)
+    }
   end
 end

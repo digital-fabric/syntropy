@@ -55,15 +55,13 @@ module Syntropy
       @dynamic_map = {}
       @env = env
       @root = compute_tree
-      @static_map.freeze
-      @dynamic_map.freeze
     end
 
     # Returns the generated router proc for the routing tree
     #
     # @return [Proc] router proc
     def router_proc
-      @router_proc ||= compile_router_proc
+      @router_proc ||= generate_router_proc
     end
 
     # Computes a "clean" URL path for the given path. Modules and markdown are
@@ -91,6 +89,17 @@ module Syntropy
     # @return [String] relative path
     def fn_to_rel_path(fn)
       fn.sub(/^#{Regexp.escape(@root_dir)}\//, '').sub(/\.[^\.]+$/, '')
+    end
+
+    # Mounts the given applet on the routng tree at the given (absolute) mount
+    # path. This method must be called before the router proc is generated.
+    # 
+    # @param path [String] absolute mount path for the applet
+    # @param applet [Syntropy::App, Proc] applet
+    # @return [void]
+    def mount_applet(path, applet)
+      path = rel_mount_path(path)
+      mount_applet_on_tree(@root, path, applet)
     end
 
     private
@@ -134,6 +143,66 @@ module Syntropy
     # @return [Hash] root entry
     def compute_tree
       compute_route_directory(dir: @root_dir, rel_path: '/', parent: nil)
+    end
+
+    # Converts the given absolute path to a relative one (relative to the
+    # routing tree's mount path).
+    #
+    # @param path [String] absolute mount path
+    # @return [String] relative mount path
+    def rel_mount_path(path)
+      if @mount_path == '/'
+        path.sub(/^\//, '')
+      else
+        path.sub(/^#{Regexp.escape(@mount_path)}\//, '')
+      end
+    end
+
+    # Mounts the given applet as a child of the given entry. If the given
+    # (relative) path is nested, drills down the given entry's subtree and
+    # automatically creates intermediate children entries. If a child entry
+    # already exists for the given path, an error is raised. The given applet
+    # may be an instance of `Syntropy::App` or a proc.
+    # 
+    # @param entry [Hash] route entry on which to mount the applet
+    # @param path [String] relative path
+    # @param applet [Syntropy::App, Proc] applet
+    # @return [void]
+    def mount_applet_on_tree(entry, path, applet)
+      if (m = path.match(/^([^\/]+)\/(.+)$/))
+        child_entry = find_or_create_child_entry(entry, m[1])
+        mount_applet_on_tree(child_entry, m[2], applet)
+      else
+        child_entry = entry[:children] && entry[:children][path]
+        raise Syntropy::Error, "Could not mount applet, entry already exists" if child_entry
+
+        applet_path = File.join(entry[:path], path)
+        applet_entry = {
+          parent: entry,
+          path: applet_path,
+          handle_subtree: true,
+          target: { kind: :module },
+          proc: applet
+        }
+
+        (entry[:children] ||= {})[path] = applet_entry
+        @dynamic_map[applet_path] = applet_entry
+      end
+    end
+
+    # Finds or creates a child entry with the given name on the given parent
+    # entry.
+    # 
+    # @param parent [Hash] parent entry
+    # @param name [String] child's name
+    # @return [Hash] child entry
+    def find_or_create_child_entry(parent, name)
+      parent[:children] ||= {}
+      parent[:children][name] ||= {
+        parent: parent,
+        path: File.join(parent[:path], name),
+        children: {}
+      }
     end
 
     # Computes a route entry for a directory.
@@ -341,10 +410,13 @@ module Syntropy
       entry[:param] ? '[]' : File.basename(entry[:path]).gsub(/\+$/, '')
     end
 
-    # Generates and returns a router proc based on the routing tree.
+    # Freezes the static and dynamic maps, generates and returns a router proc
+    # based on the routing tree.
     #
     # @return [Proc] router proc
-    def compile_router_proc
+    def generate_router_proc
+      @static_map.freeze
+      @dynamic_map.freeze
       code = generate_routing_tree_code
       eval(code, binding, '(router)', 1)
     end
