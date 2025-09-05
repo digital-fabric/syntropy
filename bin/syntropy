@@ -7,7 +7,8 @@ require 'optparse'
 env = {
   mount_path: '/',
   banner: Syntropy::BANNER,
-  logger: true
+  logger: true,
+  builtin_applet_path: '/.syntropy'
 }
 
 parser = OptionParser.new do |o|
@@ -33,8 +34,14 @@ parser = OptionParser.new do |o|
     exit
   end
 
-  o.on('-m', '--mount', 'Set mount path (default: /)') do
-    env[:mount_path] = it
+  o.on('-m', '--mount PATH', 'Set mount path (default: /)') do |path|
+    p mount: path
+    env[:mount_path] = path
+    env[:builtin_applet_path] = File.join(path, '.syntropy')
+  end
+
+  o.on('--no-builtin-applet', 'Do not mount builtin applet') do
+    env[:builtin_applet_path] = nil
   end
 
   o.on('-v', '--version', 'Show version') do
