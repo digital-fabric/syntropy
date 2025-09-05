@@ -132,6 +132,19 @@ module Syntropy
   # The Syntropy::Module class implements a reloadable module. A module is a
   # `.rb` source file that implements a route endpoint, a template, utility
   # methods or any other functionality needed by the web app.
+  # 
+  # The following instance variables are available to modules:
+  # 
+  # - `@env`: the app environment hash
+  # - `@machine`: a reference to the UringMachine instance
+  # - `@module_loader`: a reference to the module loader
+  # - `@app`: a reference to the app
+  # - `@ref`: the module's logical path (path relative to the app root)
+  # - `@logger`: a reference to the app's logger
+  # 
+  # In addition, the module code also has access to the `MODULE` constant which
+  # is set to `self`, and may be used to refer to various methods defined in the
+  # module.
   class Module
     # Loads a module, returning the module instance
     def self.load(env, code, fn)
@@ -157,6 +170,7 @@ module Syntropy
       @module_loader = env[:module_loader]
       @app = env[:app]
       @ref = env[:ref]
+      @logger = env[:logger]
       singleton_class.const_set(:MODULE, self)
     end
 

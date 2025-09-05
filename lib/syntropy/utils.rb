@@ -37,5 +37,16 @@ module Syntropy
     def app(**env)
       Syntropy::App.new(**env)
     end
+
+    BUILTIN_APPLET_ROOT_DIR = File.expand_path(File.join(__dir__, 'applets/builtin'))
+    def builtin_applet(env, mount_path: '/.syntropy')
+      app(
+        machine:    env[:machine],
+        root_dir:   BUILTIN_APPLET_ROOT_DIR,
+        mount_path: mount_path,
+        builtin_applet_path: nil,
+        watch_files: nil
+      )
+    end
   end
 end

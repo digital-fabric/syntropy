@@ -43,6 +43,7 @@ module Syntropy
       @root_dir = File.expand_path(env[:root_dir])
       @mount_path = env[:mount_path]
       @env = env
+      @logger = env[:logger]
 
       @module_loader = Syntropy::ModuleLoader.new(app: self, **env)
       setup_routing_tree
@@ -70,13 +71,20 @@ module Syntropy
       proc = route[:proc] ||= compute_route_proc(route)
       proc.(req)
     rescue StandardError => e
-      @env[:logger]&.error(
+      @logger&.error(
         message: "Error while serving request",
         method: req.method,
-        path: req.path
+        path: req.path,
+        error: e
       )
       error_handler = get_error_handler(route)
       error_handler.(req, e)
+    end
+
+    def route(path, params = {}, compute_proc: false)
+      route = @router_proc.(path, params)
+      route[:proc] ||= compute_route_proc(route) if compute_proc
+      route
     end
 
     private
@@ -89,7 +97,14 @@ module Syntropy
       @routing_tree = Syntropy::RoutingTree.new(
         root_dir: @root_dir, mount_path: @mount_path, **@env
       )
+      mount_builtin_applet if @env[:builtin_applet_path]
       @router_proc = @routing_tree.router_proc
+    end
+
+    def mount_builtin_applet
+      path = @env[:builtin_applet_path]
+      @builtin_applet ||= Syntropy.builtin_applet(@env, mount_path: path)
+      @routing_tree.mount_applet(path, @builtin_applet)
     end
 
     # Computes the route proc for the given route, wrapping it in hooks found up
@@ -232,7 +247,7 @@ module Syntropy
     DEFAULT_ERROR_HANDLER = ->(req, err) {
       msg = err.message
       msg = nil if msg.empty? || (req.method == 'head')
-      req.respond(msg, ':status' => Syntropy::Error.http_status(err))
+      req.respond(msg, ':status' => Syntropy::Error.http_status(err)) rescue nil
     }
 
     # Returns an error handler for the given route. If route is nil, looks up
@@ -286,7 +301,7 @@ module Syntropy
         # setup tasks
         @machine.sleep 0.2
         route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size
-        @env[:logger]&.info(
+        @logger&.info(
           message: "Serving from #{@root_dir} (#{route_count} routes found)"
         )
 
@@ -302,7 +317,7 @@ module Syntropy
       wf = @env[:watch_files]
       period = wf.is_a?(Numeric) ? wf : 0.1
       Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
-        @env[:logger]&.info(message: "File change detected", fn: fn)
+        @logger&.info(message: 'File change detected', fn: fn)
         @module_loader.invalidate_fn(fn)
         debounce_file_change
       end
@@ -324,7 +339,23 @@ module Syntropy
         @machine.sleep(0.1)
         setup_routing_tree
         @routing_tree_reloader = nil
+        signal_auto_refresh_watchers!
       end
+    end
+
+    def signal_auto_refresh_watchers!
+      return if !@builtin_applet
+
+      watcher_route_path = File.join(@env[:builtin_applet_path], 'auto_refresh/watch.sse')
+      watcher_route = @builtin_applet.route(watcher_route_path, compute_proc: true)
+
+      watcher_mod = watcher_route[:proc]
+      watcher_mod.signal!
+    rescue => e
+      @logger&.error(
+        message: 'Unexpected error while signalling auto refresh watcher',
+        error: e
+      )
     end
   end
 end
