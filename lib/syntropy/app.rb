@@ -177,7 +177,6 @@ module Syntropy
 
     def module_route_proc(route)
       ref = @routing_tree.fn_to_rel_path(route[:target][:fn])
-      # ref = route[:target][:fn].sub(@mount_path, '')
       mod = @module_loader.load(ref)
       compute_module_proc(mod)
     end
@@ -186,31 +185,23 @@ module Syntropy
       case mod
       when P2::Template
         p2_template_proc(mod)
-      when Papercraft::Template
-        papercraft_template_proc(mod)
       else
         mod
       end
     end
 
     def p2_template_proc(template)
+      xml_mode = template.mode == :xml
       template = template.proc
-      headers = { 'Content-Type' => 'text/html' }
+      mime_type = xml_mode ? 'text/xml; charset=UTF-8' : 'text/html; charset=UTF-8'
+      headers = { 'Content-Type' => mime_type }
+
+      get_proc = xml_mode ? -> { [template.render_xml, headers] } : -> { [template.render, headers] }
 
       ->(req) {
         req.respond_by_http_method(
           'head'  => [nil, headers],
-          'get'   => -> { [template.render, headers] }
-        )
-      }
-    end
-
-    def papercraft_template_proc(template)
-        headers = { 'Content-Type' => template.mime_type }
-      ->(req) {
-        req.respond_by_http_method(
-          'head'  => [nil, headers],
-          'get'   => -> { [template.render, headers] }
+          'get'   => get_proc
         )
       }
     end

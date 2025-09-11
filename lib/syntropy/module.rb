@@ -216,6 +216,22 @@ module Syntropy
       P2::Template.new(proc)
     end
 
+    # Creates and returns a P2 XML template created with the given block.
+    #
+    # @param proc [Proc, nil] template proc or nil
+    # @param block [Proc] template block
+    # @return [P2::Template] template
+    def template_xml(proc = nil, &block)
+      proc ||= block
+      raise "No template block/proc given" if !proc
+
+      P2::Template.new(proc, mode: :xml)
+    rescue => e
+      p e
+      p e.backtrace
+      raise
+    end
+
     # Returns a list of pages found at the given ref.
     #
     # @param ref [String] directory reference

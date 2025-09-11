@@ -28,10 +28,6 @@ class AppTest < Minitest::Test
   end
 
   def test_app_rendering
-    # puts "*" * 40
-    # pp @app.routing_tree.root
-    # puts
-
     req = make_request(':method' => 'GET', ':path' => '/')
     assert_equal Status::NOT_FOUND, req.response_status
     assert_equal 'Not found', req.response_body
@@ -118,6 +114,10 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/params/abc')
     assert_equal '/test/params/[foo]-abc', req.response_body.chomp
+
+    req = make_request(':method' => 'GET', ':path' => '/test/rss')
+    assert_equal '<link>foo</link>', req.response_body
+
   end
 
   def test_app_file_watching
