@@ -1,4 +1,4 @@
-class API < Syntropy::RPCAPI
+class API < Syntropy::JSONAPI
   def initialize(env)
     super(env)
     @count = 0

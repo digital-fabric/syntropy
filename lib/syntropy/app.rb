@@ -183,7 +183,7 @@ module Syntropy
           }
           body {
             markdown md
-            auto_refresh_watch!
+            auto_refresh_watch! if @env[:dev_mode]
           }
         }
       }

@@ -104,7 +104,7 @@ class AppTest < Minitest::Test
     assert_equal 'About', req.response_body.chomp
 
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo')
-    assert_equal '<p>Hello from Markdown</p>', req.response_body.chomp
+    assert_equal '<!DOCTYPE html><html><head><title></title></head><body><p>Hello from Markdown</p></body></html>', req.response_body.gsub(/\n/, '')
 
     req = make_request(':method' => 'HEAD', ':path' => '/test/about/foo')
     assert_nil req.response_body
