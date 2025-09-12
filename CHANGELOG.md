@@ -1,3 +1,7 @@
+# 0.18 2025-09-11
+
+- Rename P2 back to Papercraft
+
 # 0.17 2025-09-11
 
 - Move repo to [digital-fabric](https://github.com/digital-fabric/syntropy)
