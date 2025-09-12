@@ -1,3 +1,20 @@
+# 0.16 2025-09-11
+
+- `syntropy` script:
+  - Remove trailing slash for root dir in syntropy script
+  - Rename `-w/--watch` option to `-d/--dev` for development mode
+  - Fix `--mount` option
+- Add builtin `/.syntropy` applet for builtin features:
+  - auto refresh for web pages
+  - JSON API
+  - Template debugging frontend tools
+  - ping route
+  - home page with links to examples
+- Implement applet mounting and loading
+- Remove Papercraft dependency
+- Add support for P2 XML templates, using `#template_xml`
+- Update P2, TP2
+
 # 0.15 2025-08-31
 
 - Implement invalidation of reverse dependencies on module file change
