@@ -205,8 +205,8 @@ class RoutingTreeTest < Minitest::Test
     router = @rt.router_proc
 
     params = {}
-    route = router.('/docs/df/p2/issues/14', params)
-    assert_equal ({ 'org' => 'df', 'repo' => 'p2', 'id' => '14'}), params
+    route = router.('/docs/df/papercraft/issues/14', params)
+    assert_equal ({ 'org' => 'df', 'repo' => 'papercraft', 'id' => '14'}), params
     refute_nil route
     assert_equal '/docs/[org]/[repo]/issues/[id]', route[:path]
 
@@ -292,13 +292,13 @@ class RoutingTreeTest < Minitest::Test
     rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
     router = rt.router_proc
 
-    route = router.('/docs/df/p2/issues/14', {})
+    route = router.('/docs/df/papercraft/issues/14', {})
     assert_nil route
 
     params = {}
-    route = router.('/df/p2/issues/14', params)
+    route = router.('/df/papercraft/issues/14', params)
     refute_nil route
-    assert_equal ({ 'org' => 'df', 'repo' => 'p2', 'id' => '14'}), params
+    assert_equal ({ 'org' => 'df', 'repo' => 'papercraft', 'id' => '14'}), params
     assert_equal '/[org]/[repo]/issues/[id]', route[:path]
 
     route = router.('/assets', {})

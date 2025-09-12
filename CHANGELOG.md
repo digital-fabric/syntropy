@@ -16,8 +16,8 @@
   - home page with links to examples
 - Implement applet mounting and loading
 - Remove Papercraft dependency
-- Add support for P2 XML templates, using `#template_xml`
-- Update P2, TP2
+- Add support for Papercraft XML templates, using `#template_xml`
+- Update Papercraft, TPapercraft
 
 # 0.15 2025-08-31
 
@@ -46,16 +46,16 @@
 
 ## 0.11 2025-08-17
 
-- Upgrade to P2 2.8
+- Upgrade to Papercraft 2.8
 
 ## 0.10.1 2025-08-10
 
-- Fix ModuleLoader.wrap_module to work correctly with P2::Template
+- Fix ModuleLoader.wrap_module to work correctly with Papercraft::Template
 
 ## 0.10 2025-08-10
 
 - Add query, execute methods to ConnectionPool
-- Switch from Papercraft to P2
+- Switch from Papercraft to Papercraft
 
 ## 0.9.2 2025-07-24
 
@@ -63,17 +63,17 @@
 
 ## 0.9.1 2025-07-08
 
-- Update TP2
+- Update TPapercraft
 
 ## 0.9 2025-07-08
 
-- Update TP2
+- Update TPapercraft
 - Add `Module.app` method for loading arbitrary apps
 - Set `Module@machine`
 
 ## 0.8.4 2025-07-07
 
-- Update TP2
+- Update TPapercraft
 - Fix Router#path_parent to not break on double slash
 
 ## 0.8.3 2025-07-06

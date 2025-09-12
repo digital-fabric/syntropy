@@ -75,11 +75,11 @@ env[:banner] = false
 
 # We set Syntropy.machine so we can reference it from anywhere
 env[:machine] = Syntropy.machine = UM.new
-env[:logger] = env[:logger] && TP2::Logger.new(env[:machine], **env)
+env[:logger] = env[:logger] && TPapercraft::Logger.new(env[:machine], **env)
 
 require 'syntropy/version'
 require 'syntropy/dev_mode' if env[:dev_mode]
 
 env[:logger]&.info(message: "Running Syntropy version #{Syntropy::VERSION}")
 app = Syntropy::App.load(env)
-TP2.run(env) { app.call(it) }
+TPapercraft.run(env) { app.call(it) }

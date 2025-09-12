@@ -8,4 +8,4 @@ TAG_DEBUG_PROC = ->(level, fn, line, col) {
   }
 }
 
-P2::Compiler.html_debug_attribute_injector = TAG_DEBUG_PROC
+Papercraft::Compiler.html_debug_attribute_injector = TAG_DEBUG_PROC

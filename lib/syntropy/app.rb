@@ -4,7 +4,7 @@ require 'json'
 require 'yaml'
 
 require 'qeweney'
-require 'p2'
+require 'papercraft'
 
 require 'syntropy/errors'
 require 'syntropy/file_watch'
@@ -197,14 +197,14 @@ module Syntropy
 
     def compute_module_proc(mod)
       case mod
-      when P2::Template
-        p2_template_proc(mod)
+      when Papercraft::Template
+        papercraft_template_proc(mod)
       else
         mod
       end
     end
 
-    def p2_template_proc(template)
+    def papercraft_template_proc(template)
       xml_mode = template.mode == :xml
       template = template.proc
       mime_type = xml_mode ? 'text/xml; charset=UTF-8' : 'text/html; charset=UTF-8'
@@ -302,7 +302,7 @@ module Syntropy
     # @return [void]
     def start
       @machine.spin do
-        # we do startup stuff asynchronously, in order to first let TP2 do its
+        # we do startup stuff asynchronously, in order to first let TPapercraft do its
         # setup tasks
         @machine.sleep 0.2
         route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size

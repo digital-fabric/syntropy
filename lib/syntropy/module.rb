@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'p2'
+require 'papercraft'
 
 module Syntropy
   # The ModuleLoader class implemenets a module loader. It handles loading of
@@ -204,28 +204,28 @@ module Syntropy
       }
     end
 
-    # Creates and returns a P2 template created with the given block.
+    # Creates and returns a Papercraft template created with the given block.
     #
     # @param proc [Proc, nil] template proc or nil
     # @param block [Proc] template block
-    # @return [P2::Template] template
+    # @return [Papercraft::Template] template
     def template(proc = nil, &block)
       proc ||= block
       raise "No template block/proc given" if !proc
 
-      P2::Template.new(proc)
+      Papercraft::Template.new(proc)
     end
 
-    # Creates and returns a P2 XML template created with the given block.
+    # Creates and returns a Papercraft XML template created with the given block.
     #
     # @param proc [Proc, nil] template proc or nil
     # @param block [Proc] template block
-    # @return [P2::Template] template
+    # @return [Papercraft::Template] template
     def template_xml(proc = nil, &block)
       proc ||= block
       raise "No template block/proc given" if !proc
 
-      P2::Template.new(proc, mode: :xml)
+      Papercraft::Template.new(proc, mode: :xml)
     rescue => e
       p e
       p e.backtrace
