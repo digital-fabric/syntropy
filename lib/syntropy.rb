@@ -13,7 +13,7 @@ require 'syntropy/module'
 require 'syntropy/request_extensions'
 require 'syntropy/p2_extensions'
 require 'syntropy/routing_tree'
-require 'syntropy/rpc_api'
+require 'syntropy/json_api'
 require 'syntropy/side_run'
 require 'syntropy/utils'
 

@@ -72,7 +72,7 @@ module Syntropy
       proc.(req)
     rescue StandardError => e
       @logger&.error(
-        message: "Error while serving request",
+        message: "Error while serving request: #{e.message}",
         method: req.method,
         path: req.path,
         error: e
@@ -161,9 +161,9 @@ module Syntropy
       if (layout = atts[:layout])
         route[:applied_layouts] ||= {}
         proc = route[:applied_layouts][layout] ||= markdown_layout_proc(layout)
-        html = proc.render(md: md, **atts)
+        html = proc.render(md:, **atts)
       else
-        html = P2.markdown(md)
+        html = default_markdown_layout_proc.render(md:, **atts)
       end
       html
     end
@@ -173,6 +173,20 @@ module Syntropy
       @layouts ||= {}
       template = @module_loader.load("_layout/#{layout}")
       @layouts[layout] = template.apply { |md:, **| markdown(md) }
+    end
+
+    def default_markdown_layout_proc
+      @default_markdown_layout ||= ->(md:, **atts) {
+        html5 {
+          head {
+            title atts[:title]
+          }
+          body {
+            markdown md
+            auto_refresh_watch!
+          }
+        }
+      }
     end
 
     def module_route_proc(route)

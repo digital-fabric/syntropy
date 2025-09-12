@@ -5,7 +5,7 @@ require 'syntropy/errors'
 require 'json'
 
 module Syntropy
-  class RPCAPI
+  class JSONAPI
     def initialize(env)
       @env = env
     end
