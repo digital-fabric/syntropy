@@ -62,7 +62,7 @@ rescue StandardError => e
   exit
 end
 
-env[:root_dir] = ARGV.shift || '.'
+env[:root_dir] = (ARGV.shift || '.').gsub(/\/$/, '')
 
 if !File.directory?(env[:root_dir])
   puts "#{File.expand_path(env[:root_dir])} Not a directory"
