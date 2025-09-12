@@ -15,7 +15,7 @@ end
 
 # Signals a file change by pushing to all watcher queues.
 def signal!
-  @watchers.each_key { @machine.push(it, true) }
+  watchers.each_key { @machine.push(it, true) }
 end
 
 # Handles incoming requests to the `watch.sse` route. Adds a queue to the list
