@@ -46,6 +46,16 @@ Syntropy is based on:
 - [Extralite](https://github.com/digital-fabric/extralite) a fast and innovative
   SQLite wrapper for Ruby.
 
+## Examples
+
+To get a taste of some of Syntropy's capabilities, you can run the included
+examples site inside the Syntropy repository:
+
+```bash
+$ cd syntropy
+$ bundle exec syntropy -d examples
+```
+
 ## Routing
 
 Syntropy routes request by following the tree structure of the Syntropy app. A
@@ -93,6 +103,28 @@ Some conventions employed in Syntropy-based web apps:
 - The Syntrpy router accepts clean URLs for Ruby modules and Markdown files. It
   also accepts clean URLs for `index.html` files.
 
+## Running Syntropy
+
+Note: Syntropy runs exclusively on Linux and requires kernel version >= 6.4.
+
+To start a web server on the working directory, use the `syntropy` command:
+
+```bash
+$ # install syntropy:
+$ gem install syntropy
+$ # run syntropy
+$ syntropy path/to/my_site
+```
+
+To get help for the different options available, run `syntropy -h`.
+
+## Development mode
+
+When developing and making changes to your site, you can run Syntropy in
+development mode, which automatically reloads changed modules and provides tools
+to automatically refresh open web pages and debug HTML templates. To start
+Syntropy in development mode, run `syntropy -d path/to/my_site`.
+
 ## What does a Syntropic Ruby module look like?
 
 Consider `site/archive.rb` in the file tree above. We want to get a list of
@@ -121,7 +153,7 @@ But a module can also be something completely different:
 
 ```ruby
 # api/v1.rb
-class APIV1 < Syntropy::RPCAPI
+class APIV1 < Syntropy::JSONAPI
   def initialize(db)
     @db = db
   end
