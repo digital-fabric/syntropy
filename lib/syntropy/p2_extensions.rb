@@ -4,9 +4,9 @@ require 'p2'
 
 P2.extension(
   'auto_refresh_watch!': ->(loc = '/.syntropy') {
-    script(src: File.join(loc, 'auto_refresh/watch.js'))
+    script(src: File.join(loc, 'auto_refresh/watch.js'), type: 'module')
   },
   'debug_template!': ->(loc = '/.syntropy') {
-    script(src: File.join(loc, 'debug/debug.js'))
+    script(src: File.join(loc, 'debug/debug.js'), type: 'module')
   }
 )
