@@ -23,6 +23,8 @@ export template {
       }
     }
     body {
+      p { a '< Home', href: '/' }
+
       h1 'Testing'
 
       div {
