@@ -9,10 +9,10 @@
   <a href="http://rubygems.org/gems/syntropy">
     <img src="https://badge.fury.io/rb/syntropy.svg" alt="Ruby gem">
   </a>
-  <a href="https://github.com/noteflakes/syntropy/actions">
-    <img src="https://github.com/noteflakes/syntropy/actions/workflows/test.yml/badge.svg" alt="Tests">
+  <a href="https://github.com/digital-fabric/syntropy/actions">
+    <img src="https://github.com/digital-fabric/syntropy/actions/workflows/test.yml/badge.svg" alt="Tests">
   </a>
-  <a href="https://github.com/noteflakes/syntropy/blob/master/LICENSE">
+  <a href="https://github.com/digital-fabric/syntropy/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
   </a>
 </p>
@@ -38,7 +38,7 @@ Syntropy is based on:
 
 - [UringMachine](https://github.com/digital-fabric/uringmachine) - a lean mean
   [io_uring](https://unixism.net/loti/what_is_io_uring.html) machine for Ruby.
-- [TP2](https://github.com/noteflakes/tp2) - an io_uring-based web server for
+- [TP2](https://github.com/digital-fabric/tp2) - an io_uring-based web server for
   concurrent Ruby apps.
 - [Qeweney](https://github.com/digital-fabric/qeweney) a uniform interface for
   working with HTTP requests and responses.

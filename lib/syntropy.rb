@@ -47,7 +47,7 @@ module Syntropy
     "  #{GREEN}ooooo\n"\
     "  #{GREEN} ooo vvv       #{CLEAR}Syntropy - a web framework for Ruby\n"\
     "  #{GREEN}  o vvvvv     #{CLEAR}--------------------------------------\n"\
-    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{CLEAR}https://github.com/noteflakes/syntropy\n"\
+    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{CLEAR}https://github.com/digital-fabric/syntropy\n"\
     "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
     "#{YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\e[0m\n\n"
 end

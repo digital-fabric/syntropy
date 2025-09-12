@@ -9,11 +9,11 @@ Gem::Specification.new do |s|
   s.email         = 'sharon@noteflakes.com'
   s.files         = `git ls-files`.split
 
-  s.homepage      = 'https://github.com/noteflakes/syntropy'
+  s.homepage      = 'https://github.com/digital-fabric/syntropy'
   s.metadata      = {
-    'homepage_uri' => 'https://github.com/noteflakes/syntropy',
+    'homepage_uri' => 'https://github.com/digital-fabric/syntropy',
     'documentation_uri' => 'https://www.rubydoc.info/gems/syntropy',
-    'changelog_uri' => 'https://github.com/noteflakes/syntropy/blob/master/CHANGELOG.md'
+    'changelog_uri' => 'https://github.com/digital-fabric/syntropy/blob/master/CHANGELOG.md'
   }
   s.rdoc_options  = ['--title', 'Extralite', '--main', 'README.md']
   s.extra_rdoc_files = ['README.md']
