@@ -25,7 +25,8 @@ parser = OptionParser.new do |o|
     env[:logger] = nil
   end
 
-  o.on('-w', '--watch', 'Watch for changed files') do
+  o.on('-d', '--dev', 'Development mode') do
+    env[:dev_mode] = true
     env[:watch_files] = 0.1
   end
 
@@ -77,6 +78,7 @@ env[:machine] = Syntropy.machine = UM.new
 env[:logger] = env[:logger] && TP2::Logger.new(env[:machine], **env)
 
 require 'syntropy/version'
+require 'syntropy/dev_mode' if env[:dev_mode]
 
 env[:logger]&.info(message: "Running Syntropy version #{Syntropy::VERSION}")
 app = Syntropy::App.load(env)
