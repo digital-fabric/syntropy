@@ -38,7 +38,7 @@ Syntropy is based on:
 
 - [UringMachine](https://github.com/digital-fabric/uringmachine) - a lean mean
   [io_uring](https://unixism.net/loti/what_is_io_uring.html) machine for Ruby.
-- [TPapercraft](https://github.com/digital-fabric/tp2) - an io_uring-based web server for
+- [TP2](https://github.com/digital-fabric/tp2) - an io_uring-based web server for
   concurrent Ruby apps.
 - [Qeweney](https://github.com/digital-fabric/qeweney) a uniform interface for
   working with HTTP requests and responses.

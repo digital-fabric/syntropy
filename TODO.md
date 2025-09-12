@@ -88,7 +88,7 @@ end
 ## Response: cookies and headers
 
 We need a way to inject cookies into the response. This probably should be done
-in the TPapercraft code:
+in the TP2 code:
 
 ```ruby
 @@default_set_cookie_attr = 'HttpOnly'

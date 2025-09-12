@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'extralite',     '2.13'
   s.add_dependency 'json',          '2.13.2'
-  s.add_dependency 'papercraft',            '2.13'
+  s.add_dependency 'papercraft',    '2.13'
   s.add_dependency 'qeweney',       '0.22'
   s.add_dependency 'tp2',           '0.16'
   s.add_dependency 'uringmachine',  '0.18'
@@ -33,5 +33,4 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'minitest',  '5.25.5'
   s.add_development_dependency 'rake',      '13.3.0'
-
 end

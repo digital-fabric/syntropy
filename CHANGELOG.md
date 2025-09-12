@@ -21,7 +21,7 @@
 - Implement applet mounting and loading
 - Remove Papercraft dependency
 - Add support for Papercraft XML templates, using `#template_xml`
-- Update Papercraft, TPapercraft
+- Update Papercraft, TP2
 
 # 0.15 2025-08-31
 
@@ -67,17 +67,17 @@
 
 ## 0.9.1 2025-07-08
 
-- Update TPapercraft
+- Update TP2
 
 ## 0.9 2025-07-08
 
-- Update TPapercraft
+- Update TP2
 - Add `Module.app` method for loading arbitrary apps
 - Set `Module@machine`
 
 ## 0.8.4 2025-07-07
 
-- Update TPapercraft
+- Update TP2
 - Fix Router#path_parent to not break on double slash
 
 ## 0.8.3 2025-07-06
