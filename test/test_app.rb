@@ -117,7 +117,6 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/rss')
     assert_equal '<link>foo</link>', req.response_body
-
   end
 
   def test_app_file_watching
@@ -206,5 +205,69 @@ class MultiSiteAppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'bar.baz')
     assert_equal '<h1>bar.baz</h1>', req.response_body.chomp
+  end
+end
+
+class AppAPITest < Minitest::Test
+  Status = Qeweney::Status
+
+  APP_ROOT = File.join(__dir__, 'app')
+
+  def setup
+    @machine = UM.new
+
+    @tmp_path = '/test/tmp'
+    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+
+    @app = Syntropy::App.new(
+      root_dir: APP_ROOT,
+      mount_path: '/test',
+      watch_files: 0.05,
+      machine: @machine
+    )
+  end
+
+  def test_route_method
+    route = @app.route('/')
+    assert_nil route
+
+    route = @app.route('/', compute_proc: true)
+    assert_nil route
+
+    route = @app.route('/test')
+    assert_nil route[:parent]
+    assert_equal '/test', route[:path]
+    assert_equal :static, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'index.html'), route[:target][:fn]
+
+    route = @app.route('/test/assets/style.css')
+    assert_equal '/test/assets', route[:parent][:path]
+    assert_equal :static, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'assets/style.css'), route[:target][:fn]
+
+    route = @app.route('/test/api')
+    assert_equal '/test', route[:parent][:path]
+    assert_equal :module, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'api+.rb'), route[:target][:fn]
+
+    route = @app.route('/test/api/foo')
+    assert_equal '/test', route[:parent][:path]
+    assert_equal :module, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'api+.rb'), route[:target][:fn]
+
+    route = @app.route('/test/bar')
+    assert_equal '/test', route[:parent][:path]
+    assert_equal :module, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'bar.rb'), route[:target][:fn]
+
+    route = @app.route('/test/about/raise')
+    assert_equal '/test/about', route[:parent][:path]
+    assert_equal :module, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'about/raise.rb'), route[:target][:fn]
+
+    route = @app.route('/test/about/foo')
+    assert_equal '/test/about', route[:parent][:path]
+    assert_equal :markdown, route[:target][:kind]
+    assert_equal File.join(APP_ROOT, 'about/foo.md'), route[:target][:fn]
   end
 end

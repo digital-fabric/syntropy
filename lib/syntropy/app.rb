@@ -81,8 +81,17 @@ module Syntropy
       error_handler.(req, e)
     end
 
+    # Returns the route entry for the given path. If compute_proc is true,
+    # computes the route proc if not yet computed.
+    #
+    # @param path [String] path
+    # @param params [Hash] hash receiving path parameters
+    # @param compute_proc [bool] whether to compute the route proc
+    # @return [Hash] route entry
     def route(path, params = {}, compute_proc: false)
       route = @router_proc.(path, params)
+      return if !route
+
       route[:proc] ||= compute_route_proc(route) if compute_proc
       route
     end
@@ -101,6 +110,7 @@ module Syntropy
       @router_proc = @routing_tree.router_proc
     end
 
+
     def mount_builtin_applet
       path = @env[:builtin_applet_path]
       @builtin_applet ||= Syntropy.builtin_applet(@env, mount_path: path)
@@ -117,6 +127,11 @@ module Syntropy
       compose_up_tree_hooks(route, pure)
     end
 
+    # Returns the pure route proc for the given route. A pure route proc is the
+    # computed proc for the route without any middleware hooks.
+    #
+    # @param route [Hash] route entry
+    # @return [Proc] route proc
     def pure_route_proc(route)
       case (kind = route[:target][:kind])
       when :static
@@ -131,6 +146,9 @@ module Syntropy
     end
 
     # Returns a proc rendering the given static route
+    #
+    # @param [Hash] route entry
+    # @return [Proc] route handler proc
     def static_route_proc(route)
       fn = route[:target][:fn]
       headers = { 'Content-Type' => Qeweney::MimeTypes[File.extname(fn)] }
@@ -143,7 +161,10 @@ module Syntropy
       }
     end
 
-    # Returns a proc rendering the given markdown route
+    # Returns a proc rendering the given markdown route.
+    #
+    # @param route [Hash] route entry
+    # @return [Proc] route proc
     def markdown_route_proc(route)
       headers = { 'Content-Type' => 'text/html' }
 
@@ -155,27 +176,39 @@ module Syntropy
       }
     end
 
+    # Renders and returns the given markdown route as HTML.
+    #
+    # @param route [Hash] route entry
+    # @return [String] rendered HTML
     def render_markdown(route)
       atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @env)
 
       if (layout = atts[:layout])
         route[:applied_layouts] ||= {}
-        proc = route[:applied_layouts][layout] ||= markdown_layout_proc(layout)
+        proc = route[:applied_layouts][layout] ||= markdown_layout_template(layout)
         html = proc.render(md:, **atts)
       else
-        html = default_markdown_layout_proc.render(md:, **atts)
+        html = default_markdown_layout_template.render(md:, **atts)
       end
       html
     end
 
-    # returns a markdown template based on the given layout
-    def markdown_layout_proc(layout)
+    # Returns a markdown template based on the given layout.
+    #
+    # @param layout [String] layout name
+    # @return [Proc] layout template
+    def markdown_layout_template(layout)
       @layouts ||= {}
       template = @module_loader.load("_layout/#{layout}")
       @layouts[layout] = template.apply { |md:, **| markdown(md) }
     end
 
-    def default_markdown_layout_proc
+    # Returns the default markdown layout, which renders to HTML and includes a
+    # title, the markdown content, and emits code for auto refreshing the page
+    # on file change.
+    #
+    # @return [Proc] default Markdown layout template
+    def default_markdown_layout_template
       @default_markdown_layout ||= ->(md:, **atts) {
         html5 {
           head {
@@ -189,12 +222,22 @@ module Syntropy
       }
     end
 
+    # Returns the route proc for a module route.
+    #
+    # @param route [Hash] route entry
+    # @return [Proc] route proc
     def module_route_proc(route)
       ref = @routing_tree.fn_to_rel_path(route[:target][:fn])
       mod = @module_loader.load(ref)
       compute_module_proc(mod)
     end
 
+    # Computes a route proc for the given module. If the module is a template,
+    # returns a route proc wrapping the template, otherwise the module itself is
+    # considered as the route proc.
+    #
+    # @param mod [any] module value
+    # @return [Proc] route proc
     def compute_module_proc(mod)
       case mod
       when Papercraft::Template
@@ -204,6 +247,10 @@ module Syntropy
       end
     end
 
+    # Returns a route proc for the given template.
+    #
+    # @param template [Papercraft::Template] template
+    # @return [Proc] route proc
     def papercraft_template_proc(template)
       xml_mode = template.mode == :xml
       template = template.proc
@@ -244,6 +291,11 @@ module Syntropy
       (parent = route[:parent]) ? compose_up_tree_hooks(parent, proc) : proc
     end
 
+    # Loads and returns an auxiliary module. This method is used for loading
+    # hook modules.
+    #
+    # @param hook_spec [Hash] hook spec
+    # @return [any] hook module
     def load_aux_module(hook_spec)
       ref = @routing_tree.fn_to_rel_path(hook_spec[:fn])
       @module_loader.load(ref)
@@ -348,6 +400,9 @@ module Syntropy
       end
     end
 
+    # Signals a file change to any auto refresh watchers.
+    #
+    # @return [void]
     def signal_auto_refresh_watchers!
       return if !@builtin_applet
 

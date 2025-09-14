@@ -12,5 +12,5 @@ def m(x=1)
   e = Time.now - t0
   p [x, e, e/x, x/e]
 end
-  
+
 m(10000) { t('http://localhost:1234/') }
