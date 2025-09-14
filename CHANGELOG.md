@@ -1,3 +1,9 @@
+# 0.19 2025-09-14
+
+- Implement HTTP caching for static files
+- Add `--no-server-headers` option
+- Update TP2: server headers, injected response headers, cookies
+
 # 0.18 2025-09-11
 
 - Rename P2 back to Papercraft
