@@ -8,7 +8,11 @@ env = {
   mount_path: '/',
   banner: Syntropy::BANNER,
   logger: true,
-  builtin_applet_path: '/.syntropy'
+  builtin_applet_path: '/.syntropy',
+  server_extensions: {
+    date: true,
+    name: 'Syntropy'
+  }
 }
 
 parser = OptionParser.new do |o|
@@ -43,6 +47,10 @@ parser = OptionParser.new do |o|
 
   o.on('--no-builtin-applet', 'Do not mount builtin applet') do
     env[:builtin_applet_path] = nil
+  end
+
+  o.on('--no-server-headers', 'Don\'t include Server and Date headers') do
+    env[:server_extensions] = nil
   end
 
   o.on('-v', '--version', 'Show version') do
