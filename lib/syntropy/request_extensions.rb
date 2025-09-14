@@ -140,6 +140,36 @@ module Syntropy
       value
     end
 
+    # Validates request cache information. If the request cache information
+    # matches the given etag or last_modified values, responds with a 304 Not
+    # Modified status. Otherwise, yields to the given block for a normal
+    # response, and sets cache control headers according to the given arguments.
+    # 
+    # @param cache_control [String] value for Cache-Control header
+    # @param etag [String, nil] Etag header value
+    # @param last_modified [String, nil] Last-Modified header value
+    # @return [void]
+    def validate_cache(cache_control: 'public', etag: nil, last_modified: nil)
+      validated = false
+      if (client_etag = headers['if-none-match'])
+        validated = true if client_etag == etag
+      end
+      if (client_mtime = headers['if-modified-since'])
+        validated = true if client_mtime == last_modified
+      end
+      if validated
+        respond(nil, ':status' => Qeweney::Status::NOT_MODIFIED)
+      else
+        cache_headers = {
+          'Cache-Control' => cache_control
+        }
+        cache_headers['Etag'] = etag if etag
+        cache_headers['Last-Modified'] = last_modified if last_modified
+        set_response_headers(cache_headers)
+        yield
+      end
+    end
+
     # Reads the request body and returns form data.
     #
     # @return [Hash] form data

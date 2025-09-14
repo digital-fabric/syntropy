@@ -17,6 +17,16 @@
   </a>
 </p>
 
+```
+   ooo
+  ooooo
+   ooo vvv       Syntropy - a web framework for Ruby
+    o vvvvv     -------------------------------------
+    |  vvv o      
+   :|:::|::|:
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+
 ## What is Syntropy?
 
 | Syntropy: A tendency towards complexity, structure, order, organization of

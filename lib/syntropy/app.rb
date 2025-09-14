@@ -154,11 +154,76 @@ module Syntropy
       headers = { 'Content-Type' => Qeweney::MimeTypes[File.extname(fn)] }
 
       ->(req) {
-        req.respond_by_http_method(
-          'head'  => [nil, headers],
-          'get'   => -> { [IO.read(fn), headers] }
-        )
+        case req.method
+        when 'head'
+          req.respond(nil, headers)
+        when 'get'
+          serve_static_file(req, route[:target])
+        else
+          raise Syntropy::Error.method_not_allowed
+        end
       }
+    end
+
+    # Serves a static file from the given target hash with cache validation.
+    # 
+    # @param req [Qeweney::Request] request
+    # @param target [Hash] route target hash
+    # @return [void]
+    def serve_static_file(req, target)
+      validate_static_file_info(target)
+      cache_opts = {
+        cache_control:  'max-age=3600',
+        last_modified:  target[:last_modified_date],
+        etag:           target[:etag]
+      }
+      req.validate_cache(**cache_opts) {
+        req.respond(target[:content], 'Content-Type' => target[:mime_type])
+      }
+    rescue => e
+      p e
+      p e.backtrace
+      exit!
+    end
+
+    # Validates and conditionally updates the file information for the given
+    # target.
+    # 
+    # @param target [Hash] route target hash
+    # @return [void]
+    def validate_static_file_info(target)
+      now = Time.now
+      return if target[:last_update] && ((Time.now - target[:last_update]) < 390)
+
+      update_static_file_info(target, now)
+    end
+
+    STATX_MASK = UM::STATX_MTIME | UM::STATX_SIZE
+
+    # Updates the static file information for the given target
+    # 
+    # @param target [Hash] route target hash
+    # @param now [Time] current time
+    # @return [void]
+    def update_static_file_info(target, now)
+      target[:last_update] = now
+      fd = @machine.open(target[:fn], UM::O_RDONLY)
+      stat = @machine.statx(fd, nil, UM::AT_EMPTY_PATH, STATX_MASK)
+      target[:size] = size = stat[:size]
+      mtime = stat[:mtime].to_i
+      return if target[:last_modified] == mtime # file not modified
+
+      target[:last_modified] = mtime
+      target[:last_modified_date] = Time.at(mtime).httpdate
+      target[:content] = buffer = String.new(capacity: size)
+      target[:mime_type] = Qeweney::MimeTypes[File.extname(target[:fn])]
+      len = 0
+      while len < size
+        len += @machine.read(fd, buffer, size, len)
+      end
+      target[:etag] = Digest::SHA1.hexdigest(buffer)
+    ensure
+      @machine.close_async(fd) if fd
     end
 
     # Returns a proc rendering the given markdown route.
