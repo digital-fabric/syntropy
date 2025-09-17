@@ -3,24 +3,22 @@ Card = import 'card'
 export template {
   html5 {
     head {
-      style {
-        raw <<~CSS
-          div {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-          }
-          span.foo {
-            color: white;
-            background-color: blue;
-            padding: 1em;
-          }
-          span.bar {
-            color: white;
-            background-color: green;
-            padding: 1em;
-          }
-        CSS
-      }
+      style <<~CSS
+        div {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        span.foo {
+          color: white;
+          background-color: blue;
+          padding: 1em;
+        }
+        span.bar {
+          color: white;
+          background-color: green;
+          padding: 1em;
+        }
+      CSS
     }
     body {
       p { a '< Home', href: '/' }
