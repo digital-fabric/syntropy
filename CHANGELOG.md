@@ -1,3 +1,7 @@
+# 0.21 2025-09-29
+
+- Fix routing with wildcard `index+.rb` modules
+
 # 0.20 2025-09-17
 
 - Update Papercraft
