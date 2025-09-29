@@ -98,7 +98,7 @@ module Syntropy
 
       @fn_map[fn] = ref
       code = IO.read(fn)
-      env = @env.merge(module_loader: self, ref: ref)
+      env = @env.merge(module_loader: self, ref: clean_ref(ref))
       m = Syntropy::Module.load(env, code, fn)
       add_dependencies(ref, m.__dependencies__)
       export_value = transform_module_export_value(m.__export_value__)
@@ -108,6 +108,12 @@ module Syntropy
         export_value: export_value,
         reverse_deps: []
       }
+    end
+
+    def clean_ref(ref)
+      return '/' if ref =~ /^index(\+)?$/
+      
+      ref.gsub(/\/index(?:\+)?$/, '')
     end
 
     # Transforms the given export value. If the value is nil, an exception is

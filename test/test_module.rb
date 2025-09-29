@@ -43,6 +43,12 @@ class ModuleTest < Minitest::Test
     assert_equal @machine, mod.machine
     assert_equal @loader, mod.module_loader
     assert_equal 42, mod.app
+
+    assert_equal mod, mod.module_const
+    assert_equal @env.merge(module_loader: @loader, ref: '_lib/env'), mod.env
+    assert_equal @machine, mod.machine
+    assert_equal @loader, mod.module_loader
+    assert_equal 42, mod.app
   end
 
   def test_dependency_invalidation
@@ -53,5 +59,13 @@ class ModuleTest < Minitest::Test
     @loader.invalidate_fn(self_fn)
 
     assert_equal [], @loader.modules.keys
+  end
+
+  def test_index_module_env
+    mod = @loader.load('mod/bar/index+')
+    assert_equal 'mod/bar', mod.env[:ref]
+
+    mod = @loader.load('mod/foo/index')
+    assert_equal 'mod/foo', mod.env[:ref]
   end
 end
