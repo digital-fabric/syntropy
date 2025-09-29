@@ -110,7 +110,9 @@ module Syntropy
       @router_proc = @routing_tree.router_proc
     end
 
-
+    # Mounts the builtin applet on the routing tree.
+    #
+    # @return [void]
     def mount_builtin_applet
       path = @env[:builtin_applet_path]
       @builtin_applet ||= Syntropy.builtin_applet(@env, mount_path: path)

@@ -309,6 +309,10 @@ module Syntropy
       plus, ext = m[1..2]
       kind = FILE_TYPE[ext]
       handle_subtree = (plus == '+') && (kind == :module)
+      if handle_subtree
+        path = path.gsub(/\/index\+$/, '')
+        path = '/' if path.empty?
+      end
       set_index_route_target(parent:, path:, kind:, fn:, handle_subtree:)
     end
 
@@ -443,29 +447,79 @@ module Syntropy
     # @return [String] router proc code to be `eval`ed
     def generate_routing_tree_code
       buffer = +''
-      buffer << "# frozen_string_literal: true\n"
+      buffer << "# frozen_string_literal: true\n\n"
 
+      wildcard_root = @root[:handle_subtree]
+      childless_root = !@root[:children] || @root[:children].empty?
+
+      if wildcard_root && childless_root
+        emit_wildcard_childless_root_code(buffer, @root[:path])
+      else
+        emit_router_proc_prelude(buffer)
+        segment_idx = 1
+        if @root[:path] != '/'
+          root_parts = @root[:path].split('/')
+          segment_idx = root_parts.size
+          emit_root_validate_guard(buffer:, root_parts:)
+        end
+
+        visit_routing_tree_entry(buffer:, entry: @root, segment_idx:)
+        emit_router_proc_postlude(buffer, default_route_path: wildcard_root && @root[:path])
+      end
+
+      buffer#.tap { puts '*' * 40; puts it; puts }
+    end
+
+    # Emits optimized code for a childless wildcard router.
+    #
+    # @param buffer [String] output buffer
+    # @param root_path [String] router root path
+    # @return [void]
+    def emit_wildcard_childless_root_code(buffer, root_path)
+      emit_code_line(buffer, '->(path, params) {')
+      if root_path != '/'
+        re = /^#{Regexp.escape(root_path)}(\/.*)?$/
+        emit_code_line(buffer, "  return if path !~ #{re.inspect}")
+      end
+      emit_code_line(buffer, "  @dynamic_map[#{root_path.inspect}]")
+      emit_code_line(buffer, '}')
+    end
+
+    # Emits router proc prelude code.
+    #
+    # @param buffer [String] output buffer
+    # @return [void]
+    def emit_router_proc_prelude(buffer)
       emit_code_line(buffer, '->(path, params) {')
       emit_code_line(buffer, '  entry = @static_map[path]; return entry if entry')
       emit_code_line(buffer, '  parts = path.split("/")')
+    end
 
-      if @root[:path] != '/'
-        root_parts = @root[:path].split('/')
-        segment_idx = root_parts.size
-        validate_parts = []
-        (1..(segment_idx - 1)).each do |i|
-          validate_parts << "(parts[#{i}] != #{root_parts[i].inspect})"
-        end
-        emit_code_line(buffer, "  return nil if #{validate_parts.join(' || ')}")
-      else
-        segment_idx = 1
+    # Emits root path validation guard code.
+    #
+    # @param buffer [String] output buffer
+    # @param root_parts [Array<String>] root path parts
+    # @return [void]
+    def emit_root_validate_guard(buffer:, root_parts:)
+      validate_parts = []
+      (1...root_parts.size).each do |i|
+        validate_parts << "(parts[#{i}] != #{root_parts[i].inspect})"
       end
+      emit_code_line(buffer, "  return nil if #{validate_parts.join(' || ')}")
+    end
 
-      visit_routing_tree_entry(buffer:, entry: @root, segment_idx:)
-
-      emit_code_line(buffer, "  return nil")
+    # Emits router proc postlude code.
+    #
+    # @param buffer [String] output buffer
+    # @param default_route_path [String, nil] default route path
+    # @return [void]
+    def emit_router_proc_postlude(buffer, default_route_path:)
+      if default_route_path
+        emit_code_line(buffer, "  return @dynamic_map[#{default_route_path.inspect}]")
+      else
+        emit_code_line(buffer, "  return nil")
+      end
       emit_code_line(buffer, "}")
-      buffer#.tap { puts '*' * 40; puts it; puts }
     end
 
     # Generates routing logic code for the given route entry.
@@ -507,40 +561,7 @@ module Syntropy
       end
 
       if entry[:children]
-        param_entry = entry[:children]['[]']
-        entry[:children].each do |k, child_entry|
-          # skip if wildcard entry (treated in else clause below)
-          next if k == '[]'
-
-          # skip if entry is void (no target, no children)
-          has_target = child_entry[:target]
-          has_children = child_entry[:children] && !child_entry[:children].empty?
-          next if !has_target && !has_children
-
-          if has_target && !has_children
-            # use the target
-            next if child_entry[:static]
-
-            emit_code_line(buffer, "#{ws}when #{k.inspect}")
-            if_clause = child_entry[:handle_subtree] ? '' : " if !parts[#{segment_idx + 1}]"
-            route_value = "@dynamic_map[#{child_entry[:path].inspect}]"
-            emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
-
-          elsif has_children
-            # otherwise look at the next segment
-            next if is_void_route?(child_entry) && !param_entry
-
-            emit_code_line(buffer, "#{ws}when #{k.inspect}")
-            visit_routing_tree_entry(buffer:, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)
-          end
-        end
-
-        # parametric route
-        if param_entry
-          emit_code_line(buffer, "#{ws}else")
-          emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = p")
-          visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
-        end
+        emit_routing_tree_entry_children_clauses(buffer:, entry:, indent:, segment_idx:)
       end
       emit_code_line(buffer, "#{ws}end")
     end
@@ -564,7 +585,7 @@ module Syntropy
     # @param entry [Hash] route entry
     # @return [bool]
     def is_void_route?(entry)
-      return false if entry[:param]
+      return false if entry[:param] || entry[:target]
 
       if entry[:children]
         return true if !entry[:children]['[]'] && entry[:children]&.values&.all? { is_void_route?(it) }
@@ -573,6 +594,58 @@ module Syntropy
       end
 
       false
+    end
+
+    # Emits case clauses for the given entry's children.
+    #
+    # @param buffer [String] output buffer
+    # @param entry [Hash] route entry
+    # @param indent [Integer] indent level
+    # @param segment_idx [Integer] path segment index
+    # @return [void]
+    def emit_routing_tree_entry_children_clauses(buffer:, entry:, indent:, segment_idx:)
+      ws = ' ' * (indent * 2)
+
+      param_entry = entry[:children]['[]']
+      entry[:children].each do |k, child_entry|
+        # skip if wildcard entry (treated in else clause below)
+        next if k == '[]'
+
+        # skip if entry is void (no target, no children)
+        has_target = child_entry[:target]
+        has_children = child_entry[:children] && !child_entry[:children].empty?
+        next if !has_target && !has_children
+
+        if has_target && !has_children
+          # use the target
+          next if child_entry[:static]
+
+          emit_code_line(buffer, "#{ws}when #{k.inspect}")
+          if_clause = child_entry[:handle_subtree] ? '' : " if !parts[#{segment_idx + 1}]"
+
+          child_path = child_entry[:path]
+          route_value = "@dynamic_map[#{child_path.inspect}]"
+          emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
+
+        elsif has_children
+          # otherwise look at the next segment
+          next if is_void_route?(child_entry) && !param_entry
+
+          emit_code_line(buffer, "#{ws}when #{k.inspect}")
+          visit_routing_tree_entry(buffer:, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)
+        end
+      end
+
+      # parametric route
+      if param_entry
+        emit_code_line(buffer, "#{ws}else")
+        emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = p")
+        visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
+      # wildcard route
+      elsif entry[:handle_subtree]
+        emit_code_line(buffer, "#{ws}else")
+        emit_code_line(buffer, "#{ws}  return @dynamic_map[#{entry[:path].inspect}]")
+      end
     end
 
     DEBUG = !!ENV['DEBUG']

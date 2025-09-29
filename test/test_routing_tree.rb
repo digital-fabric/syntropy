@@ -408,3 +408,167 @@ class RoutingTreeTest < Minitest::Test
     }
   end
 end
+
+class RoutingTreeWildcardIndexTest < Minitest::Test
+  def test_wildcard_root_index_routing_on_docs
+    file_tree = {
+      'site': {
+        'index+.rb': '',
+      }
+    }
+
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, file_tree)
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+
+    router = @rt.router_proc
+
+    route = router.('/docs', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docs/foo', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docs/foo/bar', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docsa', {})
+    assert_nil route
+  end
+
+  def test_wildcard_root_index_routing_on_root
+    file_tree = {
+      'site': {
+        'index+.rb': '',
+      }
+    }
+
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, file_tree)
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+
+    router = @rt.router_proc
+
+    route = router.('/', {})
+    assert_equal '/', route[:path]
+
+    route = router.('/foo', {})
+    assert_equal '/', route[:path]
+
+    route = router.('/foo/bar', {})
+    assert_equal '/', route[:path]
+  end
+
+  def test_wildcard_root_index_with_children
+    file_tree = {
+      'site': {
+        'about.rb': '',
+        'foo+.rb': '',
+        'index+.rb': '',
+      }
+    }
+
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, file_tree)
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    router = @rt.router_proc
+
+    route = router.('/docs', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docs/about', {})
+    assert_equal '/docs/about', route[:path]
+
+    route = router.('/docs/foo', {})
+    assert_equal '/docs/foo+', route[:path]
+
+    route = router.('/docs/foo/bar', {})
+    assert_equal '/docs/foo+', route[:path]
+
+    route = router.('/docs/baz', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docsa', {})
+    assert_nil route
+  end
+
+  def test_wildcard_root_index_with_static_children
+    file_tree = {
+      'site': {
+        'about.rb': '',
+        'foo.rb': '',
+        'index+.rb': '',
+      }
+    }
+
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, file_tree)
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    router = @rt.router_proc
+
+    route = router.('/docs', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docs/about', {})
+    assert_equal '/docs/about', route[:path]
+
+    route = router.('/docs/foo', {})
+    assert_equal '/docs/foo', route[:path]
+
+    route = router.('/docs/foo/bar', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docs/baz', {})
+    assert_equal '/docs', route[:path]
+
+    route = router.('/docsa', {})
+    assert_nil route
+  end
+
+  def test_wildcard_nested_index
+    file_tree = {
+      'site': {
+        'foo': {
+          'index+.rb': ''
+        },
+        'bar': {
+          'about.rb': '',
+          'foo.rb': '',
+          'index+.rb': '',
+        },
+        # 'baz+.rb': ''
+      }
+    }
+
+    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@root_dir, file_tree)
+    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    router = @rt.router_proc
+
+    route = router.('/docs', {})
+    assert_nil route
+
+    route = router.('/docs/foo', {})
+    assert_equal '/docs/foo', route[:path]
+
+    route = router.('/docs/foo/bar', {})
+    assert_equal '/docs/foo', route[:path]
+
+    route = router.('/docs/foo/about', {})
+    assert_equal '/docs/foo', route[:path]
+
+    route = router.('/docs/bar', {})
+    assert_equal '/docs/bar', route[:path]
+
+    route = router.('/docs/bar/baz', {})
+    assert_equal '/docs/bar', route[:path]
+
+    route = router.('/docs/bar/about', {})
+    assert_equal '/docs/bar/about', route[:path]
+
+    route = router.('/docs/bars/about', {})
+    assert_nil route
+  end
+
+  
+end
