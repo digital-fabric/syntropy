@@ -1,3 +1,7 @@
+# 0.22 2025-09-29
+
+- Fix `@ref` for index modules
+
 # 0.21 2025-09-29
 
 - Fix routing with wildcard `index+.rb` modules
