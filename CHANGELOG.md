@@ -1,3 +1,7 @@
+# 0.23 2025-10-02
+
+- Update dependencies
+
 # 0.22 2025-09-29
 
 - Fix `@ref` for index modules
