@@ -93,7 +93,7 @@ end
 # Extensions to be used in conjunction with `Qeweney::TestAdapter`
 class Qeweney::Request
   def response_headers
-    adapter.headers
+    adapter.response_headers
   end
 
   def response_status
@@ -101,7 +101,7 @@ class Qeweney::Request
   end
 
   def response_body
-    adapter.body
+    adapter.response_body
   end
 
   def response_json
