@@ -1,3 +1,6 @@
+# 0.25 2025-10-19
+
+- Upgrade Papercraft to version 3.0
 - Fix tests
 
 # 0.24 2025-10-08
