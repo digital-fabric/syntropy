@@ -1,6 +1,6 @@
 layout = import('_layout/default')
 
-export layout.apply {
+export Papercraft.apply(layout) {
   h1 'Hello from Syntropy'
   p {
     span "Here's an "

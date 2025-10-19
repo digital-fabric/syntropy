@@ -13,7 +13,7 @@ poem = [
   '              sile', 'N', 'ce?',
 ]
 
-export layout.apply {
+export Papercraft.apply(layout) {
   article(class: 'mesostic') {
     h2 'For William McN. who studied with Ezra Pound'
 

@@ -250,14 +250,17 @@ module Syntropy
     def render_markdown(route)
       atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @env)
 
+      layout = compute_markdown_layout(route, atts)
+      Papercraft.html(layout, md:, **atts)
+    end
+
+    def compute_markdown_layout(route, atts)
       if (layout = atts[:layout])
         route[:applied_layouts] ||= {}
-        proc = route[:applied_layouts][layout] ||= markdown_layout_template(layout)
-        html = proc.render(md:, **atts)
+        route[:applied_layouts][layout] ||= markdown_layout_template(layout)
       else
-        html = default_markdown_layout_template.render(md:, **atts)
+        default_markdown_layout_template
       end
-      html
     end
 
     # Returns a markdown template based on the given layout.
@@ -267,7 +270,7 @@ module Syntropy
     def markdown_layout_template(layout)
       @layouts ||= {}
       template = @module_loader.load("_layout/#{layout}")
-      @layouts[layout] = template.apply { |md:, **| markdown(md) }
+      @layouts[layout] = Papercraft.apply(template) { |md:, **| markdown(md) }
     end
 
     # Returns the default markdown layout, which renders to HTML and includes a
@@ -324,7 +327,9 @@ module Syntropy
       mime_type = xml_mode ? 'text/xml; charset=UTF-8' : 'text/html; charset=UTF-8'
       headers = { 'Content-Type' => mime_type }
 
-      get_proc = xml_mode ? -> { [template.render_xml, headers] } : -> { [template.render, headers] }
+      get_proc = xml_mode ?
+        -> { [Papercraft.xml(template), headers] } :
+        -> { [Papercraft.html(template), headers] }
 
       ->(req) {
         req.respond_by_http_method(

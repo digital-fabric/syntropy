@@ -1,3 +1,5 @@
+- Fix tests
+
 # 0.24 2025-10-08
 
 - Use gem.coop in Gemfile
