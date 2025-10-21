@@ -116,7 +116,8 @@ module Syntropy
     def clean_ref(ref)
       return '/' if ref =~ /^index(\+)?$/
 
-      ref.gsub(/\/index(?:\+)?$/, '')
+      clean = ref.gsub(/\/index(?:\+)?$/, '')
+      clean == '' ? '/' : clean
     end
 
     # Transforms the given export value. If the value is nil, an exception is
@@ -180,10 +181,21 @@ module Syntropy
       @app = env[:app]
       @ref = env[:ref]
       @logger = env[:logger]
+      @__dependencies__ = []
       singleton_class.const_set(:MODULE, self)
     end
 
-    attr_reader :__export_value__
+    attr_reader :__export_value__, :__dependencies__
+
+    # Returns a list of pages found at the given ref.
+    #
+    # @param ref [String] directory reference
+    # @return [Array] array of pages found in directory
+    def page_list(ref)
+      Syntropy.page_list(@env, ref)
+    end
+
+    private
 
     # Exports the given value. This value will be used as the module's
     # entrypoint. It can be any Ruby value, but for a route module would
@@ -195,23 +207,23 @@ module Syntropy
       @__export_value__ = v
     end
 
-    # Returns the list of module references imported by the module.
-    #
-    # @return [Array] array of module references
-    def __dependencies__
-      @__dependencies__ ||= []
-    end
-
     # Imports the module corresponding to the given reference. The return value
     # is the module's export value.
     #
     # @param ref [String] module reference
     # @return [any] loaded dependency's export value
     def import(ref)
-      path = ref =~ /^\// ? ref : File.expand_path(File.join(File.dirname(@ref), ref))
-      @module_loader.load(path).tap {
-        __dependencies__ << path
-      }
+      ref = normalize_import_ref(ref)
+      @module_loader.load(ref).tap { __dependencies__ << ref }
+    end
+
+    def normalize_import_ref(ref)
+      base = @ref == '' ? '/' : @ref
+      if ref =~ /^\//
+        ref
+      else
+        File.expand_path(File.join(File.dirname(base), ref))
+      end
     end
 
     # Creates and returns a Papercraft template created with the given block.
@@ -240,14 +252,6 @@ module Syntropy
       p e
       p e.backtrace
       raise
-    end
-
-    # Returns a list of pages found at the given ref.
-    #
-    # @param ref [String] directory reference
-    # @return [Array] array of pages found in directory
-    def page_list(ref)
-      Syntropy.page_list(@env, ref)
     end
 
     # Creates and returns a Syntropy app for the given environment. The app's
