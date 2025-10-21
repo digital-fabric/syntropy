@@ -1,3 +1,7 @@
+# 0.27.2 2025-10-21
+
+- Add `Module#collection_module!` method
+
 # 0.27.1 2025-10-21
 
 - Fix error instantiation and error testing
