@@ -115,7 +115,7 @@ module Syntropy
 
     def clean_ref(ref)
       return '/' if ref =~ /^index(\+)?$/
-      
+
       ref.gsub(/\/index(?:\+)?$/, '')
     end
 
@@ -250,11 +250,13 @@ module Syntropy
       Syntropy.page_list(@env, ref)
     end
 
-    # Creates and returns a Syntropy app for the given environment.
+    # Creates and returns a Syntropy app for the given environment. The app's
+    # environment is based on the module's env merged with the given parameters.
     #
     # @param env [Hash] environment
     def app(**env)
-      Syntropy::App.new(**(@env.merge(env)))
+      env = @env.merge(env)
+      Syntropy::App.new(**env)
     end
   end
 end

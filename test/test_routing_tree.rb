@@ -570,5 +570,5 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
     assert_nil route
   end
 
-  
+
 end

@@ -168,7 +168,7 @@ module Syntropy
     end
 
     # Serves a static file from the given target hash with cache validation.
-    # 
+    #
     # @param req [Qeweney::Request] request
     # @param target [Hash] route target hash
     # @return [void]
@@ -190,7 +190,7 @@ module Syntropy
 
     # Validates and conditionally updates the file information for the given
     # target.
-    # 
+    #
     # @param target [Hash] route target hash
     # @return [void]
     def validate_static_file_info(target)
@@ -203,7 +203,7 @@ module Syntropy
     STATX_MASK = UM::STATX_MTIME | UM::STATX_SIZE
 
     # Updates the static file information for the given target
-    # 
+    #
     # @param target [Hash] route target hash
     # @param now [Time] current time
     # @return [void]

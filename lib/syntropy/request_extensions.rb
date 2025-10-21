@@ -145,7 +145,7 @@ module Syntropy
     # matches the given etag or last_modified values, responds with a 304 Not
     # Modified status. Otherwise, yields to the given block for a normal
     # response, and sets cache control headers according to the given arguments.
-    # 
+    #
     # @param cache_control [String] value for Cache-Control header
     # @param etag [String, nil] Etag header value
     # @param last_modified [String, nil] Last-Modified header value
