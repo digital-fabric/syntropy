@@ -193,6 +193,11 @@ module Syntropy
       respond(JSON.dump(obj), 'Content-Type' => 'application/json; charset=utf-8')
     end
 
+    def browser?
+      user_agent = headers['user-agent']
+      user_agent && user_agent =~ /^Mozilla\//
+    end
+
     private
 
     BOOL_REGEXP = /^(t|f|true|false|on|off|1|0|yes|no)$/
