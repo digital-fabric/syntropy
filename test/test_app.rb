@@ -50,7 +50,7 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'POST', ':path' => '/test')
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
-    assert_nil req.response_body
+    assert_equal "Method not allowed", req.response_body
 
     req = make_request(':method' => 'GET', ':path' => '/test/assets/style.css')
     assert_equal '* { color: beige }', req.response_body
@@ -64,7 +64,7 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'POST', ':path' => '/test/api?q=get')
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
-    assert_equal({ status: 'Error', message: '' }, req.response_json)
+    assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
     req = make_request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
     assert_equal({ status: 'OK', response: 0 }, req.response_json)
@@ -74,7 +74,7 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/api?q=incr')
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
-    assert_equal({ status: 'Error', message: '' }, req.response_json)
+    assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
@@ -97,7 +97,7 @@ class AppTest < Minitest::Test
     assert_equal Status::OK, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/baz')
-    assert_nil req.response_body
+    assert_equal 'Method not allowed', req.response_body
     assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/about')

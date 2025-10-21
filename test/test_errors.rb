@@ -12,7 +12,7 @@ class ErrorsTest < Minitest::Test
     e = Syntropy::Error.new
     assert_equal ISE, Syntropy::Error.http_status(e)
 
-    e = Syntropy::Error.new(Qeweney::Status::UNAUTHORIZED)
+    e = Syntropy::Error.new("", Qeweney::Status::UNAUTHORIZED)
     assert_equal Qeweney::Status::UNAUTHORIZED, Syntropy::Error.http_status(e)
   end
 

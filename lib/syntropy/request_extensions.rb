@@ -177,12 +177,12 @@ module Syntropy
     def get_form_data
       body = read
       if !body || body.empty?
-        raise Syntropy::Error.new(Qeweney::Status::BAD_REQUEST, 'Missing form data')
+        raise Syntropy::Error.new('Missing form data', Qeweney::Status::BAD_REQUEST)
       end
 
       Qeweney::Request.parse_form_data(body, headers)
     rescue Qeweney::BadRequestError
-      raise Syntropy::Error.new(Qeweney::Status::BAD_REQUEST, 'Invalid form data')
+      raise Syntropy::Error.new('Invalid form data', Qeweney::Status::BAD_REQUEST)
     end
 
     def html_response(html, **headers)

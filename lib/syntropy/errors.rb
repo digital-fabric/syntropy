@@ -56,7 +56,7 @@ module Syntropy
   # ValidationError is raised when a validation has failed.
   class ValidationError < Error
     def initialize(msg)
-      super(Qeweney::Status::BAD_REQUEST, msg)
+      super(msg, Qeweney::Status::BAD_REQUEST)
     end
   end
 end
