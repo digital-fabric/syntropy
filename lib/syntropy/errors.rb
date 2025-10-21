@@ -21,17 +21,17 @@ module Syntropy
     # Creates an error with status 404 Not Found
     #
     # @return [Syntropy::Error]
-    def self.not_found(msg = '') = new(Status::NOT_FOUND, msg)
+    def self.not_found(msg = 'Not found') = new(msg, Status::NOT_FOUND)
 
     # Creates an error with status 405 Method Not Allowed
     #
     # @return [Syntropy::Error]
-    def self.method_not_allowed(msg = '') = new(Status::METHOD_NOT_ALLOWED, msg)
+    def self.method_not_allowed(msg = 'Method not allowed') = new(msg, Status::METHOD_NOT_ALLOWED)
 
     # Creates an error with status 418 I'm a teapot
     #
     # @return [Syntropy::Error]
-    def self.teapot(msg = '') = new(Status::TEAPOT, msg)
+    def self.teapot(msg = 'I\'m a teapot') = new(msg, Status::TEAPOT)
 
     attr_reader :http_status
 
@@ -40,7 +40,7 @@ module Syntropy
     # @param http_status [Integer, String] HTTP status
     # @param msg [String] error message
     # @return [void]
-    def initialize(http_status = DEFAULT_STATUS, msg = '')
+    def initialize(msg = 'Internal server error', http_status = DEFAULT_STATUS)
       super(msg)
       @http_status = http_status
     end
