@@ -214,7 +214,23 @@ module Syntropy
       user_agent && user_agent =~ /^Mozilla\//
     end
 
+    # Returns true if the accept header includes the given MIME type
+    #
+    # @param mime_type [String] MIME type
+    # @return [bool]
+    def accept?(mime_type)
+      accept = headers['accept']  
+      return nil if !accept
+
+      @accept_parts ||= parse_accept_parts(accept)
+      @accept_parts.include?(mime_type)
+    end
+
     private
+
+    def parse_accept_parts(accept)
+      accept.split(',').map { it.match(/^\s*([^\s;]+)/)[1] }
+    end
 
     BOOL_REGEXP = /^(t|f|true|false|on|off|1|0|yes|no)$/
     BOOL_TRUE_REGEXP = /^(t|true|on|1|yes)$/
