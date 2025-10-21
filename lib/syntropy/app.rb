@@ -373,12 +373,6 @@ module Syntropy
       @module_loader.load(ref)
     end
 
-    DEFAULT_ERROR_HANDLER = ->(req, err) {
-      msg = err.message
-      msg = nil if msg.empty? || (req.method == 'head')
-      req.respond(msg, ':status' => Syntropy::Error.http_status(err)) rescue nil
-    }
-
     # Returns an error handler for the given route. If route is nil, looks up
     # the error handler for the routing tree root. If no handler is found,
     # returns the default error handler.
@@ -386,7 +380,7 @@ module Syntropy
     # @param route [Hash] route entry
     # @return [Proc] error handler proc
     def get_error_handler(route)
-      route_error_handler(route || @routing_tree.root) || DEFAULT_ERROR_HANDLER
+      route_error_handler(route || @routing_tree.root) || default_error_handler
     end
 
     # Returns the given route's error handler, caching the result.
@@ -418,6 +412,23 @@ module Syntropy
       return route[:error] if route[:error]
 
       route[:parent] && find_error_handler(route[:parent])
+    end
+
+    RAW_DEFAULT_ERROR_HANDLER = ->(req, err) {
+      msg = err.message
+      msg = nil if msg.empty? || (req.method == 'head')
+      req.respond(msg, ':status' => Syntropy::Error.http_status(err)) rescue nil
+    }
+
+    def default_error_handler
+
+      @default_error_handler ||= begin
+        if @builtin_applet
+          @builtin_applet.module_loader.load('/default_error_handler')
+        else
+          RAW_DEFAULT_ERROR_HANDLER
+        end
+      end
     end
 
     # Performs app start up, creating a log message and starting the file

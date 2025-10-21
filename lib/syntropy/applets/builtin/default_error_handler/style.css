@@ -1,0 +1,18 @@
+body {
+  max-width: 800px;
+  margin: 4em auto;
+  
+  font-family: Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif;
+
+  big {
+    display: block;
+    font-weight: bold;
+    font-size: 10em;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    margin-inline: 1em;
+  }
+}
