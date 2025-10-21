@@ -53,9 +53,8 @@ module Syntropy
     # @return [void]
     def invalidate_fn(fn)
       ref = @fn_map[fn]
-      return if !ref
-
-      invalidate_ref(ref)
+      invalidate_ref(ref) if ref
+      invalidate_collection_modules
     end
 
     private
@@ -73,6 +72,14 @@ module Syntropy
 
       @fn_map.delete(entry[:fn])
       entry[:reverse_deps].each { invalidate_ref(it) }
+    end
+
+    def invalidate_collection_modules
+      refs = []
+      @modules.each do |ref, entry|
+        refs << ref if entry[:module].is_collection_module?
+      end
+      refs.each { invalidate_ref(it) }
     end
 
     # Registers reverse dependencies for the given module reference.
@@ -102,12 +109,13 @@ module Syntropy
       @fn_map[fn] = ref
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
-      m = Syntropy::Module.load(env, code, fn)
-      add_dependencies(ref, m.__dependencies__)
-      export_value = transform_module_export_value(m.__export_value__)
+      mod = Syntropy::Module.load(env, code, fn)
+      add_dependencies(ref, mod.__dependencies__)
+      export_value = transform_module_export_value(mod.__export_value__)
 
       {
         fn: fn,
+        module: mod,
         export_value: export_value,
         reverse_deps: []
       }
@@ -195,6 +203,14 @@ module Syntropy
       Syntropy.page_list(@env, ref)
     end
 
+    # Returns true if the module is a collection module. See also
+    # #collection_module!
+    #
+    # @return [bool]
+    def is_collection_module?
+      @collection_module_p
+    end
+
     private
 
     # Exports the given value. This value will be used as the module's
@@ -215,6 +231,16 @@ module Syntropy
     def import(ref)
       ref = normalize_import_ref(ref)
       @module_loader.load(ref).tap { __dependencies__ << ref }
+    end
+
+    # Marks module as a collection module. This will cause the module to be
+    # invalidated on every file change in dev mode, regardless if it is a
+    # dependency.
+    #
+    # @return [self]
+    def collection_module!
+      @collection_module_p = true
+      self
     end
 
     def normalize_import_ref(ref)
