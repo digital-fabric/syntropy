@@ -39,14 +39,17 @@ def error_response_browser(req, error)
   status = Syntropy::Error.http_status(error)
   backtrace = transform_backtrace(error.backtrace)
   html = Papercraft.html(ErrorPage, error:, status:, backtrace:)
-  req.respond(html, ':status' => status, 'Content-Type' => 'text/html')
+  req.html_response(html, ':status' => status)
 end
 
 def error_response_raw(req, error)
-  status = error_status_code(error)
-  msg = err.message
-  msg = nil if msg.empty? || (req.method == 'head')
-  req.respond(msg, ':status' => status)
+  status = Syntropy::Error.http_status(error)
+  response = {
+    class: error.class.to_s,
+    message: error.message,
+    backtrace: error.backtrace
+  }
+  req.json_pretty_response(response, ':status' => status)
 end
 
 export ->(req, error) {
