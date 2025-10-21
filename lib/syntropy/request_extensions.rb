@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'qeweney'
+require 'json'
 
 module Syntropy
   # Extensions for the Qeweney::Request class
@@ -182,6 +183,14 @@ module Syntropy
       Qeweney::Request.parse_form_data(body, headers)
     rescue Qeweney::BadRequestError
       raise Syntropy::Error.new(Qeweney::Status::BAD_REQUEST, 'Invalid form data')
+    end
+
+    def html_repsonse(html)
+      respond(html, 'Content-Type' => 'text/html; charset=utf-8')
+    end
+
+    def json_response(obj)
+      respond(JSON.dump(obj), 'Content-Type' => 'application/json; charset=utf-8')
     end
 
     private

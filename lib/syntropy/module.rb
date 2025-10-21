@@ -38,6 +38,8 @@ module Syntropy
     # @param ref [String] module reference
     # @return [any] export value
     def load(ref)
+      ref = "/#{ref}" if ref !~ /^\//
+
       entry = (@modules[ref] ||= load_module(ref))
       entry[:export_value]
     end
@@ -93,6 +95,7 @@ module Syntropy
     # @param ref [String] module reference
     # @return [Hash] module entry
     def load_module(ref)
+      ref = "/#{ref}" if ref !~ /^\//
       fn = File.expand_path(File.join(@root_dir, "#{ref}.rb"))
       raise Syntropy::Error, "File not found #{fn}" if !File.file?(fn)
 
@@ -205,8 +208,9 @@ module Syntropy
     # @param ref [String] module reference
     # @return [any] loaded dependency's export value
     def import(ref)
-      @module_loader.load(ref).tap {
-        __dependencies__ << ref
+      path = ref =~ /^\// ? ref : File.expand_path(File.join(File.dirname(@ref), ref))
+      @module_loader.load(path).tap {
+        __dependencies__ << path
       }
     end
 

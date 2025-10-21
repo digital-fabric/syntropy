@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Klass = import '_lib/klass'
+Klass = import './klass'
 
 def call(x)
   Klass.foo.to_s * x

@@ -29,6 +29,17 @@ class ModuleTest < Minitest::Test
     assert_equal 43, mod.bar
   end
 
+  def test_import_paths
+    mod = @loader.load('/mod/path/b')
+    assert_kind_of Hash, mod
+    assert_equal [:a1, :a2, :foo, :callable], mod.keys
+
+    assert_equal :foo, mod[:a1]
+    assert_equal :foo, mod[:a2]
+    assert_kind_of Syntropy::Module, mod[:foo]
+    assert_equal 'barbarbar', mod[:callable].(3)
+  end
+
   def test_export_self
     mod = @loader.load('_lib/self')
     assert_kind_of Syntropy::Module, mod
@@ -39,23 +50,23 @@ class ModuleTest < Minitest::Test
     mod = @loader.load('_lib/env')
 
     assert_equal mod, mod.module_const
-    assert_equal @env.merge(module_loader: @loader, ref: '_lib/env'), mod.env
+    assert_equal @env.merge(module_loader: @loader, ref: '/_lib/env'), mod.env
     assert_equal @machine, mod.machine
     assert_equal @loader, mod.module_loader
     assert_equal 42, mod.app
 
     assert_equal mod, mod.module_const
-    assert_equal @env.merge(module_loader: @loader, ref: '_lib/env'), mod.env
+    assert_equal @env.merge(module_loader: @loader, ref: '/_lib/env'), mod.env
     assert_equal @machine, mod.machine
     assert_equal @loader, mod.module_loader
     assert_equal 42, mod.app
   end
 
   def test_dependency_invalidation
-    mod = @loader.load('_lib/dep')
-    assert_equal ['_lib/self', '_lib/dep'], @loader.modules.keys
+    _mod = @loader.load('_lib/dep')
+    assert_equal ['/_lib/self', '/_lib/dep'], @loader.modules.keys
 
-    self_fn = @loader.modules['_lib/self'][:fn]
+    self_fn = @loader.modules['/_lib/self'][:fn]
     @loader.invalidate_fn(self_fn)
 
     assert_equal [], @loader.modules.keys
@@ -63,9 +74,9 @@ class ModuleTest < Minitest::Test
 
   def test_index_module_env
     mod = @loader.load('mod/bar/index+')
-    assert_equal 'mod/bar', mod.env[:ref]
+    assert_equal '/mod/bar', mod.env[:ref]
 
     mod = @loader.load('mod/foo/index')
-    assert_equal 'mod/foo', mod.env[:ref]
+    assert_equal '/mod/foo', mod.env[:ref]
   end
 end
