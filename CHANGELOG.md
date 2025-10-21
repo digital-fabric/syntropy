@@ -1,3 +1,7 @@
+# 0.27.1 2025-10-21
+
+- Fix error instantiation and error testing
+
 # 0.27 2025-10-21
 
 - Use accept header (instead of user-agent) for rendering error page
