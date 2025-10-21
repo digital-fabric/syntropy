@@ -185,12 +185,28 @@ module Syntropy
       raise Syntropy::Error.new(Qeweney::Status::BAD_REQUEST, 'Invalid form data')
     end
 
-    def html_repsonse(html)
-      respond(html, 'Content-Type' => 'text/html; charset=utf-8')
+    def html_response(html, **headers)
+      respond(
+        html,
+        'Content-Type' => 'text/html; charset=utf-8',
+        **headers
+      )
     end
 
-    def json_response(obj)
-      respond(JSON.dump(obj), 'Content-Type' => 'application/json; charset=utf-8')
+    def json_response(obj, **headers)
+      respond(
+        JSON.dump(obj),
+        'Content-Type' => 'application/json; charset=utf-8',
+        **headers
+      )
+    end
+
+    def json_pretty_response(obj, **headers)
+      respond(
+        JSON.pretty_generate(obj),
+        'Content-Type' => 'application/json; charset=utf-8',
+        **headers
+      )
     end
 
     def browser?
