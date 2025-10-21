@@ -1,3 +1,11 @@
+# 0.26 2025-10-21
+
+- Add /.syntropy/req route for testing request headers
+- Add default builtin error page / response
+- Add `Request#browser?` method for detecting browser
+- Change behaviour of import to support relative paths
+- Update Papercraft
+
 # 0.25 2025-10-19
 
 - Upgrade Papercraft to version 3.0
