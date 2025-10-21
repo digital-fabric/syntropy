@@ -1,3 +1,12 @@
+# 0.27 2025-10-21
+
+- Use accept header (instead of user-agent) for rendering error page
+- Add `Request#accept?` method
+- Fix import path normalization, module method visibility
+- Fix instantiation of Syntropy::Error
+- Improve default error handler response
+- Fix and enhance `Request#html_response`, `Request#json_response` methods
+
 # 0.26 2025-10-21
 
 - Add /.syntropy/req route for testing request headers
