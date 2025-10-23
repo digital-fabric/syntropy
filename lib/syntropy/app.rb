@@ -76,7 +76,7 @@ module Syntropy
         method: req.method,
         path: req.path,
         error: e
-      )
+      ) if Error.log_error?(e)
       error_handler = get_error_handler(route)
       error_handler.(req, e)
     end

@@ -8,7 +8,7 @@ module Syntropy
     Status = Qeweney::Status
 
     # By default, the HTTP status for errors is 500 Internal Server Error
-    DEFAULT_STATUS = Qeweney::Status::INTERNAL_SERVER_ERROR
+    DEFAULT_STATUS = Status::INTERNAL_SERVER_ERROR
 
     # Returns the HTTP status for the given exception
     #
@@ -16,6 +16,10 @@ module Syntropy
     # @return [Integer, String] HTTP status
     def self.http_status(err)
       err.respond_to?(:http_status) ? err.http_status : DEFAULT_STATUS
+    end
+
+    def self.log_error?(err)
+      http_status(err) != Status::NOT_FOUND
     end
 
     # Creates an error with status 404 Not Found
@@ -49,14 +53,14 @@ module Syntropy
     #
     # @return [Integer, String] HTTP status
     def http_status
-      @http_status || Qeweney::Status::INTERNAL_SERVER_ERROR
+      @http_status || Status::INTERNAL_SERVER_ERROR
     end
   end
 
   # ValidationError is raised when a validation has failed.
   class ValidationError < Error
     def initialize(msg)
-      super(msg, Qeweney::Status::BAD_REQUEST)
+      super(msg, Status::BAD_REQUEST)
     end
   end
 end

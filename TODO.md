@@ -1,8 +1,5 @@
 ## Immediate
 
-- [ ] On internal error in module, default response should be to display page
-  showing error, with auto refresh on file change
-- [ ] Do not log error backtrace for 404 errors (or other )
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
