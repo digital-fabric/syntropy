@@ -1,3 +1,9 @@
+# 0.27.3 2025-10-23
+
+- Do not log Not Found errors
+- Fix handling of syntax error in module
+- Update dependencies
+
 # 0.27.2 2025-10-21
 
 - Add `Module#collection_module!` method
