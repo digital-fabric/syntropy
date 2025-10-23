@@ -70,7 +70,7 @@ module Syntropy
       req.route = route
       proc = route[:proc] ||= compute_route_proc(route)
       proc.(req)
-    rescue StandardError => e
+    rescue ScriptError, StandardError => e
       @logger&.error(
         message: "Error while serving request: #{e.message}",
         method: req.method,

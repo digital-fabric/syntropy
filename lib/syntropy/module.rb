@@ -170,12 +170,6 @@ module Syntropy
       m.instance_eval(code, fn)
       env[:logger]&.info(message: "Loaded module at #{fn}")
       m
-    rescue StandardError => e
-      env[:logger]&.error(
-          message: "Error while loading module #{fn}",
-          error: e
-      )
-      raise
     end
 
     # Initializes a module with the given environment hash.

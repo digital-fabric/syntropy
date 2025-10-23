@@ -117,6 +117,9 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/rss')
     assert_equal '<link>foo</link>', req.response_body
+
+    req = make_request(':method' => 'GET', ':path' => '/test/bad_mod')
+    assert_equal Status::INTERNAL_SERVER_ERROR, req.response_status
   end
 
   def test_app_file_watching
