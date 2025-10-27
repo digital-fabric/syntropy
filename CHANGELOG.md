@@ -1,3 +1,7 @@
+# 0.27.4 2025-10-27
+
+- Update dependencies
+
 # 0.27.3 2025-10-23
 
 - Do not log Not Found errors

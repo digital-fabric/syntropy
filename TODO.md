@@ -1,5 +1,17 @@
 ## Immediate
 
+- [ ] Deal correctly with NoMethodError raised while rendering template, example:
+
+  ```ruby
+  div {
+    markdown <<~MD
+      ```ruby
+      @buffer << #{foo}
+      ```
+    MD
+  }
+  ```
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
