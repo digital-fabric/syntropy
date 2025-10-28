@@ -1,3 +1,9 @@
+# 0.27.5 2025-10-28
+
+- Update Papercraft
+- Fix backtrace display in error page
+- Make auto_refresh, tag debug extensions noops when not in dev mode
+
 # 0.27.4 2025-10-27
 
 - Update dependencies
