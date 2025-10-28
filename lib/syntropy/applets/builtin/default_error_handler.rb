@@ -30,8 +30,12 @@ ErrorPage = ->(error:, status:, backtrace:) {
 
 def transform_backtrace(backtrace)
   backtrace.map do
-    location = it.match(/^(.+:\d+):/)[1]
-    { entry: it, url: "vscode://file/#{location}" }
+    if (m = it.match(/^(.+:\d+):/))
+      location = m[1]
+      { entry: it, url: "vscode://file/#{location}" }
+    else
+      { entry: it, url: nil }
+    end
   end
 end
 
