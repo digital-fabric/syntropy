@@ -70,6 +70,7 @@ rescue StandardError => e
   exit
 end
 
+$syntropy_dev_mode = env[:dev_mode]
 env[:root_dir] = (ARGV.shift || '.').gsub(/\/$/, '')
 
 if !File.directory?(env[:root_dir])

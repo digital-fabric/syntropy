@@ -4,9 +4,13 @@ require 'papercraft'
 
 Papercraft.extension(
   'auto_refresh_watch!': ->(loc = '/.syntropy') {
-    script(src: File.join(loc, 'auto_refresh/watch.js'), type: 'module')
+    if $syntropy_dev_mode
+      script(src: File.join(loc, 'auto_refresh/watch.js'), type: 'module')
+    end
   },
   'debug_template!': ->(loc = '/.syntropy') {
-    script(src: File.join(loc, 'debug/debug.js'), type: 'module')
+    if $syntropy_dev_mode
+      script(src: File.join(loc, 'debug/debug.js'), type: 'module')
+    end
   }
 )
