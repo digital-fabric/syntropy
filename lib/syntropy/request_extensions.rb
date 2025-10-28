@@ -219,7 +219,7 @@ module Syntropy
     # @param mime_type [String] MIME type
     # @return [bool]
     def accept?(mime_type)
-      accept = headers['accept']  
+      accept = headers['accept']
       return nil if !accept
 
       @accept_parts ||= parse_accept_parts(accept)
