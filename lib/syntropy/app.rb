@@ -64,8 +64,14 @@ module Syntropy
     # @param req [Qeweney::Request] HTTP request
     # @return [void]
     def call(req)
-      route = @router_proc.(req.path, req.route_params)
-      raise Syntropy::Error.not_found('Not found') if !route
+      path = req.path
+      route = @router_proc.(path, req.route_params)
+      if !route
+        if (m = path.match(/^(.+)\/$/))
+          return req.redirect(m[1], Qeweney::Status::MOVED_PERMANENTLY)
+        end
+        raise Syntropy::Error.not_found('Not found')
+      end
 
       req.route = route
       proc = route[:proc] ||= compute_route_proc(route)
@@ -74,7 +80,7 @@ module Syntropy
       @logger&.error(
         message: "Error while serving request: #{e.message}",
         method: req.method,
-        path: req.path,
+        path: path,
         error: e
       ) if Error.log_error?(e)
       error_handler = get_error_handler(route)

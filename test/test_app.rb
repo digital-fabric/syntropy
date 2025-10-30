@@ -122,6 +122,12 @@ class AppTest < Minitest::Test
     assert_equal Status::INTERNAL_SERVER_ERROR, req.response_status
   end
 
+  def test_automatic_redirect_on_trailing_slash    
+    req = make_request(':method' => 'GET', ':path' => '/test/rss/')
+    assert_equal Status::MOVED_PERMANENTLY, req.response_status
+    assert_equal '/test/rss', req.response_headers['Location']
+  end
+
   def test_app_file_watching
     @machine.sleep 0.3
 
