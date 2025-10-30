@@ -1,3 +1,7 @@
+# 0.27.6 2025-10-30
+
+- Redirect automatically on trailing slash
+
 # 0.27.5 2025-10-28
 
 - Update Papercraft
