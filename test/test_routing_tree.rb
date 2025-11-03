@@ -569,6 +569,4 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
     route = router.('/docs/bars/about', {})
     assert_nil route
   end
-
-
 end

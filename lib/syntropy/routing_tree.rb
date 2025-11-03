@@ -548,22 +548,30 @@ module Syntropy
         end
       end
 
-      # Get next segment
-      emit_code_line(buffer, "#{ws}case (p = parts[#{segment_idx}])")
+      return if !entry[:target] && !entry[:children]
 
-      # In case of no next segment
-      emit_code_line(buffer, "#{ws}when nil")
-      if entry[:target]
+      if entry[:target] && entry[:handle_subtree] && !entry[:children]
         map = entry[:static] ? '@static_map' : '@dynamic_map'
-        emit_code_line(buffer, "#{ws}  return #{map}[#{entry[:path].inspect}]")
-      else
-        emit_code_line(buffer, "#{ws}  return nil")
+        emit_code_line(buffer, "#{ws}return #{map}[#{entry[:path].inspect}]")
+        return
       end
 
-      if entry[:children]
-        emit_routing_tree_entry_children_clauses(buffer:, entry:, indent:, segment_idx:)
+      case_buffer = +''
+      if entry[:target]
+        emit_code_line(case_buffer, "#{ws}when nil")
+        map = entry[:static] ? '@static_map' : '@dynamic_map'
+        emit_code_line(case_buffer, "#{ws}  return #{map}[#{entry[:path].inspect}]")
       end
-      emit_code_line(buffer, "#{ws}end")
+      if entry[:children]
+        emit_routing_tree_entry_children_clauses(buffer: case_buffer, entry:, indent:, segment_idx:)
+      end
+
+      # Get next segment
+      if !case_buffer.empty?
+        emit_code_line(buffer, "#{ws}case (p = parts[#{segment_idx}])")
+        buffer << case_buffer
+        emit_code_line(buffer, "#{ws}end")
+      end
     end
 
     # Returns the first target found in the given entry's subtree.
@@ -607,6 +615,7 @@ module Syntropy
       ws = ' ' * (indent * 2)
 
       param_entry = entry[:children]['[]']
+      when_count = 0
       entry[:children].each do |k, child_entry|
         # skip if wildcard entry (treated in else clause below)
         next if k == '[]'
@@ -626,19 +635,33 @@ module Syntropy
           child_path = child_entry[:path]
           route_value = "@dynamic_map[#{child_path.inspect}]"
           emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
+          when_count += 1
 
         elsif has_children
           # otherwise look at the next segment
           next if is_void_route?(child_entry) && !param_entry
 
-          emit_code_line(buffer, "#{ws}when #{k.inspect}")
-          visit_routing_tree_entry(buffer:, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)
+          when_buffer = +''
+          visit_routing_tree_entry(buffer: when_buffer, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)
+          if when_buffer.empty? && param_entry
+            emit_code_line(when_buffer, "#{ws}  return nil")
+          end
+          if !when_buffer.empty?
+            emit_code_line(buffer, "#{ws}when #{k.inspect}")
+            buffer << when_buffer
+            when_count += 1
+          end
         end
       end
 
       # parametric route
       if param_entry
-        emit_code_line(buffer, "#{ws}else")
+        if when_count == 0
+          emit_code_line(buffer, "#{ws}when p")
+        else
+          emit_code_line(buffer, "#{ws}else")
+        end
+
         emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = p")
         visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
       # wildcard route
