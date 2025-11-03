@@ -1,3 +1,8 @@
+# 0.27.7 2025-11-03
+
+- Update UringMachine, TP2
+- Optimize router generated code
+
 # 0.27.6 2025-10-30
 
 - Redirect automatically on trailing slash
