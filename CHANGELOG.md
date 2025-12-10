@@ -1,3 +1,7 @@
+# 0.27.8 2025-12-10
+
+- Update UringMachine, TP2
+
 # 0.27.7 2025-11-03
 
 - Update UringMachine, TP2
