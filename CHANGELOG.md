@@ -1,3 +1,7 @@
+# 0.27.10 2025-12-11
+
+- Fix return after `handle_not_found`
+
 # 0.27.9 2025-12-11
 
 - Fix hook invocation on 404
