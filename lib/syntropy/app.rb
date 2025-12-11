@@ -68,10 +68,10 @@ module Syntropy
       route = @router_proc.(path, req.route_params)
       if !route
         if (m = path.match(/^(.+)\/$/))
-          # redirect on trailing slash
           return req.redirect(m[1], Qeweney::Status::MOVED_PERMANENTLY)
+        else
+          return handle_not_found(req)
         end
-        handle_not_found(req)
       end
 
       req.route = route
