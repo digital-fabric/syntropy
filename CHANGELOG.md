@@ -1,3 +1,7 @@
+# 0.27.9 2025-12-11
+
+- Fix hook invocation on 404
+
 # 0.27.8 2025-12-10
 
 - Update UringMachine, TP2
