@@ -7,10 +7,10 @@ module Syntropy
   class Error < StandardError
     Status = Qeweney::Status
 
-    # By default, the HTTP status for errors is 500 Internal Server Error
+    # By default, the HTTP status for errors is 500 Internal Server Error.
     DEFAULT_STATUS = Status::INTERNAL_SERVER_ERROR
 
-    # Returns the HTTP status for the given exception
+    # Returns the HTTP status for the given exception.
     #
     # @param err [Exception] exception
     # @return [Integer, String] HTTP status
@@ -18,22 +18,30 @@ module Syntropy
       err.respond_to?(:http_status) ? err.http_status : DEFAULT_STATUS
     end
 
+    # Returns true if the error should be logged. Currently all errors are
+    # logged except for NOT FOUND errors.
+    #
+    # @param err [Exception] error
+    # @return [bool]
     def self.log_error?(err)
       http_status(err) != Status::NOT_FOUND
     end
 
-    # Creates an error with status 404 Not Found
+    # Creates an error with status 404 Not Found.
     #
+    # @param msg [String] error message
     # @return [Syntropy::Error]
     def self.not_found(msg = 'Not found') = new(msg, Status::NOT_FOUND)
 
-    # Creates an error with status 405 Method Not Allowed
+    # Creates an error with status 405 Method Not Allowed.
     #
+    # @param msg [String] error message
     # @return [Syntropy::Error]
     def self.method_not_allowed(msg = 'Method not allowed') = new(msg, Status::METHOD_NOT_ALLOWED)
 
-    # Creates an error with status 418 I'm a teapot
+    # Creates an error with status 418 I'm a teapot.
     #
+    # @param msg [String] error message
     # @return [Syntropy::Error]
     def self.teapot(msg = 'I\'m a teapot') = new(msg, Status::TEAPOT)
 

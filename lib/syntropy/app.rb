@@ -68,9 +68,10 @@ module Syntropy
       route = @router_proc.(path, req.route_params)
       if !route
         if (m = path.match(/^(.+)\/$/))
+          # redirect on trailing slash
           return req.redirect(m[1], Qeweney::Status::MOVED_PERMANENTLY)
         end
-        raise Syntropy::Error.not_found('Not found')
+        handle_not_found(req)
       end
 
       req.route = route
@@ -104,6 +105,30 @@ module Syntropy
 
     private
 
+    # Handles a not found error, taking into account hooks up the tree from the
+    # request path.
+    # 
+    # @param req [Qeweney::Reqest] request
+    # @return [void]
+    def handle_not_found(req)
+      closest_uptree_route = find_first_uptree_route(File.dirname(req.path))
+      if closest_uptree_route
+        proc = route_not_found_proc(closest_uptree_route)
+        proc.(req)
+      else
+        raise Syntropy::Error.not_found('Not found')
+      end
+    end
+
+    # Returns the find 
+    def find_first_uptree_route(path)
+      route = @router_proc.(path, {})
+      if !route && path != '/'
+        route = @router_proc.(File.dirname(path), {})
+      end
+      route
+    end
+
     # Instantiates a routing tree with the app settings, and generates a router
     # proc.
     #
@@ -123,6 +148,12 @@ module Syntropy
       path = @env[:builtin_applet_path]
       @builtin_applet ||= Syntropy.builtin_applet(@env, mount_path: path)
       @routing_tree.mount_applet(path, @builtin_applet)
+    end
+
+    def route_not_found_proc(route)
+      route[:not_found_proc] ||= compose_up_tree_hooks(route, ->(req) {
+        raise Syntropy::Error.not_found('Not found')
+      })
     end
 
     # Computes the route proc for the given route, wrapping it in hooks found up

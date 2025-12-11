@@ -155,6 +155,16 @@ class AppTest < Minitest::Test
     assert_equal '<h1>Raised error</h1>', req.response_body
     assert_equal '43', req.ctx[:foo]
   end
+
+  def test_middleware_invocation_on_404
+    req = make_request(':method' => 'HEAD', ':path' => '/azerty?foo=bar')
+    assert_equal Status::NOT_FOUND, req.response_status
+    assert_nil req.ctx[:foo]
+
+    req = make_request(':method' => 'HEAD', ':path' => '/test/azerty?foo=bar')
+    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal 'bar', req.ctx[:foo]
+  end
 end
 
 class CustomAppTest < Minitest::Test
