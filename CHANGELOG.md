@@ -1,3 +1,7 @@
+# 0.27.11 2025-12-12
+
+- Fix deps
+
 # 0.27.10 2025-12-11
 
 - Fix return after `handle_not_found`
