@@ -1,3 +1,7 @@
+# 0.27.12 2026-01-26
+
+- Update dependencies
+
 # 0.27.11 2025-12-12
 
 - Fix deps

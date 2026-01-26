@@ -21,17 +21,17 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 3.4'
   s.executables = ['syntropy']
 
-  s.add_dependency 'extralite',     '~>2.13'
+  s.add_dependency 'extralite',     '~>2.14'
   s.add_dependency 'papercraft',    '~>3.2.0'
   s.add_dependency 'qeweney',       '~>0.24'
-  s.add_dependency 'tp2',           '~>0.19.3'
-  s.add_dependency 'uringmachine',  '~>0.22.0'
+  s.add_dependency 'tp2',           '~>0.19.4'
+  s.add_dependency 'uringmachine',  '~>0.23.1'
 
   s.add_dependency 'listen',        '~>3.9.0'
   
   s.add_dependency 'json'
   s.add_dependency 'logger'
 
-  s.add_development_dependency 'minitest',  '~>5.26.0'
-  s.add_development_dependency 'rake',      '~>13.3.0'
+  s.add_development_dependency 'minitest',  '~>6.0.1'
+  s.add_development_dependency 'rake',      '~>13.3.1'
 end
