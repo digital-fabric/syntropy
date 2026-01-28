@@ -290,3 +290,37 @@ class AppAPITest < Minitest::Test
     assert_equal File.join(APP_ROOT, 'about/foo.md'), route[:target][:fn]
   end
 end
+
+class AppDependenciesTest < Minitest::Test
+  Status = Qeweney::Status
+
+  APP_ROOT = File.join(__dir__, 'app')
+
+  def make_request(*, **)
+    req = mock_req(*, **)
+    @app.call(req)
+    req
+  end
+
+  def test_app_dependencies
+    foo = { foo: 'foo' }
+    bar = { bar: 'bar' }
+
+    @machine = UM.new
+
+    @tmp_path = '/test/tmp'
+    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+
+    @app = Syntropy::App.new(
+      root_dir: APP_ROOT,
+      mount_path: '/test',
+      machine: @machine,
+      foo: foo,
+      bar: bar
+    )
+
+    req = make_request(':method' => 'GET', ':path' => '/test/bar')
+    assert_equal 'foobar', req.response_body
+    assert_equal Status::OK, req.response_status
+  end
+end
