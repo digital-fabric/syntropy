@@ -1,3 +1,7 @@
+# 0.28.0 2026-01-28
+
+- Update TP2
+
 # 0.27.12 2026-01-26
 
 - Update dependencies

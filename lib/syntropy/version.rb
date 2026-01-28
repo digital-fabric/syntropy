@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Syntropy
-  VERSION = '0.27.12'
+  VERSION = '0.28.0'
 end
