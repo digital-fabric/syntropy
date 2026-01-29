@@ -107,7 +107,7 @@ module Syntropy
 
     # Handles a not found error, taking into account hooks up the tree from the
     # request path.
-    # 
+    #
     # @param req [Qeweney::Reqest] request
     # @return [void]
     def handle_not_found(req)
@@ -120,7 +120,7 @@ module Syntropy
       end
     end
 
-    # Returns the find 
+    # Returns the find
     def find_first_uptree_route(path)
       route = @router_proc.(path, {})
       if !route && path != '/'

@@ -37,9 +37,9 @@ module Syntropy
     # @param accepted [Array<String>] list of accepted HTTP methods
     # @return [String] request's HTTP method
     def validate_http_method(*accepted)
-      raise Syntropy::Error.method_not_allowed if !accepted.include?(method)
+      return method if accepted.include?(method)
 
-      method
+      raise Syntropy::Error.method_not_allowed
     end
 
     # Responds according to the given map. The given map defines the responses

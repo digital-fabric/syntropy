@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'uringmachine',  '~>0.23.1'
 
   s.add_dependency 'listen',        '~>3.9.0'
-  
+
   s.add_dependency 'json'
   s.add_dependency 'logger'
 
