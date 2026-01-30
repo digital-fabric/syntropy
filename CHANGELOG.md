@@ -1,3 +1,7 @@
+# 0.28.2 2026-01-30
+
+- Update TP2, UringMachine
+
 # 0.28.1 2026-01-28
 
 - Update TP2 (again)
