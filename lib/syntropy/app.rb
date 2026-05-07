@@ -7,8 +7,6 @@ require 'qeweney'
 require 'papercraft'
 
 require 'syntropy/errors'
-require 'syntropy/file_watch'
-
 require 'syntropy/module'
 require 'syntropy/routing_tree'
 
@@ -476,7 +474,7 @@ module Syntropy
       @machine.spin do
         # we do startup stuff asynchronously, in order to first let Syntropy do
         # its setup tasks.
-        @machine.sleep 0.2
+        @machine.sleep 0.1
         route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size
         @logger&.info(
           message: "Serving from #{@root_dir} (#{route_count} routes found)"
@@ -493,11 +491,21 @@ module Syntropy
     def file_watcher_loop
       wf = @env[:watch_files]
       period = wf.is_a?(Numeric) ? wf : 0.1
-      Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
+
+      @machine.file_watch(@root_dir, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) { |e|
+        fn = e[:fn]
         @logger&.info(message: 'File change detected', fn: fn)
         @module_loader.invalidate_fn(fn)
         debounce_file_change
-      end
+      }
+      
+
+
+      # Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
+      #   @logger&.info(message: 'File change detected', fn: fn)
+      #   @module_loader.invalidate_fn(fn)
+      #   debounce_file_change
+      # end
     rescue Exception => e
       p e
       p e.backtrace
