@@ -29,5 +29,5 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true # 'bundle install' and cache
     - name: Run tests
-      # run: bundle exec ruby test/test_um.rb --name test_read_each_raising_2
-      run: bundle exec rake test
+      run: bundle exec ruby test/run.rb --verbose
+      # run: bundle exec rake test
