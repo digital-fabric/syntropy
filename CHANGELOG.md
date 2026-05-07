@@ -1,3 +1,9 @@
+# 0.29.0 2026-05-07
+
+- Use UM#file_watch for dev mode
+- Integrate TP2 code
+- Update UringMachine
+
 # 0.28.2 2026-01-30
 
 - Update TP2, UringMachine
