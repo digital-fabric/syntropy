@@ -474,8 +474,8 @@ module Syntropy
     # @return [void]
     def start
       @machine.spin do
-        # we do startup stuff asynchronously, in order to first let TP2 do its
-        # setup tasks
+        # we do startup stuff asynchronously, in order to first let Syntropy do
+        # its setup tasks.
         @machine.sleep 0.2
         route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size
         @logger&.info(

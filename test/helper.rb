@@ -11,6 +11,12 @@ require 'fileutils'
 STDOUT.sync = true
 STDERR.sync = true
 
+class ::String
+  def crlf_lines
+    chomp.gsub("\n", "\r\n").chomp
+  end
+end
+
 module ::Kernel
   def mock_req(headers, body = nil)
     Qeweney::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
@@ -113,5 +119,3 @@ class Qeweney::Request
     response_headers['Content-Type']
   end
 end
-
-# puts "Polyphony backend: #{Thread.current.backend.kind}"

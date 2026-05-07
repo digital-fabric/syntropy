@@ -71,4 +71,16 @@ module Syntropy
       super(msg, Status::BAD_REQUEST)
     end
   end
+
+  class ProtocolError < Error
+    def http_status
+      Qeweney::Status::BAD_REQUEST
+    end
+  end
+
+  class UnsupportedHTTPVersionError < ProtocolError
+    def http_status
+      Qeweney::Status::HTTP_VERSION_NOT_SUPPORTED
+    end
+  end
 end

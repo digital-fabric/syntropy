@@ -13,9 +13,9 @@ Gem::Specification.new do |s|
   s.metadata      = {
     'homepage_uri' => 'https://github.com/digital-fabric/syntropy',
     'documentation_uri' => 'https://www.rubydoc.info/gems/syntropy',
-    'changelog_uri' => 'https://github.com/digital-fabric/syntropy/blob/master/CHANGELOG.md'
+    'changelog_uri' => 'https://github.com/digital-fabric/syntropy/blob/main/CHANGELOG.md'
   }
-  s.rdoc_options  = ['--title', 'Extralite', '--main', 'README.md']
+  s.rdoc_options  = ['--title', 'Syntropy', '--main', 'README.md']
   s.extra_rdoc_files = ['README.md']
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 3.4'
@@ -24,8 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'extralite',     '~>2.14'
   s.add_dependency 'papercraft',    '~>3.2.0'
   s.add_dependency 'qeweney',       '~>0.24'
-  s.add_dependency 'tp2',           '~>0.20.2'
-  s.add_dependency 'uringmachine',  '~>0.24.0'
+  s.add_dependency 'uringmachine',  '~>1.0.0'
 
   s.add_dependency 'listen',        '~>3.9.0'
 

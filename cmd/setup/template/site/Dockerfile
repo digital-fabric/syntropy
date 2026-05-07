@@ -29,4 +29,4 @@ COPY --from=gems --chown=app:app /usr/local/bundle /usr/local/bundle
 
 EXPOSE 1234
 
-CMD ["bundle", "exec", "tp2", "."]
+CMD ["bundle", "exec", "syntropy", "."]

@@ -3,6 +3,32 @@
 require 'qeweney'
 require 'json'
 
+class Qeweney::Request
+  attr_accessor :start_stamp
+
+  def respond_with_static_file(path, etag, last_modified, opts)
+    cache_headers = (etag || last_modified) ? {
+      'etag' => etag,
+      'last-modified' => last_modified
+    } : {}
+
+    adapter.respond_with_static_file(self, path, opts, cache_headers)
+  end
+
+  def set_response_headers(headers)
+    adapter.set_response_headers(headers)
+  end
+
+  def set_cookie(*)
+    adapter.set_cookie(*)
+  end
+
+  def upgrade(protocol, custom_headers = nil, &block)
+    super(protocol, custom_headers)
+    adapter.with_stream(&block)
+  end
+end
+
 module Syntropy
   # Extensions for the Qeweney::Request class
   module RequestExtensions
