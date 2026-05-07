@@ -26,8 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'qeweney',       '~>0.24'
   s.add_dependency 'uringmachine',  '~>1.0.0'
 
-  s.add_dependency 'listen',        '~>3.9.0'
-
   s.add_dependency 'json'
   s.add_dependency 'logger'
 
