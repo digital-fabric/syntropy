@@ -4,7 +4,7 @@ require_relative 'helper'
 require 'digest/sha1'
 
 class CachingTest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app')
 

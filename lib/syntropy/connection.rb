@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'qeweney'
 require 'stringio'
 require 'syntropy/errors'
 require 'syntropy/request_extensions'
@@ -53,7 +52,7 @@ module Syntropy
       headers = parse_headers
       return false if !headers
 
-      request = Qeweney::Request.new(headers, self)
+      request = Syntropy::Request.new(headers, self)
 
       request.start_stamp = monotonic_clock
       @app.call(request)
@@ -67,7 +66,7 @@ module Syntropy
     # and optionally sending an error response with the relevant HTTP status
     # code. For I/O errors, no response is sent.
     #
-    # @param request [Qeweney::Request] HTTP request
+    # @param request [Syntropy::Request] HTTP request
     # @param err [Exception] error
     # @return [void]
     def handle_error(request, err)
@@ -82,7 +81,7 @@ module Syntropy
         log_error(err, 'Internal error')
         return if !request || @done
 
-        respond(request, 'Internal server error', ':status' => Qeweney::Status::INTERNAL_SERVER_ERROR)
+        respond(request, 'Internal server error', ':status' => Syntropy::Status::INTERNAL_SERVER_ERROR)
       end
     end
 
@@ -176,7 +175,7 @@ module Syntropy
 
     # Sends response including headers and body. Waits for the request to complete
     # if not yet completed. The body is sent using chunked transfer encoding.
-    # @param request [Qeweney::Request] HTTP request
+    # @param request [Syntropy::Request] HTTP request
     # @param body [String] response body
     # @param headers
     def respond(request, body, headers)
@@ -197,7 +196,7 @@ module Syntropy
 
     # Sends response headers. If empty_response is truthy, the response status
     # code will default to 204, otherwise to 200.
-    # @param request [Qeweney::Request] HTTP request
+    # @param request [Syntropy::Request] HTTP request
     # @param headers [Hash] response headers
     # @param empty_response [boolean] whether a response body will be sent
     # @return [void]
@@ -211,7 +210,7 @@ module Syntropy
     # Sends a response body chunk. If no headers were sent, default headers are
     # sent using #send_headers. if the done option is true(thy), an empty chunk
     # will be sent to signal response completion to the client.
-    # @param request [Qeweney::Request] HTTP request
+    # @param request [Syntropy::Request] HTTP request
     # @param chunk [String] response body chunk
     # @param done [boolean] whether the response is completed
     # @return [void]
@@ -359,7 +358,7 @@ module Syntropy
     # @param body [boolean] whether a response body will be sent
     # @return [String] formatted response headers
     def format_headers(headers, body)
-      status = headers[':status'] || (body ? Qeweney::Status::OK : Qeweney::Status::NO_CONTENT)
+      status = headers[':status'] || (body ? Syntropy::Status::OK : Syntropy::Status::NO_CONTENT)
       lines = format_status_line(body, status)
       lines << @env[:server_headers] if @env[:server_headers]
       headers.each do |k, v|

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'qeweney'
+require 'syntropy/request/status'
 
 module Syntropy
   # The base Syntropy error class
   class Error < StandardError
-    Status = Qeweney::Status
+    Status = Syntropy::Status
 
     # By default, the HTTP status for errors is 500 Internal Server Error.
     DEFAULT_STATUS = Status::INTERNAL_SERVER_ERROR
@@ -74,13 +74,16 @@ module Syntropy
 
   class ProtocolError < Error
     def http_status
-      Qeweney::Status::BAD_REQUEST
+      Syntropy::Status::BAD_REQUEST
     end
   end
 
   class UnsupportedHTTPVersionError < ProtocolError
     def http_status
-      Qeweney::Status::HTTP_VERSION_NOT_SUPPORTED
+      Syntropy::Status::HTTP_VERSION_NOT_SUPPORTED
     end
+  end
+
+  class BadRequestError < Error
   end
 end

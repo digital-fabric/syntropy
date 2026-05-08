@@ -13,7 +13,7 @@ require 'roda'
 require 'benchmark/ips'
 require 'securerandom'
 require 'rack/mock_request'
-require 'qeweney/mock_adapter'
+require 'syntropy/request/mock_adapter'
 
 class BM
   def self.name(name)
@@ -100,7 +100,7 @@ p roda_app.(req)
 
 ################################################################################
 
-class Qeweney::Request
+class Syntropy::Request
   def response_headers
     adapter.headers
   end
@@ -157,7 +157,7 @@ proc = ->(req) { syntropy_app.(req) }
 
 module ::Kernel
   def mock_req(headers, body = nil)
-    Qeweney::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
+    Syntropy::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
   end
 end
 

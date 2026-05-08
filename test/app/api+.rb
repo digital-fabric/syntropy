@@ -10,7 +10,7 @@ class API < Syntropy::JSONAPI
 
   def incr!(req)
     if req.path != '/test/api'
-        raise Syntropy::Error.new('Teapot', Qeweney::Status::TEAPOT)
+        raise Syntropy::Error.new('Teapot', Syntropy::Status::TEAPOT)
     end
 
     @count += 1

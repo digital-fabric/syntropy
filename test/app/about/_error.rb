@@ -1,4 +1,4 @@
-DEFAULT_STATUS = Qeweney::Status::INTERNAL_SERVER_ERROR
+DEFAULT_STATUS = Syntropy::Status::INTERNAL_SERVER_ERROR
 
 export ->(req, err) {
   status = err.respond_to?(:http_status) ? err.http_status : DEFAULT_STATUS

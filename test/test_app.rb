@@ -3,7 +3,7 @@
 require_relative 'helper'
 
 class AppTest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -168,7 +168,7 @@ class AppTest < Minitest::Test
 end
 
 class CustomAppTest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app_custom')
 
@@ -195,7 +195,7 @@ class CustomAppTest < Minitest::Test
 end
 
 class MultiSiteAppTest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app_multi_site')
 
@@ -228,7 +228,7 @@ class MultiSiteAppTest < Minitest::Test
 end
 
 class AppAPITest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -292,7 +292,7 @@ class AppAPITest < Minitest::Test
 end
 
 class AppDependenciesTest < Minitest::Test
-  Status = Qeweney::Status
+  Status = Syntropy::Status
 
   APP_ROOT = File.join(__dir__, 'app')
 

@@ -3,7 +3,6 @@
 require 'json'
 require 'yaml'
 
-require 'qeweney'
 require 'papercraft'
 
 require 'syntropy/errors'
@@ -59,14 +58,14 @@ module Syntropy
     # error message, and with the appropriate HTTP status code, according to the
     # type of error.
     #
-    # @param req [Qeweney::Request] HTTP request
+    # @param req [Syntropy::Request] HTTP request
     # @return [void]
     def call(req)
       path = req.path
       route = @router_proc.(path, req.route_params)
       if !route
         if (m = path.match(/^(.+)\/$/))
-          return req.redirect(m[1], Qeweney::Status::MOVED_PERMANENTLY)
+          return req.redirect(m[1], Syntropy::Status::MOVED_PERMANENTLY)
         else
           return handle_not_found(req)
         end
@@ -106,7 +105,7 @@ module Syntropy
     # Handles a not found error, taking into account hooks up the tree from the
     # request path.
     #
-    # @param req [Qeweney::Reqest] request
+    # @param req [Syntropy::Reqest] request
     # @return [void]
     def handle_not_found(req)
       closest_uptree_route = find_first_uptree_route(File.dirname(req.path))
@@ -188,7 +187,7 @@ module Syntropy
     # @return [Proc] route handler proc
     def static_route_proc(route)
       fn = route[:target][:fn]
-      headers = { 'Content-Type' => Qeweney::MimeTypes[File.extname(fn)] }
+      headers = { 'Content-Type' => Syntropy::MimeTypes[File.extname(fn)] }
 
       ->(req) {
         case req.method
@@ -204,7 +203,7 @@ module Syntropy
 
     # Serves a static file from the given target hash with cache validation.
     #
-    # @param req [Qeweney::Request] request
+    # @param req [Syntropy::Request] request
     # @param target [Hash] route target hash
     # @return [void]
     def serve_static_file(req, target)
@@ -253,7 +252,7 @@ module Syntropy
       target[:last_modified] = mtime
       target[:last_modified_date] = Time.at(mtime).httpdate
       target[:content] = buffer = String.new(capacity: size)
-      target[:mime_type] = Qeweney::MimeTypes[File.extname(target[:fn])]
+      target[:mime_type] = Syntropy::MimeTypes[File.extname(target[:fn])]
       len = 0
       while len < size
         len += @machine.read(fd, buffer, size, len)

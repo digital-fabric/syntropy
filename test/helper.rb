@@ -4,7 +4,7 @@ require 'bundler/setup'
 require_relative './coverage' if ENV['COVERAGE']
 require 'uringmachine'
 require 'syntropy'
-require 'qeweney/mock_adapter'
+require 'syntropy/request/mock_adapter'
 require 'minitest/autorun'
 require 'fileutils'
 
@@ -19,7 +19,7 @@ end
 
 module ::Kernel
   def mock_req(headers, body = nil)
-    Qeweney::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
+    Syntropy::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
   end
 
   def capture_exception
@@ -89,15 +89,15 @@ module Minitest::Assertions
     return unless exp_content_type
 
     if Symbol === exp_content_type
-      exp_content_type = Qeweney::MimeTypes[exp_content_type]
+      exp_content_type = Syntropy::MimeTypes[exp_content_type]
     end
     actual = req.response_content_type
     assert_equal exp_content_type, actual
   end
 end
 
-# Extensions to be used in conjunction with `Qeweney::TestAdapter`
-class Qeweney::Request
+# Extensions to be used in conjunction with `Syntropy::TestAdapter`
+class Syntropy::Request
   def response_headers
     adapter.response_headers
   end

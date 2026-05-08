@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'qeweney'
 require 'uringmachine'
 require 'papercraft'
 
+require 'syntropy/request'
 require 'syntropy/logger'
 require 'syntropy/connection'
 require 'syntropy/server'
@@ -21,8 +21,6 @@ require 'syntropy/utils'
 require 'syntropy/version'
 
 module Syntropy
-  Status = Qeweney::Status
-
   extend Utilities
 
   class << self

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'qeweney'
+require 'syntropy/request'
 require 'json'
 
-class Qeweney::Request
+class Syntropy::Request
   attr_accessor :start_stamp
 
   def respond_with_static_file(path, etag, last_modified, opts)
@@ -30,7 +30,7 @@ class Qeweney::Request
 end
 
 module Syntropy
-  # Extensions for the Qeweney::Request class
+  # Extensions for the Syntropy::Request class
   module RequestExtensions
     attr_reader :route_params
     attr_accessor :route
@@ -185,7 +185,7 @@ module Syntropy
         validated = true if client_mtime == last_modified
       end
       if validated
-        respond(nil, ':status' => Qeweney::Status::NOT_MODIFIED)
+        respond(nil, ':status' => Syntropy::Status::NOT_MODIFIED)
       else
         cache_headers = {
           'Cache-Control' => cache_control
@@ -203,12 +203,12 @@ module Syntropy
     def get_form_data
       body = read
       if !body || body.empty?
-        raise Syntropy::Error.new('Missing form data', Qeweney::Status::BAD_REQUEST)
+        raise Syntropy::Error.new('Missing form data', Syntropy::Status::BAD_REQUEST)
       end
 
-      Qeweney::Request.parse_form_data(body, headers)
-    rescue Qeweney::BadRequestError
-      raise Syntropy::Error.new('Invalid form data', Qeweney::Status::BAD_REQUEST)
+      Syntropy::Request.parse_form_data(body, headers)
+    rescue Syntropy::BadRequestError
+      raise Syntropy::Error.new('Invalid form data', Syntropy::Status::BAD_REQUEST)
     end
 
     def html_response(html, **headers)
@@ -305,4 +305,4 @@ module Syntropy
   end
 end
 
-Qeweney::Request.include(Syntropy::RequestExtensions)
+Syntropy::Request.include(Syntropy::RequestExtensions)
