@@ -614,7 +614,7 @@ class ConnectionTest < Minitest::Test
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar; HttpOnly\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
-    
+
   end
 
   def test_set_cookie_multi1
@@ -628,7 +628,7 @@ class ConnectionTest < Minitest::Test
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar; HttpOnly\r\nSet-Cookie: bar=baz\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
-    
+
   end
 
   def test_set_cookie_multi2
@@ -644,6 +644,6 @@ class ConnectionTest < Minitest::Test
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: a=1\r\nSet-Cookie: b=2\r\nSet-Cookie: c=3\r\nSet-Cookie: d=4\r\nSet-Cookie: e=5\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
-    
+
   end
 end

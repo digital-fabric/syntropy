@@ -497,7 +497,7 @@ module Syntropy
         @module_loader.invalidate_fn(fn)
         debounce_file_change
       }
-      
+
 
 
       # Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|

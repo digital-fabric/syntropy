@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'time'
-require 'zlib'
-require 'stringio'
 require 'digest/sha1'
 
 require_relative './status'
@@ -92,29 +90,6 @@ module Syntropy
 
     def serve_io(io, opts)
       respond(io.read, opts[:headers] || {})
-    end
-
-    def serve_io_deflate(io, opts)
-      deflate = Zlib::Deflate.new
-      headers = opts[:headers].merge(
-        'content-encoding' => 'deflate',
-        'vary' => 'Accept-Encoding'
-      )
-
-      respond(deflate.deflate(io.read, Zlib::FINISH), headers)
-    end
-
-    def serve_io_gzip(io, opts)
-      buf = StringIO.new
-      z = Zlib::GzipWriter.new(buf)
-      z << io.read
-      z.flush
-      z.close
-      headers = opts[:headers].merge(
-        'content-encoding' => 'gzip',
-        'vary' => 'Accept-Encoding'
-      )
-      respond(buf.string, headers)
     end
 
     def respond_with_static_file(path, etag, last_modified, opts)

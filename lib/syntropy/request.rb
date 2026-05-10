@@ -10,7 +10,7 @@ module Syntropy
     include RequestInfoMethods
     include RequestValidationMethods
     include ResponseMethods
-    
+
     extend RequestInfoClassMethods
 
     attr_reader :headers, :adapter, :start_stamp, :route_params
@@ -30,45 +30,17 @@ module Syntropy
       @ctx ||= {}
     end
 
-    def buffer_body_chunk(chunk)
-      @buffered_body_chunks ||= []
-      @buffered_body_chunks << chunk
-    end
-
-    def next_chunk(buffered_only = false)
-      if @buffered_body_chunks
-        chunk = @buffered_body_chunks.shift
-        @buffered_body_chunks = nil if @buffered_body_chunks.empty?
-        return chunk
-      elsif buffered_only
-        return nil
-      end
-
-      @adapter.get_body_chunk(self, buffered_only)
+    def next_chunk
+      @adapter.get_body_chunk(self)
     end
 
     def each_chunk
-      if @buffered_body_chunks
-        while (chunk = @buffered_body_chunks.shift)
-          yield chunk
-        end
-        @buffered_body_chunks = nil
-      end
-      while (chunk = @adapter.get_body_chunk(self, false))
+      while (chunk = @adapter.get_body_chunk(self))
         yield chunk
       end
     end
 
     def read
-      if @buffered_body_chunks
-        body = @buffered_body_chunks.join
-        if !complete?
-          rest = @adapter.get_body(self)
-          body << rest if rest
-        end
-        @buffered_body_chunks = nil
-        return body
-      end
       @adapter.get_body(self)
     end
     alias_method :body, :read

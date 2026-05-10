@@ -4,7 +4,7 @@ module Syntropy
   class MockAdapter
     attr_reader :response_body, :response_headers, :calls
 
-    def get_body_chunk(_req, _buffered_only)
+    def get_body_chunk(_req)
       @request_body_chunks.shift
     end
 

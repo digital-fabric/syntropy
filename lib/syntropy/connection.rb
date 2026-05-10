@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'stringio'
 require 'syntropy/errors'
 
 module Syntropy
@@ -117,7 +116,7 @@ module Syntropy
       nil
     end
 
-    def get_body_chunk(req, _buffered_only = false)
+    def get_body_chunk(req)
       headers = req.headers
       content_length = headers['content-length']
       if content_length
