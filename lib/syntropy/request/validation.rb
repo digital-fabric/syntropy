@@ -1,60 +1,10 @@
 # frozen_string_literal: true
 
-require 'syntropy/request'
-require 'json'
-
-class Syntropy::Request
-  attr_accessor :start_stamp
-
-  def respond_with_static_file(path, etag, last_modified, opts)
-    cache_headers = (etag || last_modified) ? {
-      'etag' => etag,
-      'last-modified' => last_modified
-    } : {}
-
-    adapter.respond_with_static_file(self, path, opts, cache_headers)
-  end
-
-  def set_response_headers(headers)
-    adapter.set_response_headers(headers)
-  end
-
-  def set_cookie(*)
-    adapter.set_cookie(*)
-  end
-
-  def upgrade(protocol, custom_headers = nil, &block)
-    super(protocol, custom_headers)
-    adapter.with_stream(&block)
-  end
-end
+require 'uri'
+require 'escape_utils'
 
 module Syntropy
-  # Extensions for the Syntropy::Request class
-  module RequestExtensions
-    attr_reader :route_params
-    attr_accessor :route
-
-    # Initializes request with additional fields
-    def initialize(headers, adapter)
-      @headers  = headers
-      @adapter  = adapter
-      @route = nil
-      @route_params = {}
-      @ctx = nil
-    end
-
-    # Sets up mock request additional fields
-    def setup_mock_request
-      @route = nil
-      @route_params = {}
-      @ctx = nil
-    end
-
-    # Returns the request context
-    def ctx
-      @ctx ||= {}
-    end
+  module RequestValidationMethods
 
     # Checks the request's HTTP method against the given accepted values. If not
     # included in the accepted values, raises an exception. Otherwise, returns
@@ -66,64 +16,6 @@ module Syntropy
       return method if accepted.include?(method)
 
       raise Syntropy::Error.method_not_allowed
-    end
-
-    # Responds according to the given map. The given map defines the responses
-    # for each method. The value for each method is either an array containing
-    # the body and header values to use as response, or a proc returning such an
-    # array. For example:
-    #
-    #     req.respond_by_http_method(
-    #       'head'  => [nil, headers],
-    #       'get'   => -> { [IO.read(fn), headers] }
-    #     )
-    #
-    # If the request's method is not included in the given map, an exception is
-    # raised.
-    #
-    # @param map [Hash] hash mapping HTTP methods to responses
-    # @return [void]
-    def respond_by_http_method(map)
-      value = map[self.method]
-      raise Syntropy::Error.method_not_allowed if !value
-
-      value = value.() if value.is_a?(Proc)
-      (body, headers) = value
-      respond(body, headers)
-    end
-
-    # Responds to GET requests with the given body and headers. Otherwise raises
-    # an exception.
-    #
-    # @param body [String, nil] response body
-    # @param headers [Hash] response headers
-    # @return [void]
-    def respond_on_get(body, headers = {})
-      case self.method
-      when 'head'
-        respond(nil, headers)
-      when 'get'
-        respond(body, headers)
-      else
-        raise Syntropy::Error.method_not_allowed
-      end
-    end
-
-    # Responds to POST requests with the given body and headers. Otherwise
-    # raises an exception.
-    #
-    # @param body [String, nil] response body
-    # @param headers [Hash] response headers
-    # @return [void]
-    def respond_on_post(body, headers = {})
-      case self.method
-      when 'head'
-        respond(nil, headers)
-      when 'post'
-        respond(body, headers)
-      else
-      raise Syntropy::Error.method_not_allowed
-      end
     end
 
     # Validates and optionally converts request parameter value for the given
@@ -197,66 +89,7 @@ module Syntropy
       end
     end
 
-    # Reads the request body and returns form data.
-    #
-    # @return [Hash] form data
-    def get_form_data
-      body = read
-      if !body || body.empty?
-        raise Syntropy::Error.new('Missing form data', Syntropy::Status::BAD_REQUEST)
-      end
-
-      Syntropy::Request.parse_form_data(body, headers)
-    rescue Syntropy::BadRequestError
-      raise Syntropy::Error.new('Invalid form data', Syntropy::Status::BAD_REQUEST)
-    end
-
-    def html_response(html, **headers)
-      respond(
-        html,
-        'Content-Type' => 'text/html; charset=utf-8',
-        **headers
-      )
-    end
-
-    def json_response(obj, **headers)
-      respond(
-        JSON.dump(obj),
-        'Content-Type' => 'application/json; charset=utf-8',
-        **headers
-      )
-    end
-
-    def json_pretty_response(obj, **headers)
-      respond(
-        JSON.pretty_generate(obj),
-        'Content-Type' => 'application/json; charset=utf-8',
-        **headers
-      )
-    end
-
-    def browser?
-      user_agent = headers['user-agent']
-      user_agent && user_agent =~ /^Mozilla\//
-    end
-
-    # Returns true if the accept header includes the given MIME type
-    #
-    # @param mime_type [String] MIME type
-    # @return [bool]
-    def accept?(mime_type)
-      accept = headers['accept']
-      return nil if !accept
-
-      @accept_parts ||= parse_accept_parts(accept)
-      @accept_parts.include?(mime_type)
-    end
-
     private
-
-    def parse_accept_parts(accept)
-      accept.split(',').map { it.match(/^\s*([^\s;]+)/)[1] }
-    end
 
     BOOL_REGEXP = /^(t|f|true|false|on|off|1|0|yes|no)$/
     BOOL_TRUE_REGEXP = /^(t|true|on|1|yes)$/
@@ -304,5 +137,3 @@ module Syntropy
     end
   end
 end
-
-Syntropy::Request.include(Syntropy::RequestExtensions)

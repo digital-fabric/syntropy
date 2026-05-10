@@ -1,20 +1,33 @@
 # frozen_string_literal: true
 
 require_relative './request/request_info'
+require_relative './request/validation'
 require_relative './request/response'
 require_relative './request/status'
 
 module Syntropy
   class Request
     include RequestInfoMethods
+    include RequestValidationMethods
     include ResponseMethods
+    
     extend RequestInfoClassMethods
 
-    attr_reader :headers, :adapter
+    attr_reader :headers, :adapter, :start_stamp, :route_params
+    attr_accessor :route
 
     def initialize(headers, adapter)
       @headers  = headers
       @adapter  = adapter
+      @start_stamp = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+      @route = nil
+      @route_params = {}
+      @ctx = nil
+    end
+
+    # Returns the request context
+    def ctx
+      @ctx ||= {}
     end
 
     def buffer_body_chunk(chunk)

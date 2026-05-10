@@ -115,6 +115,43 @@ module Syntropy
         h[key] = EscapeUtils.unescape_uri(value)
       end
     end
+
+    # Reads the request body and returns form data.
+    #
+    # @return [Hash] form data
+    def get_form_data
+      body = read
+      if !body || body.empty?
+        raise Syntropy::Error.new('Missing form data', Syntropy::Status::BAD_REQUEST)
+      end
+
+      Syntropy::Request.parse_form_data(body, headers)
+    rescue Syntropy::BadRequestError
+      raise Syntropy::Error.new('Invalid form data', Syntropy::Status::BAD_REQUEST)
+    end
+
+    def browser?
+      user_agent = headers['user-agent']
+      user_agent && user_agent =~ /^Mozilla\//
+    end
+
+    # Returns true if the accept header includes the given MIME type
+    #
+    # @param mime_type [String] MIME type
+    # @return [bool]
+    def accept?(mime_type)
+      accept = headers['accept']
+      return nil if !accept
+
+      @accept_parts ||= parse_accept_parts(accept)
+      @accept_parts.include?(mime_type)
+    end
+
+    private
+
+    def parse_accept_parts(accept)
+      accept.split(',').map { it.match(/^\s*([^\s;]+)/)[1] }
+    end
   end
 
   module RequestInfoClassMethods

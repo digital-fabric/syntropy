@@ -157,7 +157,7 @@ proc = ->(req) { syntropy_app.(req) }
 
 module ::Kernel
   def mock_req(headers, body = nil)
-    Syntropy::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
+    Syntropy::MockAdapter.mock(headers, body)
   end
 end
 

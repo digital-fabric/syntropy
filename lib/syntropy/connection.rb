@@ -2,7 +2,6 @@
 
 require 'stringio'
 require 'syntropy/errors'
-require 'syntropy/request_extensions'
 
 module Syntropy
   # Implements an HTTP/1.1 connection received by the Syntropy server. This
@@ -54,7 +53,6 @@ module Syntropy
 
       request = Syntropy::Request.new(headers, self)
 
-      request.start_stamp = monotonic_clock
       @app.call(request)
       persist_connection?(headers)
     rescue StandardError => e
@@ -276,10 +274,6 @@ module Syntropy
       @closed = true
       @machine.shutdown(@fd, UM::SHUT_WR)
       @machine.close_async(@fd)
-    end
-
-    def monotonic_clock
-      ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
     end
 
     def with_stream

@@ -19,7 +19,7 @@ end
 
 module ::Kernel
   def mock_req(headers, body = nil)
-    Syntropy::MockAdapter.mock(headers, body).tap { it.setup_mock_request }
+    Syntropy::MockAdapter.mock(headers, body)
   end
 
   def capture_exception

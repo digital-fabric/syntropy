@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'syntropy/connection'
-require 'syntropy/request_extensions'
 
 module Syntropy
   class Server

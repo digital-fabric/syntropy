@@ -22,17 +22,6 @@ module Syntropy
   end
 
   module ResponseMethods
-    def upgrade(protocol, custom_headers = nil)
-      upgrade_headers = {
-        ':status' => Status::SWITCHING_PROTOCOLS,
-        'Upgrade' => protocol,
-        'Connection' => 'upgrade'
-      }
-      upgrade_headers.merge!(custom_headers) if custom_headers
-
-      respond(nil, upgrade_headers)
-    end
-
     WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
     def upgrade_to_websocket(custom_headers = nil)
@@ -82,31 +71,6 @@ module Syntropy
       respond(nil, ':status' => Status::NOT_FOUND)
     end
 
-    def respond_with_static_file(path, etag, last_modified, opts)
-      cache_headers = {
-        'etag' => etag,
-        'last-modified' => last_modified,
-      }
-      File.open(path, 'r') do |f|
-        if opts[:headers]
-          opts[:headers].merge!(cache_headers)
-        else
-          opts[:headers] = cache_headers
-        end
-
-        # accept_encoding should return encodings in client's order of preference
-        accept_encoding.each do |encoding|
-          case encoding
-          when 'deflate'
-            return serve_io_deflate(f, opts)
-          when 'gzip'
-            return serve_io_gzip(f, opts)
-          end
-        end
-        serve_io(f, opts)
-      end
-    end
-
     def validate_static_file_cache(etag, last_modified)
       if (none_match = headers['if-none-match'])
         return true if none_match == etag
@@ -151,6 +115,117 @@ module Syntropy
         'vary' => 'Accept-Encoding'
       )
       respond(buf.string, headers)
+    end
+
+    def respond_with_static_file(path, etag, last_modified, opts)
+      cache_headers = (etag || last_modified) ? {
+        'etag' => etag,
+        'last-modified' => last_modified
+      } : {}
+
+      adapter.respond_with_static_file(self, path, opts, cache_headers)
+    end
+
+    def set_response_headers(headers)
+      adapter.set_response_headers(headers)
+    end
+
+    def set_cookie(*)
+      adapter.set_cookie(*)
+    end
+
+    def upgrade(protocol, custom_headers = nil, &block)
+      upgrade_headers = {
+        ':status' => Status::SWITCHING_PROTOCOLS,
+        'Upgrade' => protocol,
+        'Connection' => 'upgrade'
+      }
+      upgrade_headers.merge!(custom_headers) if custom_headers
+
+      respond(nil, upgrade_headers)
+      adapter.with_stream(&block)
+    end
+
+    # Responds according to the given map. The given map defines the responses
+    # for each method. The value for each method is either an array containing
+    # the body and header values to use as response, or a proc returning such an
+    # array. For example:
+    #
+    #     req.respond_by_http_method(
+    #       'head'  => [nil, headers],
+    #       'get'   => -> { [IO.read(fn), headers] }
+    #     )
+    #
+    # If the request's method is not included in the given map, an exception is
+    # raised.
+    #
+    # @param map [Hash] hash mapping HTTP methods to responses
+    # @return [void]
+    def respond_by_http_method(map)
+      value = map[self.method]
+      raise Syntropy::Error.method_not_allowed if !value
+
+      value = value.() if value.is_a?(Proc)
+      (body, headers) = value
+      respond(body, headers)
+    end
+
+    # Responds to GET requests with the given body and headers. Otherwise raises
+    # an exception.
+    #
+    # @param body [String, nil] response body
+    # @param headers [Hash] response headers
+    # @return [void]
+    def respond_on_get(body, headers = {})
+      case self.method
+      when 'head'
+        respond(nil, headers)
+      when 'get'
+        respond(body, headers)
+      else
+        raise Syntropy::Error.method_not_allowed
+      end
+    end
+
+    # Responds to POST requests with the given body and headers. Otherwise
+    # raises an exception.
+    #
+    # @param body [String, nil] response body
+    # @param headers [Hash] response headers
+    # @return [void]
+    def respond_on_post(body, headers = {})
+      case self.method
+      when 'head'
+        respond(nil, headers)
+      when 'post'
+        respond(body, headers)
+      else
+      raise Syntropy::Error.method_not_allowed
+      end
+    end
+
+    def html_response(html, **headers)
+      respond(
+        html,
+        'Content-Type' => 'text/html; charset=utf-8',
+        **headers
+      )
+    end
+
+    def json_response(obj, **headers)
+      respond(
+        JSON.dump(obj),
+        'Content-Type' => 'application/json; charset=utf-8',
+        **headers
+      )
+    end
+
+    def json_pretty_response(obj, **headers)
+      respond(
+        JSON.pretty_generate(obj),
+        'Content-Type' => 'application/json; charset=utf-8',
+        **headers
+      )
     end
   end
 end
