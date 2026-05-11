@@ -1,3 +1,8 @@
+# 0.30.0 2026-05-10
+
+- Refactor HTTP modules
+- Integrate Qeweney::Request
+
 # 0.29.0 2026-05-07
 
 - Use UM#file_watch for dev mode
