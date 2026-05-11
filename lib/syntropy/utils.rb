@@ -20,7 +20,7 @@ module Syntropy
       #
       lambda { |req|
         site = sites[req.host]
-        site ? site.call(req) : req.respond(nil, ':status' => Status::BAD_REQUEST)
+        site ? site.call(req) : req.respond(nil, ':status' => HTTP::BAD_REQUEST)
       }
     end
 

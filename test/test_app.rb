@@ -3,7 +3,7 @@
 require_relative 'helper'
 
 class AppTest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -29,27 +29,27 @@ class AppTest < Minitest::Test
 
   def test_app_rendering
     req = make_request(':method' => 'GET', ':path' => '/')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
     assert_equal 'Not found', req.response_body
 
     req = make_request(':method' => 'HEAD', ':path' => '/')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
     assert_nil req.response_body
 
     req = make_request(':method' => 'POST', ':path' => '/')
     assert_equal 'Not found', req.response_body
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test')
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
     assert_equal '<h1>Hello, world!</h1>', req.response_body
 
     req = make_request(':method' => 'HEAD', ':path' => '/test')
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
     assert_nil req.response_body
 
     req = make_request(':method' => 'POST', ':path' => '/test')
-    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal "Method not allowed", req.response_body
 
     req = make_request(':method' => 'GET', ':path' => '/test/assets/style.css')
@@ -57,13 +57,13 @@ class AppTest < Minitest::Test
     assert_equal 'text/css', req.response_headers['Content-Type']
 
     req = make_request(':method' => 'GET', ':path' => '/assets/style.css')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/api?q=get')
     assert_equal({ status: 'OK', response: 0 }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api?q=get')
-    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
     req = make_request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
@@ -73,32 +73,32 @@ class AppTest < Minitest::Test
     assert_equal({ status: 'OK', response: 1 }, req.response_json)
 
     req = make_request(':method' => 'GET', ':path' => '/test/api?q=incr')
-    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
     req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
-    assert_equal Status::TEAPOT, req.response_status
+    assert_equal HTTP::TEAPOT, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/api/foo/bar?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
-    assert_equal Status::TEAPOT, req.response_status
+    assert_equal HTTP::TEAPOT, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/baz')
     assert_equal 'foobar', req.response_body
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
 
     req = make_request(':method' => 'POST', ':path' => '/test/baz')
     assert_equal 'Method not allowed', req.response_body
-    assert_equal Status::METHOD_NOT_ALLOWED, req.response_status
+    assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/about')
     assert_equal 'About', req.response_body.chomp
@@ -110,7 +110,7 @@ class AppTest < Minitest::Test
     assert_nil req.response_body
 
     req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/test/params/abc')
     assert_equal '/test/params/[foo]-abc', req.response_body.chomp
@@ -119,12 +119,12 @@ class AppTest < Minitest::Test
     assert_equal '<link>foo</link>', req.response_body
 
     req = make_request(':method' => 'GET', ':path' => '/test/bad_mod')
-    assert_equal Status::INTERNAL_SERVER_ERROR, req.response_status
+    assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
   end
 
   def test_automatic_redirect_on_trailing_slash
     req = make_request(':method' => 'GET', ':path' => '/test/rss/')
-    assert_equal Status::MOVED_PERMANENTLY, req.response_status
+    assert_equal HTTP::MOVED_PERMANENTLY, req.response_status
     assert_equal '/test/rss', req.response_headers['Location']
   end
 
@@ -146,29 +146,29 @@ class AppTest < Minitest::Test
 
   def test_middleware
     req = make_request(':method' => 'HEAD', ':path' => '/test?foo=42')
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
     assert_nil req.response_body
     assert_equal '42', req.ctx[:foo]
 
     req = make_request(':method' => 'HEAD', ':path' => '/test/about/raise?foo=43')
-    assert_equal Status::INTERNAL_SERVER_ERROR, req.response_status
+    assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
     assert_equal '<h1>Raised error</h1>', req.response_body
     assert_equal '43', req.ctx[:foo]
   end
 
   def test_middleware_invocation_on_404
     req = make_request(':method' => 'HEAD', ':path' => '/azerty?foo=bar')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
     assert_nil req.ctx[:foo]
 
     req = make_request(':method' => 'HEAD', ':path' => '/test/azerty?foo=bar')
-    assert_equal Status::NOT_FOUND, req.response_status
+    assert_equal HTTP::NOT_FOUND, req.response_status
     assert_equal 'bar', req.ctx[:foo]
   end
 end
 
 class CustomAppTest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app_custom')
 
@@ -190,12 +190,12 @@ class CustomAppTest < Minitest::Test
   def test_app_with_site_rb_file
     req = make_request(':method' => 'GET', ':path' => '/foo/bar')
     assert_nil req.response_body
-    assert_equal Status::TEAPOT, req.response_status
+    assert_equal HTTP::TEAPOT, req.response_status
   end
 end
 
 class MultiSiteAppTest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app_multi_site')
 
@@ -217,7 +217,7 @@ class MultiSiteAppTest < Minitest::Test
   def test_route_by_host
     req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'blah')
     assert_nil req.response_body
-    assert_equal Status::BAD_REQUEST, req.response_status
+    assert_equal HTTP::BAD_REQUEST, req.response_status
 
     req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'foo.bar')
     assert_equal '<h1>foo.bar</h1>', req.response_body.chomp
@@ -228,7 +228,7 @@ class MultiSiteAppTest < Minitest::Test
 end
 
 class AppAPITest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -292,7 +292,7 @@ class AppAPITest < Minitest::Test
 end
 
 class AppDependenciesTest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -321,6 +321,6 @@ class AppDependenciesTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
-    assert_equal Status::OK, req.response_status
+    assert_equal HTTP::OK, req.response_status
   end
 end

@@ -4,7 +4,7 @@ require_relative 'helper'
 require 'digest/sha1'
 
 class CachingTest < Minitest::Test
-  Status = Syntropy::Status
+  HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'app')
 
@@ -40,7 +40,7 @@ class CachingTest < Minitest::Test
     @app = Syntropy::App.new(**@env)
 
     @c_fd, @s_fd = make_socket_pair
-    @adapter = Syntropy::Connection.new(nil, @machine, @s_fd, @env) { @app.(it) }
+    @adapter = Syntropy::HTTP::Connection.new(nil, @machine, @s_fd, @env) { @app.(it) }
   end
 
   def teardown

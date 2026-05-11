@@ -3,8 +3,8 @@
 require 'time'
 require 'digest/sha1'
 
-require_relative './status'
-require_relative './mime_types'
+require_relative '../http/status'
+require_relative '../mime_types'
 
 module Syntropy
   module StaticFileCaching
@@ -33,16 +33,16 @@ module Syntropy
       adapter.websocket_connection(self)
     end
 
-    def redirect(url, status = Status::FOUND)
+    def redirect(url, status = HTTP::FOUND)
       respond(nil, ':status' => status, 'Location' => url)
     end
 
-    def redirect_to_https(status = Status::MOVED_PERMANENTLY)
+    def redirect_to_https(status = HTTP::MOVED_PERMANENTLY)
       secure_uri = "https://#{host}#{uri}"
       redirect(secure_uri, status)
     end
 
-    def redirect_to_host(new_host, status = Status::FOUND)
+    def redirect_to_host(new_host, status = HTTP::FOUND)
       secure_uri = "//#{new_host}#{uri}"
       redirect(secure_uri, status)
     end
@@ -55,18 +55,18 @@ module Syntropy
 
       if validate_static_file_cache(etag, last_modified)
         return respond(nil, {
-          ':status' => Status::NOT_MODIFIED,
+          ':status' => HTTP::NOT_MODIFIED,
           'etag' => etag
         })
       end
 
-      mime_type = Syntropy::MimeTypes[File.extname(path)]
+      mime_type = MimeTypes[File.extname(path)]
       opts[:stat] = stat
       (opts[:headers] ||= {})['Content-Type'] ||= mime_type if mime_type
 
       respond_with_static_file(full_path, etag, last_modified, opts)
     rescue Errno::ENOENT
-      respond(nil, ':status' => Status::NOT_FOUND)
+      respond(nil, ':status' => HTTP::NOT_FOUND)
     end
 
     def validate_static_file_cache(etag, last_modified)
@@ -111,7 +111,7 @@ module Syntropy
 
     def upgrade(protocol, custom_headers = nil, &block)
       upgrade_headers = {
-        ':status' => Status::SWITCHING_PROTOCOLS,
+        ':status' => HTTP::SWITCHING_PROTOCOLS,
         'Upgrade' => protocol,
         'Connection' => 'upgrade'
       }

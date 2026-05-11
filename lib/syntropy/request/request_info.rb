@@ -122,12 +122,12 @@ module Syntropy
     def get_form_data
       body = read
       if !body || body.empty?
-        raise Syntropy::Error.new('Missing form data', Syntropy::Status::BAD_REQUEST)
+        raise Syntropy::Error.new('Missing form data', HTTP::BAD_REQUEST)
       end
 
       Syntropy::Request.parse_form_data(body, headers)
     rescue Syntropy::BadRequestError
-      raise Syntropy::Error.new('Invalid form data', Syntropy::Status::BAD_REQUEST)
+      raise Syntropy::Error.new('Invalid form data', HTTP::BAD_REQUEST)
     end
 
     def browser?

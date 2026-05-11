@@ -1,3 +1,3 @@
 export ->(req) {
-  req.respond(nil, ':status' => Status::TEAPOT)
+  req.respond(nil, ':status' => HTTP::TEAPOT)
 }

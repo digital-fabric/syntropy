@@ -77,7 +77,7 @@ module Syntropy
         validated = true if client_mtime == last_modified
       end
       if validated
-        respond(nil, ':status' => Syntropy::Status::NOT_MODIFIED)
+        respond(nil, ':status' => HTTP::NOT_MODIFIED)
       else
         cache_headers = {
           'Cache-Control' => cache_control

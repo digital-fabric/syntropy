@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module Syntropy
-  # HTTP status codes
-  module Status
+  module HTTP
     # translated from https://golang.org/pkg/net/http/#pkg-constants
     # https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
 

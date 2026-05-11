@@ -42,7 +42,7 @@ module Syntropy
     end
 
     def status
-      response_headers[':status'] || Syntropy::Status::OK
+      response_headers[':status'] || HTTP::OK
     end
 
     def method_missing(sym, *args)

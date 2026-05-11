@@ -30,7 +30,7 @@ module Syntropy
       else
         raise Syntropy::Error.method_not_allowed
       end
-      [{ status: 'OK', response: response }, Syntropy::Status::OK]
+      [{ status: 'OK', response: response }, HTTP::OK]
     rescue => e
       if !e.is_a?(Syntropy::Error)
         p e
@@ -54,10 +54,8 @@ module Syntropy
       raise err
     end
 
-    INTERNAL_SERVER_ERROR = Syntropy::Status::INTERNAL_SERVER_ERROR
-
     def __error_response__(err)
-      http_status = err.respond_to?(:http_status) ? err.http_status : INTERNAL_SERVER_ERROR
+      http_status = err.respond_to?(:http_status) ? err.http_status : HTTP::INTERNAL_SERVER_ERROR
       error_name = err.class.name.split('::').last
       [{ status: error_name, message: err.message }, http_status]
     end

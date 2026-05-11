@@ -14,7 +14,7 @@ class RedirectTest < Minitest::Test
 
   def test_redirect_wirth_status
     r = Syntropy::MockAdapter.mock
-    r.redirect('/bar', Syntropy::Status::MOVED_PERMANENTLY)
+    r.redirect('/bar', Syntropy::HTTP::MOVED_PERMANENTLY)
 
     assert_equal [
       [:respond, r, nil, {":status"=>301, "Location"=>"/bar"}]
@@ -36,7 +36,7 @@ class StaticFileResponeTest < Minitest::Test
     r = Syntropy::MockAdapter.mock
     r.serve_file('foo.rb', base_path: __dir__)
     assert_equal [
-      [:respond, r, nil, { ':status' => Syntropy::Status::NOT_FOUND }]
+      [:respond, r, nil, { ':status' => Syntropy::HTTP::NOT_FOUND }]
     ], r.adapter.calls
   end
 end

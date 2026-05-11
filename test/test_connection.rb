@@ -29,7 +29,7 @@ class ConnectionTest < Minitest::Test
     @hook = nil
     @app = ->(req) { @reqs << req; @hook&.call(req) }
     @env = {}
-    @adapter = Syntropy::Connection.new(nil, @machine, @s_fd, @env, &@app)
+    @adapter = Syntropy::HTTP::Connection.new(nil, @machine, @s_fd, @env, &@app)
   end
 
   def teardown

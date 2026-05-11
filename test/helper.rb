@@ -92,6 +92,7 @@ module Minitest::Assertions
       exp_content_type = Syntropy::MimeTypes[exp_content_type]
     end
     actual = req.response_content_type
+
     assert_equal exp_content_type, actual
   end
 end

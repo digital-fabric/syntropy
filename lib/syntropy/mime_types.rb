@@ -9,14 +9,12 @@ module Syntropy
       'js'    => 'application/javascript',
       'txt'   => 'text/plain',
       'text'  => 'text/plain',
-
       'gif'   => 'image/gif',
       'jpg'   => 'image/jpeg',
       'jpeg'  => 'image/jpeg',
       'png'   => 'image/png',
       'ico'   => 'image/x-icon',
       'svg'   => 'image/svg+xml',
-
       'pdf'   => 'application/pdf',
       'json'  => 'application/json',
     }.freeze

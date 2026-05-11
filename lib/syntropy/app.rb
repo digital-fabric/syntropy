@@ -8,6 +8,7 @@ require 'papercraft'
 require 'syntropy/errors'
 require 'syntropy/module'
 require 'syntropy/routing_tree'
+require 'syntropy/mime_types'
 
 module Syntropy
   class App
@@ -65,7 +66,7 @@ module Syntropy
       route = @router_proc.(path, req.route_params)
       if !route
         if (m = path.match(/^(.+)\/$/))
-          return req.redirect(m[1], Syntropy::Status::MOVED_PERMANENTLY)
+          return req.redirect(m[1], HTTP::MOVED_PERMANENTLY)
         else
           return handle_not_found(req)
         end
@@ -187,7 +188,7 @@ module Syntropy
     # @return [Proc] route handler proc
     def static_route_proc(route)
       fn = route[:target][:fn]
-      headers = { 'Content-Type' => Syntropy::MimeTypes[File.extname(fn)] }
+      headers = { 'Content-Type' => MimeTypes[File.extname(fn)] }
 
       ->(req) {
         case req.method
@@ -252,7 +253,7 @@ module Syntropy
       target[:last_modified] = mtime
       target[:last_modified_date] = Time.at(mtime).httpdate
       target[:content] = buffer = String.new(capacity: size)
-      target[:mime_type] = Syntropy::MimeTypes[File.extname(target[:fn])]
+      target[:mime_type] = MimeTypes[File.extname(target[:fn])]
       len = 0
       while len < size
         len += @machine.read(fd, buffer, size, len)

@@ -26,7 +26,7 @@ class ServerTest < Minitest::Test
     @machine = UM.new
     @port = 10000 + rand(30000)
     @env = { bind: "127.0.0.1:#{@port}" }.merge(opts)
-    @server = Syntropy::Server.new(@machine, @env) { @app&.call(it) }
+    @server = Syntropy::HTTP::Server.new(@machine, @env) { @app&.call(it) }
     @f_server = @machine.spin { run_server }
 
     # let server spin and listen to incoming connections
