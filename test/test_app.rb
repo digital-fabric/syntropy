@@ -19,115 +19,111 @@ class AppTest < Minitest::Test
       watch_files: 0.05,
       machine: @machine
     )
-  end
 
-  def make_request(*, **)
-    req = mock_req(*, **)
-    @app.call(req)
-    req
+    @test_harness = Syntropy::TestHarness.new(@app)
   end
 
   def test_app_rendering
-    req = make_request(':method' => 'GET', ':path' => '/')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
     assert_equal HTTP::NOT_FOUND, req.response_status
     assert_equal 'Not found', req.response_body
 
-    req = make_request(':method' => 'HEAD', ':path' => '/')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/')
     assert_equal HTTP::NOT_FOUND, req.response_status
     assert_nil req.response_body
 
-    req = make_request(':method' => 'POST', ':path' => '/')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/')
     assert_equal 'Not found', req.response_body
     assert_equal HTTP::NOT_FOUND, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test')
     assert_equal HTTP::OK, req.response_status
     assert_equal '<h1>Hello, world!</h1>', req.response_body
 
-    req = make_request(':method' => 'HEAD', ':path' => '/test')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/test')
     assert_equal HTTP::OK, req.response_status
     assert_nil req.response_body
 
-    req = make_request(':method' => 'POST', ':path' => '/test')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal "Method not allowed", req.response_body
 
-    req = make_request(':method' => 'GET', ':path' => '/test/assets/style.css')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/assets/style.css')
     assert_equal '* { color: beige }', req.response_body
     assert_equal 'text/css', req.response_headers['Content-Type']
 
-    req = make_request(':method' => 'GET', ':path' => '/assets/style.css')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/assets/style.css')
     assert_equal HTTP::NOT_FOUND, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/api?q=get')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/api?q=get')
     assert_equal({ status: 'OK', response: 0 }, req.response_json)
 
-    req = make_request(':method' => 'POST', ':path' => '/test/api?q=get')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/api?q=get')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
-    req = make_request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
     assert_equal({ status: 'OK', response: 0 }, req.response_json)
 
-    req = make_request(':method' => 'POST', ':path' => '/test/api?q=incr')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/api?q=incr')
     assert_equal({ status: 'OK', response: 1 }, req.response_json)
 
-    req = make_request(':method' => 'GET', ':path' => '/test/api?q=incr')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/api?q=incr')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
     assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
 
-    req = make_request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
     assert_equal HTTP::TEAPOT, req.response_status
 
-    req = make_request(':method' => 'POST', ':path' => '/test/api/foo/bar?q=incr')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/api/foo/bar?q=incr')
     assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
     assert_equal HTTP::TEAPOT, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/bar')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
     assert_equal HTTP::OK, req.response_status
 
-    req = make_request(':method' => 'POST', ':path' => '/test/bar')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
     assert_equal HTTP::OK, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/baz')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/baz')
     assert_equal 'foobar', req.response_body
     assert_equal HTTP::OK, req.response_status
 
-    req = make_request(':method' => 'POST', ':path' => '/test/baz')
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/baz')
     assert_equal 'Method not allowed', req.response_body
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/about')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/about')
     assert_equal 'About', req.response_body.chomp
 
-    req = make_request(':method' => 'GET', ':path' => '/test/about/foo')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/about/foo')
     assert_equal '<!DOCTYPE html><html><head><title></title></head><body><p>Hello from Markdown</p></body></html>', req.response_body.gsub(/\n/, '')
 
-    req = make_request(':method' => 'HEAD', ':path' => '/test/about/foo')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/test/about/foo')
     assert_nil req.response_body
 
-    req = make_request(':method' => 'GET', ':path' => '/test/about/foo/bar')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/about/foo/bar')
     assert_equal HTTP::NOT_FOUND, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/params/abc')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/params/abc')
     assert_equal '/test/params/[foo]-abc', req.response_body.chomp
 
-    req = make_request(':method' => 'GET', ':path' => '/test/rss')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/rss')
     assert_equal '<link>foo</link>', req.response_body
 
-    req = make_request(':method' => 'GET', ':path' => '/test/bad_mod')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/bad_mod')
     assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/test/.well-known/foo')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/.well-known/foo')
     assert_equal HTTP::OK, req.response_status
     assert_equal 'foo', req.response_body
   end
 
   def test_automatic_redirect_on_trailing_slash
-    req = make_request(':method' => 'GET', ':path' => '/test/rss/')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/rss/')
     assert_equal HTTP::MOVED_PERMANENTLY, req.response_status
     assert_equal '/test/rss', req.response_headers['Location']
   end
@@ -135,37 +131,37 @@ class AppTest < Minitest::Test
   def test_app_file_watching
     @machine.sleep 0.3
 
-    req = make_request(':method' => 'GET', ':path' => @tmp_path)
+    req = @test_harness.request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'foo', req.response_body
 
     orig_body = IO.read(@tmp_fn)
     IO.write(@tmp_fn, orig_body.gsub('foo', 'bar'))
     @machine.sleep(0.3)
 
-    req = make_request(':method' => 'GET', ':path' => @tmp_path)
+    req = @test_harness.request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'bar', req.response_body
   ensure
     IO.write(@tmp_fn, orig_body) if orig_body
   end
 
   def test_middleware
-    req = make_request(':method' => 'HEAD', ':path' => '/test?foo=42')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/test?foo=42')
     assert_equal HTTP::OK, req.response_status
     assert_nil req.response_body
     assert_equal '42', req.ctx[:foo]
 
-    req = make_request(':method' => 'HEAD', ':path' => '/test/about/raise?foo=43')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/test/about/raise?foo=43')
     assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
     assert_equal '<h1>Raised error</h1>', req.response_body
     assert_equal '43', req.ctx[:foo]
   end
 
   def test_middleware_invocation_on_404
-    req = make_request(':method' => 'HEAD', ':path' => '/azerty?foo=bar')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/azerty?foo=bar')
     assert_equal HTTP::NOT_FOUND, req.response_status
     assert_nil req.ctx[:foo]
 
-    req = make_request(':method' => 'HEAD', ':path' => '/test/azerty?foo=bar')
+    req = @test_harness.request(':method' => 'HEAD', ':path' => '/test/azerty?foo=bar')
     assert_equal HTTP::NOT_FOUND, req.response_status
     assert_equal 'bar', req.ctx[:foo]
   end
@@ -183,16 +179,11 @@ class CustomAppTest < Minitest::Test
       root_dir: APP_ROOT,
       mount_path: '/'
     )
-  end
-
-  def make_request(*, **)
-    req = mock_req(*, **)
-    @app.call(req)
-    req
+    @test_harness = Syntropy::TestHarness.new(@app)
   end
 
   def test_app_with_site_rb_file
-    req = make_request(':method' => 'GET', ':path' => '/foo/bar')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar')
     assert_nil req.response_body
     assert_equal HTTP::TEAPOT, req.response_status
   end
@@ -210,23 +201,18 @@ class MultiSiteAppTest < Minitest::Test
       root_dir: APP_ROOT,
       mount_path: '/'
     )
-  end
-
-  def make_request(*, **)
-    req = mock_req(*, **)
-    @app.call(req)
-    req
+    @test_harness = Syntropy::TestHarness.new(@app)
   end
 
   def test_route_by_host
-    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'blah')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/', 'host' => 'blah')
     assert_nil req.response_body
     assert_equal HTTP::BAD_REQUEST, req.response_status
 
-    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'foo.bar')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/', 'host' => 'foo.bar')
     assert_equal '<h1>foo.bar</h1>', req.response_body.chomp
 
-    req = make_request(':method' => 'GET', ':path' => '/', 'host' => 'bar.baz')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/', 'host' => 'bar.baz')
     assert_equal '<h1>bar.baz</h1>', req.response_body.chomp
   end
 end
@@ -300,12 +286,6 @@ class AppDependenciesTest < Minitest::Test
 
   APP_ROOT = File.join(__dir__, 'app')
 
-  def make_request(*, **)
-    req = mock_req(*, **)
-    @app.call(req)
-    req
-  end
-
   def test_app_dependencies
     foo = { foo: 'foo' }
     bar = { bar: 'bar' }
@@ -322,8 +302,9 @@ class AppDependenciesTest < Minitest::Test
       foo: foo,
       bar: bar
     )
+    @test_harness = Syntropy::TestHarness.new(@app)
 
-    req = make_request(':method' => 'GET', ':path' => '/test/bar')
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/bar')
     assert_equal 'foobar', req.response_body
     assert_equal HTTP::OK, req.response_status
   end

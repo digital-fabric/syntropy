@@ -4,7 +4,7 @@ require 'bundler/setup'
 require_relative './coverage' if ENV['COVERAGE']
 require 'uringmachine'
 require 'syntropy'
-require 'syntropy/request/mock_adapter'
+require 'syntropy/test'
 require 'minitest/autorun'
 require 'fileutils'
 
@@ -94,29 +94,5 @@ module Minitest::Assertions
     actual = req.response_content_type
 
     assert_equal exp_content_type, actual
-  end
-end
-
-# Extensions to be used in conjunction with `Syntropy::TestAdapter`
-class Syntropy::Request
-  def response_headers
-    adapter.response_headers
-  end
-
-  def response_status
-    adapter.status
-  end
-
-  def response_body
-    adapter.response_body
-  end
-
-  def response_json
-    raise if response_content_type != 'application/json'
-    JSON.parse(response_body, symbolize_names: true)
-  end
-
-  def response_content_type
-    response_headers['Content-Type']
   end
 end
