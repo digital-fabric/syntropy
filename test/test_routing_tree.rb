@@ -46,6 +46,9 @@ class RoutingTreeTest < Minitest::Test
       'old': {
         'index.html': '',
         'baz.html': ''
+      },
+      '.well-known': {
+        'foo.rb': ''
       }
     }
   }
@@ -72,7 +75,9 @@ class RoutingTreeTest < Minitest::Test
     assert_nil root[:parent]
     assert_nil root[:param]
     assert_nil root[:target]
-    assert_equal ['[]', 'about', 'api', 'assets', 'old', 'posts'], root[:children].keys.sort_by(&:to_s)
+    assert_equal [
+      '.well-known', '[]', 'about', 'api', 'assets', 'old', 'posts'
+    ], root[:children].keys.sort_by(&:to_s)
 
     entry = @rt.static_map['/docs']
     assert_equal File.join(@rt.root_dir, 'index.rb'), entry[:target][:fn]
@@ -132,17 +137,24 @@ class RoutingTreeTest < Minitest::Test
     assets = root[:children]['assets']
     refute_nil assets
     assert_nil assets[:target]
+
+    well_known = root[:children]['.well-known']
+    refute_nil well_known
+    assert_nil well_known[:target]
   end
 
   def test_static_map
     map = @rt.static_map
-    assert_equal 7, map.size
+    assert_equal 8, map.size
 
     keys = map.keys.sort
     assert_equal [
-      '/docs', '/docs/about', '/docs/assets/css/style.css',
+      '/docs', '/docs/.well-known/foo', '/docs/about', '/docs/assets/css/style.css',
       '/docs/assets/img/foo.jpg', '/docs/old', '/docs/old/baz', '/docs/posts'
     ], keys
+
+    o = map['/docs/.well-known/foo']
+    assert_equal File.join(@rt.root_dir, '.well-known/foo.rb'), o[:target][:fn]
 
     o = map['/docs/assets/css/style.css']
     assert_equal File.join(@rt.root_dir, 'assets/css/style.css'), o[:target][:fn]

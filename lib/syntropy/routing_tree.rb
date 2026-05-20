@@ -260,7 +260,8 @@ module Syntropy
     # @param dir [String] directory path
     # @return [Array<String>] array of file entries
     def file_search(dir)
-      Dir[File.join(dir.gsub(/[\[\]]/) { "\\#{it}"}, '*')]
+      spec = File.join(dir.gsub(/[\[\]]/) { "\\#{it}"}, '{*,.*}')
+      Dir[spec].reject { it =~ /\/\.$/ }
     end
 
     # Computes a route entry and/or target for the given file path.

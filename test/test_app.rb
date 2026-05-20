@@ -120,6 +120,10 @@ class AppTest < Minitest::Test
 
     req = make_request(':method' => 'GET', ':path' => '/test/bad_mod')
     assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
+
+    req = make_request(':method' => 'GET', ':path' => '/test/.well-known/foo')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'foo', req.response_body
   end
 
   def test_automatic_redirect_on_trailing_slash
