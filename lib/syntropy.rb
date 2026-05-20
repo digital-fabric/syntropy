@@ -67,7 +67,7 @@ module Syntropy
 
         env[:logger]&.info(message: "Running Syntropy #{Syntropy::VERSION}, UringMachine #{UM::VERSION}, Ruby #{RUBY_VERSION}")
 
-        server = Server.new(machine, env, &app)
+        server = HTTP::Server.new(machine, env, &app)
 
         setup_signal_handling(machine, Fiber.current)
         server.run

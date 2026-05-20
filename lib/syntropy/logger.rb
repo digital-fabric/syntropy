@@ -67,7 +67,7 @@ module Syntropy
       request = o[:request]
       request_headers = request.headers
       response_headers = o[:response_headers]
-      elapsed = request.adapter.monotonic_clock - request.start_stamp
+      elapsed = monotonic_clock - request.start_stamp
       {
         level: level.to_s,
         ts: (t = Time.now; t.to_i),
@@ -80,6 +80,10 @@ module Syntropy
         status: response_headers[':status'] || '200',
         elapsed: elapsed
       }
+    end
+
+    def monotonic_clock
+      ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
     end
 
     def make_hash_entry(level, hash)
