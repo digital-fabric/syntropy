@@ -147,6 +147,15 @@ module Syntropy
       @accept_parts.include?(mime_type)
     end
 
+    def auth_bearer_token
+      auth = headers['authorization']
+      if (m = auth.match(/Bearer\s+([^\w]+)/))
+        return m[1]
+      end
+
+      nil
+    end
+
     private
 
     def parse_accept_parts(accept)

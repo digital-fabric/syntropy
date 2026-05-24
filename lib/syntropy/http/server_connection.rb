@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'syntropy/errors'
+require 'syntropy/http/io_extensions'
 
 module Syntropy
   module HTTP
@@ -96,46 +97,17 @@ module Syntropy
         headers = req.headers
         return nil if headers[':body-done-reading']
 
-        content_length = headers['content-length']
-        if content_length
-
-          chunk = @io.read(content_length.to_i)
-          headers[':body-done-reading'] = true
-          return chunk
-        end
-
-        chunked_encoding = headers['transfer-encoding']&.downcase == 'chunked'
-        if chunked_encoding
-          buf = +''
-          while (chunk = read_chunk(headers, nil))
-            buf << chunk
-          end
-          headers[':body-done-reading'] = true
-          return buf
-        end
-
-        nil
+        body = @io.http_read_body(headers)
+        headers[':body-done-reading'] = true if body
+        body
       end
 
       def get_body_chunk(req)
         headers = req.headers
-        content_length = headers['content-length']
-        if content_length
-          return nil if headers[':body-done-reading']
-
-          chunk = @io.read(content_length.to_i)
-          headers[':body-done-reading'] = true
-          return chunk
-        end
-
-        chunked_encoding = headers['transfer-encoding']&.downcase == 'chunked'
-        return read_chunk(headers, nil) if chunked_encoding
-
         return nil if headers[':body-done-reading']
 
-        # if content-length is not specified, we read to EOF, up to max 1MB size
-        chunk = read(1 << 20, nil, false)
-        headers[':body-done-reading'] = true
+        chunk = @io.http_read_body_chunk(headers)
+        headers[':body-done-reading'] = true if !chunk
         chunk
       end
 

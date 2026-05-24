@@ -3,7 +3,7 @@
 require_relative './helper'
 require 'securerandom'
 
-class ConnectionTest < Minitest::Test
+class ServerConnectionTest < Minitest::Test
   def make_socket_pair
     port = SecureRandom.random_number(10000..40000)
     server_fd = @machine.socket(UM::AF_INET, UM::SOCK_STREAM, 0, 0)

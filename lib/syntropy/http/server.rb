@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'syntropy/http/connection'
+require 'syntropy/http/server_connection'
 
 module Syntropy
   module HTTP
