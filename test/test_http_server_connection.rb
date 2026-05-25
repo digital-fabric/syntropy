@@ -3,7 +3,7 @@
 require_relative './helper'
 require 'securerandom'
 
-class ServerConnectionTest < Minitest::Test
+class HTTPServerConnectionTest < Minitest::Test
   def make_socket_pair
     port = SecureRandom.random_number(10000..40000)
     server_fd = @machine.socket(UM::AF_INET, UM::SOCK_STREAM, 0, 0)
@@ -29,7 +29,7 @@ class ServerConnectionTest < Minitest::Test
     @hook = nil
     @app = ->(req) { @reqs << req; @hook&.call(req) }
     @env = {}
-    @adapter = Syntropy::HTTP::Connection.new(nil, @machine, @s_fd, @env, &@app)
+    @connection = Syntropy::HTTP::ServerConnection.new(@machine, @s_fd, @env, &@app)
   end
 
   def teardown
@@ -54,14 +54,14 @@ class ServerConnectionTest < Minitest::Test
 
   def test_http_unsupported_versions
     write_http_request "GET / HTTP/0.9\r\n\r\n"
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side
     assert_equal "HTTP/1.1 505\r\nTransfer-Encoding: chunked\r\n\r\n1a\r\nHTTP version not supported\r\n0\r\n\r\n", response
 
     setup
 
     write_http_request "GET / HTTP/1.0\r\n\r\n"
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side
     assert_equal "HTTP/1.1 505\r\nTransfer-Encoding: chunked\r\n\r\n1a\r\nHTTP version not supported\r\n0\r\n\r\n", response
 
@@ -69,7 +69,7 @@ class ServerConnectionTest < Minitest::Test
 
     @hook = ->(req) { req.respond('hi') }
     write_http_request "GET / HTTP/1.1\r\n\r\n"
-    @adapter.serve_request
+    @connection.serve_request
     @machine.close(@s_fd)
     response = read_client_side
     assert_equal "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n2\r\nhi\r\n0\r\n\r\n", response
@@ -78,7 +78,7 @@ class ServerConnectionTest < Minitest::Test
   def test_basic_request_parsing
     write_http_request "GET / HTTP/1.1\r\n\r\n"
 
-    @adapter.serve_request
+    @connection.serve_request
     assert_equal 1, @reqs.size
     req = @reqs.shift
     headers = req.headers
@@ -101,7 +101,7 @@ class ServerConnectionTest < Minitest::Test
     HTTP
     write_http_request msg
 
-    @adapter.run
+    @connection.run
     assert_equal 2, @reqs.size
     req0 = @reqs.shift
     headers = req0.headers
@@ -137,7 +137,7 @@ class ServerConnectionTest < Minitest::Test
     @bodies = []
     @hook = ->(req) { @bodies << req.read }
 
-    @adapter.run
+    @connection.run
     assert_equal 2, @reqs.size
 
     req0 = @reqs.shift
@@ -195,7 +195,7 @@ class ServerConnectionTest < Minitest::Test
     @bodies = []
     @hook = ->(req) { @bodies << req.read }
 
-    @adapter.run
+    @connection.run
     assert_equal 2, @reqs.size
 
     req0 = @reqs.shift
@@ -247,7 +247,7 @@ class ServerConnectionTest < Minitest::Test
     chunks = []
     @hook = ->(req) { req.each_chunk { chunks << it } }
 
-    @adapter.serve_request
+    @connection.serve_request
     assert_equal 1, @reqs.size
 
     req0 = @reqs.shift
@@ -263,7 +263,7 @@ class ServerConnectionTest < Minitest::Test
     assert_equal ['abc', 'de'], chunks
 
     chunks.clear
-    @adapter.serve_request
+    @connection.serve_request
     assert_equal 1, @reqs.size
 
     req1 = @reqs.shift
@@ -285,7 +285,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_http_request "GET / HTTP/1.1\r\n\r\n"
-    @adapter.run
+    @connection.run
     response = read_client_side
 
     expected = <<~HTTP.crlf_lines
@@ -305,7 +305,7 @@ class ServerConnectionTest < Minitest::Test
 
     # using HTTP 1.0, server should close connection after responding
     write_http_request "GET / HTTP/1.1\r\n\r\n"
-    @adapter.run
+    @connection.run
 
     response = read_client_side
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\nd\r\nHello, world!\r\n0\r\n\r\n"
@@ -318,14 +318,14 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_http_request "GET / HTTP/1.1\r\nConnection: close\r\n\r\n", false
-    res = @adapter.serve_request
+    res = @connection.serve_request
     assert_equal false, res
 
     response = read_client_side
     assert_equal("HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n2\r\nHi\r\n0\r\n\r\n", response)
 
     write_http_request "GET / HTTP/1.1\r\n\r\n", false
-    res = @adapter.serve_request
+    res = @connection.serve_request
     assert_equal true, res
 
     response = read_client_side
@@ -344,7 +344,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_http_request "GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\nFoo: bar\r\n\r\n"
-    @adapter.run
+    @connection.run
     response = read_client_side
 
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\nd\r\nHello, world!\r\n0\r\n\r\n" +
@@ -368,7 +368,7 @@ class ServerConnectionTest < Minitest::Test
 
     msg = "POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n6\r\nfoobar\r\n"
     write_http_request msg, false
-    @machine.spin { @adapter.serve_request rescue nil }
+    @machine.spin { @connection.serve_request rescue nil }
     @machine.sleep(0.01)
 
     assert request
@@ -417,7 +417,7 @@ class ServerConnectionTest < Minitest::Test
 
     msg = "GET / HTTP/1.1\r\nUpgrade: echo\r\nConnection: upgrade\r\n\r\n"
     write_http_request(msg, false)
-    @machine.spin { @adapter.serve_request rescue nil }
+    @machine.spin { @connection.serve_request rescue nil }
     @machine.sleep(0.01)
 
     response = read_client_side
@@ -462,7 +462,7 @@ class ServerConnectionTest < Minitest::Test
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
     @machine.spin do
-      @adapter.serve_request
+      @connection.serve_request
     rescue => e
       p e
       p e.backtrace
@@ -498,7 +498,7 @@ class ServerConnectionTest < Minitest::Test
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
     @machine.spin do
-      @adapter.serve_request
+      @connection.serve_request
     rescue => e
       p e
       p e.backtrace
@@ -531,7 +531,7 @@ class ServerConnectionTest < Minitest::Test
     count = 0
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @machine.spin { @adapter.serve_request }
+    @machine.spin { @connection.serve_request }
 
     while (data = read_client_side(65536))
       response << data
@@ -551,7 +551,7 @@ class ServerConnectionTest < Minitest::Test
     end
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nServer: Syntropy\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -559,7 +559,7 @@ class ServerConnectionTest < Minitest::Test
     @env[:server_headers] = "Server: TP3\r\n"
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nServer: TP3\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -572,7 +572,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -583,7 +583,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar\r\nContent-Type: text/plain\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -597,7 +597,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar\r\nFoo: bar\r\nContent-Type: text/plain\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -610,7 +610,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar; HttpOnly\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -624,7 +624,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: foo=bar; HttpOnly\r\nSet-Cookie: bar=baz\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response
@@ -640,7 +640,7 @@ class ServerConnectionTest < Minitest::Test
     }
 
     write_client_side("GET / HTTP/1.1\r\n\r\n")
-    @adapter.serve_request
+    @connection.serve_request
     response = read_client_side(65536)
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: a=1\r\nSet-Cookie: b=2\r\nSet-Cookie: c=3\r\nSet-Cookie: d=4\r\nSet-Cookie: e=5\r\n\r\n3\r\nfoo\r\n0\r\n\r\n"
     assert_equal expected, response

@@ -10,16 +10,15 @@ module Syntropy
     # body is sent exclusively using chunked transfer encoding. Request bodies are
     # accepted using either fixed length (Content-Length header) or chunked
     # transfer encoding.
-    class Connection
+    class ServerConnection
       attr_reader :fd, :response_headers, :logger
 
-      def initialize(server, machine, fd, env, &app)
-        @server = server
+      def initialize(machine, fd, env, io_mode: :socket, &app)
         @machine = machine
         @fd = fd
         @env = env
         @logger = env[:logger]
-        @io = machine.io(fd, :socket)
+        @io = machine.io(fd, io_mode)
         @app = app
 
         @done = nil

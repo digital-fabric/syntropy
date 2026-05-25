@@ -119,13 +119,13 @@ module Syntropy
       end
 
       def accept_incoming(listen_fd)
-        @machine.accept_each(listen_fd) { start_client_connection(it) }
+        @machine.accept_each(listen_fd) { start_connection(it) }
       rescue UM::Terminate
         # terminated
       end
 
-      def start_client_connection(fd)
-        conn = Connection.new(self, @machine, fd, @env, &@app)
+      def start_connection(fd)
+        conn = ServerConnection.new(@machine, fd, @env, &@app)
         f = @machine.spin(conn) do
           it.run
         ensure
