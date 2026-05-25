@@ -5,9 +5,12 @@ require 'syntropy/errors'
 module Syntropy
   module HTTP
     module ProtocolMethods
-      RE_REQUEST_LINE = /^([a-z]+)\s+([^\s]+)\s+http\/([019\.]{1,3})/i
+      RE_REQUEST_LINE = /^([a-z]+)\s+([^\s]+)\s+HTTP\/([019\.]{1,3})/i
+      RE_RESPONSE_LINE = /^HTTP\/1\.1\s+(\d{3})(\s+.+)?$/i
       RE_HEADER_LINE = /^([a-z0-9-]+):\s+(.+)/i
+
       MAX_REQUEST_LINE_LEN = 1 << 14 # 16KB
+      MAX_RESPONSE_LINE_LEN = 1 << 8 # 256
       MAX_HEADER_LINE_LEN = 1 << 10 # 1KB
       MAX_CHUNK_SIZE_LEN = 16
 
@@ -36,6 +39,36 @@ module Syntropy
           raise ProtocolError, "Invalid header: #{line[0..2047].inspect}" if !m
 
           headers[m[1].downcase] = m[2]
+        end
+
+        headers
+      end
+
+      def http_read_response_headers
+        line = read_line(MAX_RESPONSE_LINE_LEN)
+        return nil if !line
+
+        m = line.match(RE_RESPONSE_LINE)
+        raise ProtocolError, 'Invalid response line' if !m
+
+        headers = {
+          ':status'   => m[1].to_i
+        }
+
+        loop do
+          line = read_line(MAX_HEADER_LINE_LEN)
+          break if line.nil? || line.empty?
+
+          m = line.match(RE_HEADER_LINE)
+          raise ProtocolError, "Invalid header: #{line[0..2047].inspect}" if !m
+
+          k = m[1].downcase
+          if (h = headers[k])
+            (h = headers[k] = [h]) if !h.is_a?(Array)
+            h << m[2]
+          else
+            headers[k] = m[2]
+          end
         end
 
         headers
@@ -71,6 +104,24 @@ module Syntropy
         return http_read_cte_chunk(nil) if chunked_encoding
 
         nil
+      end
+
+      def http_write_request_headers(headers)
+        method = headers[':method'] || (raise BadRequestError)
+        path = headers[':path'] || (raise BadRequestError)
+
+        lines = ["#{method} #{path} HTTP/1.1\r\n"]
+        headers.each do |k, v|
+          next if k =~ /^\:/
+
+          if v.is_a?(Array)
+            v.each { lines << "#{k}: #{it}\r\n" }
+          else
+            lines << "#{k}: #{v}\r\n"
+          end
+        end
+        lines << "\r\n"
+        write(*lines)
       end
 
       private
