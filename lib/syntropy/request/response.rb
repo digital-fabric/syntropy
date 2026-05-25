@@ -179,7 +179,7 @@ module Syntropy
       end
     end
 
-    def html_response(html, **headers)
+    def respond_html(html, **headers)
       respond(
         html,
         'Content-Type' => 'text/html; charset=utf-8',
@@ -187,7 +187,7 @@ module Syntropy
       )
     end
 
-    def json_response(obj, **headers)
+    def respond_json(obj, **headers)
       respond(
         JSON.dump(obj),
         'Content-Type' => 'application/json; charset=utf-8',

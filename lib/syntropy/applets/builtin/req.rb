@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 export ->(req) {
-  req.json_response({
+  req.respond_json({
     headers: req.headers
   })
 }

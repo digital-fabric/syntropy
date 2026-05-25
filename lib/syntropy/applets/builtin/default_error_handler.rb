@@ -43,7 +43,7 @@ def error_response_html(req, error)
   status = Syntropy::Error.http_status(error)
   backtrace = transform_backtrace(error.backtrace)
   html = Papercraft.html(ErrorPage, error:, status:, backtrace:)
-  req.html_response(html, ':status' => status)
+  req.respond_html(html, ':status' => status)
 end
 
 def error_response_raw(req, error)

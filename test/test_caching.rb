@@ -40,7 +40,7 @@ class CachingTest < Minitest::Test
     @app = Syntropy::App.new(**@env)
 
     @c_fd, @s_fd = make_socket_pair
-    @adapter = Syntropy::HTTP::Connection.new(nil, @machine, @s_fd, @env) { @app.(it) }
+    @adapter = Syntropy::HTTP::ServerConnection.new(@machine, @s_fd, @env) { @app.(it) }
   end
 
   def teardown
