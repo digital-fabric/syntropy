@@ -121,7 +121,7 @@ module Syntropy
       def accept_incoming(listen_fd)
         @machine.accept_each(listen_fd) { start_connection(it) }
       rescue UM::Terminate
-        # terminated
+        @machine.shutdown(listen_fd, UM::SHUT_RD)
       end
 
       def start_connection(fd)

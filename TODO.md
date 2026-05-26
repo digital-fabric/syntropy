@@ -1,5 +1,28 @@
 ## Immediate
 
+- [ ] HTTP Client API
+
+  We want something that is simple enough, yet could be enhanced in the future to include:
+
+  - session management
+  - caching
+  - etc.
+
+  We start with a simple API:
+
+  ```ruby
+  Syntropy::HTTP.get('https://foo.com/bar')
+  Syntropy::HTTP.get(
+    'https://foo.com/bar',
+    headers: { ... }
+  )
+  Syntropy::HTTP.post(
+    'https://foo.com/bar',
+    body: 'baz'
+  )
+  Syntropy::HTTP.post('https://foo.com/bar') { it << 'baz' }
+  ```
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
