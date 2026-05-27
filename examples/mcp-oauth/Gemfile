@@ -1,0 +1,8 @@
+source 'https://gem.coop'
+
+gem 'syntropy', path: '../..'
+gem 'jwt'
+
+group :development do
+  gem 'minitest'
+end
