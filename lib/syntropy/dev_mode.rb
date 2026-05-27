@@ -4,7 +4,7 @@ TAG_DEBUG_PROC = ->(level, fn, line, col) {
   {
     'data-syntropy-level' => level,
     'data-syntropy-fn'    => fn,
-    'data-syntropy-loc'   => "vscode://file/#{fn}:#{line}:#{col}"
+    'data-syntropy-loc'   => "zed://file/#{fn}:#{line}:#{col}"
   }
 }
 

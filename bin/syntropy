@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'syntropy'
+require_relative '../lib/syntropy'
 require 'optparse'
 
 env = {

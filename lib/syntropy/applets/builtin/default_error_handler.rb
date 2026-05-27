@@ -32,7 +32,7 @@ def transform_backtrace(backtrace)
   backtrace.map do
     if (m = it.match(/^(.+:\d+):/))
       location = m[1]
-      { entry: it, url: "vscode://file/#{location}" }
+      { entry: it, url: "zed://file/#{location}" }
     else
       { entry: it, url: nil }
     end
