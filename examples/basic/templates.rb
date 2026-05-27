@@ -32,7 +32,7 @@ export template {
 
       Card()
     }
-    auto_refresh_watch!
+    auto_refresh!
     debug_template!
   }
 }

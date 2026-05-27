@@ -3,7 +3,7 @@
 require 'papercraft'
 
 Papercraft.extension(
-  'auto_refresh_watch!': ->(loc = '/.syntropy') {
+  'auto_refresh!': ->(loc = '/.syntropy') {
     if $syntropy_dev_mode
       script(src: File.join(loc, 'auto_refresh/watch.js'), type: 'module')
     end

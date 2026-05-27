@@ -52,6 +52,6 @@ end
         }
       }
     }
-    auto_refresh_watch!
+    auto_refresh!
   }
 }

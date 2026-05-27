@@ -18,6 +18,6 @@ export template {
       div { font-weight: bold; font-size: 1.3em }
       value { display: inline-block; padding: 0 1em; color: blue; width: 1em }
     CSS
-    auto_refresh_watch!
+    auto_refresh!
   }
 }
