@@ -34,6 +34,16 @@ module Syntropy
       @scheme ||= @headers[':scheme']
     end
 
+    def content_type
+      ct = @headers['content-type']
+      return nil if !ct
+
+      m = ct.match(/^([^;]+)/)
+      return nil if !m
+
+      m[1].strip
+    end
+
     # Rewrites the request path by replacing the given src with the given
     # replacement.
     #

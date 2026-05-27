@@ -42,7 +42,13 @@ module Syntropy
     end
 
     def response_content_type
-      response_headers['Content-Type']
+      ct = response_headers['Content-Type']
+      return nil if !ct
+
+      m = ct.match(/^([^;]+)/)
+      return nil if !m
+
+      m[1]
     end
   end
 end

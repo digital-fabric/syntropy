@@ -84,4 +84,10 @@ module Syntropy
 
   class BadRequestError < Error
   end
+
+  class InvalidRequestContentTypeError < Error
+    def http_status
+      HTTP::UNSUPPORTED_MEDIA_TYPE
+    end
+  end
 end

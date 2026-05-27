@@ -18,6 +18,13 @@ module Syntropy
       raise Syntropy::Error.method_not_allowed
     end
 
+    def validate_content_type(*accepted)
+      ct = content_type
+      return ct if accepted.include?(ct)
+
+      raise Syntropy::InvalidRequestContentTypeError
+    end
+
     # Validates and optionally converts request parameter value for the given
     # parameter name against the given clauses. If no clauses are given,
     # verifies the parameter value is not nil. A clause can be a class, such as
