@@ -32,25 +32,6 @@ module Syntropy
     end
   end
 
-  def colorize(color_code)
-    "\e[#{color_code}m#{self}\e[0m"
-  end
-
-  GREEN = "\e[32m"
-  CLEAR = "\e[0m"
-  YELLOW = "\e[33m"
-
-  BANNER =
-    "\n"\
-    "  #{GREEN}\n"\
-    "  #{GREEN} ooo\n"\
-    "  #{GREEN}ooooo\n"\
-    "  #{GREEN} ooo vvv       #{CLEAR}Syntropy - a web framework for Ruby\n"\
-    "  #{GREEN}  o vvvvv     #{CLEAR}--------------------------------------\n"\
-    "  #{GREEN}  #{YELLOW}|#{GREEN}  vvv o    #{CLEAR}https://github.com/digital-fabric/syntropy\n"\
-    "  #{GREEN} :#{YELLOW}|#{GREEN}:::#{YELLOW}|#{GREEN}::#{YELLOW}|#{GREEN}:\n"\
-    "#{YELLOW}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\e[0m\n\n"
-
   class << self
     def run(env = {}, &app)
       if @in_run
@@ -63,7 +44,6 @@ module Syntropy
       begin
         @in_run = true
         machine = env[:machine] || UM.new
-        machine.puts(env[:banner]) if env[:banner]
 
         env[:logger]&.info(message: "Running Syntropy #{Syntropy::VERSION}, UringMachine #{UM::VERSION}, Ruby #{RUBY_VERSION}")
 
