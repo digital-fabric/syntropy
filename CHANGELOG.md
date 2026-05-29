@@ -1,3 +1,20 @@
+# 0.31.0 2026-05-29
+
+- Add message kwarg to `Request#validate`
+- Reraise internal server error in test mode
+- Use strings rather than symbols for query keys
+- Add content type validation
+- Add syntropy CLI commands: serve, test, help
+- Rename `#auto_refresh_watch!` to `#auto_refresh!`
+- Use `zed` instead of `vscode` scheme for editor links (in HTML-rendered error
+  backtraces)
+- Implement basic `HTTP::Client` API
+- Rename `#json_response` to `#respond_json`, `#html_response` to
+  `#respond_html`
+- Rename `HTTP::Connection` to `HTTP::ServerConnection`
+- Refactor HTTP protocol into UM::IO extensions
+- Fix routing for files/dirs starting with . (e.g. /.well-known/*)
+
 # 0.30.0 2026-05-10
 
 - Refactor HTTP modules
