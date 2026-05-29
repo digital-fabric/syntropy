@@ -2,6 +2,13 @@ AuthStore = import '../_lib/auth_store'
 
 # https://datatracker.ietf.org/doc/html/rfc6749#section-3.1
 export ->(req) {
+  req.validate_http_method('get')
+  params = req.query
+  req.validate(params['response_type'], 'code')
+
+  client_info = AuthStore.fetch(params['client_id'])
+  req.validate(client_info, Hash)
+
   # GET /oauth/authorize?
   # response_type=code
   # client_id=mcp_client_xyz789
@@ -14,6 +21,6 @@ export ->(req) {
   req.respond(nil, {
     ':status' => Syntropy::HTTP::FOUND,
     'Location' => '/signin',
-    'Set-Cookie' => "auth_tmp_key=#{key}"
+    'Set-Cookie' => "oauth_signin_id=#{key}"
   })
 }

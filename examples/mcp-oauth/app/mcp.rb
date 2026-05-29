@@ -1,4 +1,7 @@
 export ->(req) {
+  req.validate_http_method('post')
+  req.validate_content_type('application/json')
+
   if valid_token?(req)
     respond_authorized(req)
   else

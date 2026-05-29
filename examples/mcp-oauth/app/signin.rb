@@ -17,15 +17,43 @@ end
 
 def validate_signin(req)
   creds = req.get_form_data
-  if valid_creds(creds)
-    auth_key = req.cookies['auth_tmp_key']
-    req.respond(
-      ':status' => Syntropy::HTTP::FOUND,
-      'Location' => ''
+
+  if !valid_creds?(creds)
+    req.respond_html(
+      @signin_form.render,
+      ':status' => Syntropy::HTTP::UNAUTHORIZED
     )
-  else
-    req.respond_html(signin_form.render)
+    return
   end
+
+  sid = AuthStore.store({
+    username: creds['username'],
+    timestamp: Time.now.to_i
+  })
+
+  oauth_signin_id = req.cookies['oauth_signin_id']
+  if oauth_signin_id
+    auth_info = AuthStore.fetch(oauth_signin_id)
+    AuthStore.update(oauth_signin_id, auth_info.merge('sid' => sid))
+    req.validate(auth_info, Hash)
+    req.respond(
+      nil,
+      ':status'     => Syntropy::HTTP::SEE_OTHER,
+      'Location'    => '/oauth/consent',
+    )
+    return
+  end
+
+  req.respond(
+      nil,
+      ':status'     => Syntropy::HTTP::SEE_OTHER,
+      'Location'    => '/',
+      'Set-Cookie'  => "sid=#{sid}"
+    )
+end
+
+def valid_creds?(creds)
+  (creds['username'] == 'foobar') && (creds['password'] == 'foobar')
 end
 
 @signin_form = template {
@@ -36,7 +64,7 @@ end
     body {
       h1 'Sign in:'
 
-      form(action: '') {
+      form(method: 'post') {
         div {
           label 'username:', for: 'username'
           input type: 'text', name: 'username', required: true
