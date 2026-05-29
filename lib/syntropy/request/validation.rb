@@ -54,12 +54,12 @@ module Syntropy
     # @param value [any] value
     # @clauses [Array] one or more validation clauses
     # @return [any] validated value
-    def validate(value, *clauses)
-      raise Syntropy::ValidationError, 'Validation error' if clauses.empty? && !value
+    def validate(value, *clauses, message: 'Validation error')
+      raise Syntropy::ValidationError, message if clauses.empty? && !value
 
       clauses.each do |c|
         valid = param_is_valid?(value, c)
-        raise(Syntropy::ValidationError, 'Validation error') if !valid
+        raise(Syntropy::ValidationError, message) if !valid
 
         value = param_convert(value, c)
       end
