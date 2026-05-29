@@ -35,6 +35,7 @@ module Syntropy
     end
 
     attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :env
+    attr_accessor :test_mode
 
     def initialize(**env)
       @machine = env[:machine]
@@ -450,18 +451,28 @@ module Syntropy
     end
 
     RAW_DEFAULT_ERROR_HANDLER = ->(req, err) {
+      status = Syntropy::Error.http_status(err)
+
       msg = err.message
       msg = nil if msg.empty? || (req.method == 'head')
-      req.respond(msg, ':status' => Syntropy::Error.http_status(err)) rescue nil
+      req.respond(msg, ':status' => status) rescue nil
+    }
+
+    TEST_MODE_DEFAULT_ERROR_HANDLER = ->(req, err) {
+      status = Syntropy::Error.http_status(err)
+      raise if status == HTTP::INTERNAL_SERVER_ERROR
+
+      msg = err.message
+      msg = nil if msg.empty? || (req.method == 'head')
+      req.respond(msg, ':status' => status) rescue nil
     }
 
     def default_error_handler
-
       @default_error_handler ||= begin
         if @builtin_applet
           @builtin_applet.module_loader.load('/default_error_handler')
         else
-          RAW_DEFAULT_ERROR_HANDLER
+          @test_mode ? TEST_MODE_DEFAULT_ERROR_HANDLER : RAW_DEFAULT_ERROR_HANDLER
         end
       end
     end

@@ -8,6 +8,7 @@ module Syntropy
   class TestHarness
     def initialize(app)
       @app = app
+      @app.test_mode = true
     end
 
     def request(headers, body = nil)
