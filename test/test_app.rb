@@ -56,28 +56,28 @@ class AppTest < Minitest::Test
     assert_equal HTTP::NOT_FOUND, req.response_status
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/api?q=get')
-    assert_equal({ status: 'OK', response: 0 }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => 0 }, req.response_json)
 
     req = @test_harness.request(':method' => 'POST', ':path' => '/test/api?q=get')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
-    assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
+    assert_equal({ 'status' => 'Error', 'message' => 'Method not allowed' }, req.response_json)
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/api/foo?q=get')
-    assert_equal({ status: 'OK', response: 0 }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => 0 }, req.response_json)
 
     req = @test_harness.request(':method' => 'POST', ':path' => '/test/api?q=incr')
-    assert_equal({ status: 'OK', response: 1 }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => 1 }, req.response_json)
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/api?q=incr')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
-    assert_equal({ status: 'Error', message: 'Method not allowed' }, req.response_json)
+    assert_equal({ 'status' => 'Error', 'message' => 'Method not allowed' }, req.response_json)
 
     req = @test_harness.request(':method' => 'POST', ':path' => '/test/api/foo?q=incr')
-    assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
+    assert_equal({ 'status' => 'Error', 'message' => 'Teapot' }, req.response_json)
     assert_equal HTTP::TEAPOT, req.response_status
 
     req = @test_harness.request(':method' => 'POST', ':path' => '/test/api/foo/bar?q=incr')
-    assert_equal({ status: 'Error', message: 'Teapot' }, req.response_json)
+    assert_equal({ 'status' => 'Error', 'message' => 'Teapot' }, req.response_json)
     assert_equal HTTP::TEAPOT, req.response_status
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/bar')

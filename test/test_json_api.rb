@@ -28,7 +28,7 @@ class JSONAPITest < Minitest::Test
     req = mock_req(':method' => 'GET', ':path' => '/?q=foo')
     @app.call(req)
     assert_equal HTTP::OK, req.response_status
-    assert_equal({ status: 'OK', response: nil }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => nil }, req.response_json)
 
     req = mock_req(':method' => 'POST', ':path' => '/?q=foo')
     @app.call(req)
@@ -38,7 +38,7 @@ class JSONAPITest < Minitest::Test
     req = mock_req(':method' => 'POST', ':path' => '/?q=bar&v=foo')
     @app.call(req)
     assert_equal HTTP::OK, req.response_status
-    assert_equal({ status: 'OK', response: true }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => true }, req.response_json)
 
     req = mock_req(':method' => 'GET', ':path' => '/?q=bar&v=foo')
     @app.call(req)
@@ -47,12 +47,12 @@ class JSONAPITest < Minitest::Test
     req = mock_req(':method' => 'GET', ':path' => '/?q=foo')
     @app.call(req)
     assert_equal HTTP::OK, req.response_status
-    assert_equal({ status: 'OK', response: 'foo' }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => 'foo' }, req.response_json)
 
     req = mock_req(':method' => 'GET', ':path' => '/?q=foo')
     @app.call(req)
     assert_equal HTTP::OK, req.response_status
-    assert_equal({ status: 'OK', response: 'foo' }, req.response_json)
+    assert_equal({ 'status' => 'OK', 'response' => 'foo' }, req.response_json)
 
     req = mock_req(':method' => 'GET', ':path' => '/?q=xxx')
     @app.call(req)

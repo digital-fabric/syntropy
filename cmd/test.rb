@@ -25,9 +25,9 @@ Dir.glob("./test/test_*.rb").each { require(it) }
 
 def watch_for_file_changes
   m = UM.new
-  puts "Waiting for file changes..."
-  m.file_watch('.', UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) { |e|
-    puts "Detected file changes, restarting"
+  puts "Waiting for file changes in #{FileUtils.pwd}"
+  m.file_watch(FileUtils.pwd, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) {
+    puts "Detected changes to #{it[:fn]}, restarting"
     break
   }
 end

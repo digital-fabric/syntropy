@@ -38,7 +38,7 @@ module Syntropy
 
     def response_json
       raise if response_content_type != 'application/json'
-      JSON.parse(response_body, symbolize_names: true)
+      JSON.parse(response_body)
     end
 
     def response_content_type
@@ -46,6 +46,16 @@ module Syntropy
       return nil if !ct
 
       m = ct.match(/^([^;]+)/)
+      return nil if !m
+
+      m[1]
+    end
+
+    def response_cookie(name)
+      sc = response_headers['Set-Cookie']
+      return nil if !sc
+
+      m = sc.match(/#{name}=([^\s]+)$/)
       return nil if !m
 
       m[1]

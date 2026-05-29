@@ -42,6 +42,8 @@ module Syntropy
     end
 
     def status
+      raise 'No response' if !response_headers
+
       response_headers[':status'] || HTTP::OK
     end
 
