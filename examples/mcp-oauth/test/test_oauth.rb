@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
+require 'base64'
+require 'digest'
 
 class OAuthBaseTest < Minitest::Test
   APP_ROOT = File.expand_path(File.join(__dir__, '../app'))
@@ -416,5 +418,211 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
 
     code_info = @store.fetch(q['code'])
     assert_equal auth_params, code_info
+  end
+end
+
+class OAuthPhase4AuthorizationTest < OAuthBaseTest
+  def setup
+    super
+    @client_info = {
+      "client_name"   => "My AI Agent",
+      "redirect_uris" => ["http://localhost:8400/callback"],
+      "grant_types"   => ["authorization_code", "refresh_token"]
+    }
+    @client_id = @store.store(@client_info)
+
+    @session_info = {
+      username: 'foobar'
+    }
+    @sid = @store.store(@session_info)
+
+    @code_verifier = SecureRandom.hex(16)
+    @code_challenge = Base64.urlsafe_encode64(Digest::SHA256.digest(@code_verifier), padding: false)
+
+    @auth_params = {
+      'response_type'         => 'code',
+      'client_id'             => @client_id,
+      'redirect_uri'          => 'http://localhost:4321/callback',
+      'code_challenge'        => @code_challenge,
+      'code_challenge_method' => 'S256',
+      'state'                 => 'my_state',
+      'sid'                   => @sid
+    }
+    @auth_code = @store.store(@auth_params)
+  end
+
+  def test_oauth_token_exchange
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'authorization_code',
+        code: @auth_code,
+        redirect_uri: 'http://localhost:4321/callback',
+        client_id: @client_id,
+        code_verifier: @code_verifier
+      )
+    )
+
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    at = json['access_token']
+    assert_kind_of String, at
+    token_info = @store.fetch(at)
+    refute_nil token_info
+    assert_equal @session_info[:username], token_info[:username]
+    assert_equal 'oauth', token_info[:type]
+
+    assert_equal 'Bearer', json['token_type']
+    assert_kind_of Integer, json['expires_in']
+  end
+
+  def test_oauth_token_exchange_missing_params
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form({}
+        # grant_type: 'authorization_code',
+        # code: auth_code,
+        # redirect_uri: 'http://localhost:4321/callback',
+        # client_id: client_id,
+        # code_verifier: code_verifier
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'invalid_request', error
+  end
+
+  def test_oauth_token_exchange_invalid_grant_type
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'foo',
+        code: @auth_code,
+        redirect_uri: 'http://localhost:4321/callback',
+        client_id: @client_id,
+        code_verifier: @code_verifier
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'unsupported_grant_type', error
+  end
+
+  def test_oauth_token_exchange_invalid_code
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'authorization_code',
+        code: @auth_code + '!',
+        redirect_uri: 'http://localhost:4321/callback',
+        client_id: @client_id,
+        code_verifier: @code_verifier
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'invalid_request', error
+  end
+
+  def test_oauth_token_exchange_invalid_redirect_uri
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'authorization_code',
+        code: @auth_code,
+        redirect_uri: 'http://localhost:4321/foo',
+        client_id: @client_id,
+        code_verifier: @code_verifier
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'invalid_request', error
+  end
+
+  def test_oauth_token_exchange_invalid_client_id
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'authorization_code',
+        code: @auth_code + '!',
+        redirect_uri: 'http://localhost:4321/callback',
+        client_id: @client_id + 'foo',
+        code_verifier: @code_verifier
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'invalid_request', error
+  end
+
+  def test_oauth_token_exchange_invalid_code_verifier
+    req = @test_harness.request(
+      {
+        ':method' => 'POST',
+        ':path'   => '/oauth/token',
+        'content-type'  => 'application/x-www-form-urlencoded'
+      },
+      URI.encode_www_form(
+        grant_type: 'authorization_code',
+        code: @auth_code + '!',
+        redirect_uri: 'http://localhost:4321/callback',
+        client_id: @client_id,
+        code_verifier: @code_verifier + 'abc'
+      )
+    )
+
+    assert_equal HTTP::BAD_REQUEST, req.response_status
+    assert_equal 'application/json', req.response_content_type
+    json = req.response_json
+
+    error = json['error']
+    assert_equal 'invalid_request', error
   end
 end
