@@ -11,7 +11,7 @@ class JSONAPITest < Minitest::Test
     end
 
     def bar!(req)
-      @value = req.query[:v]
+      @value = req.query['v']
       true
     end
   end

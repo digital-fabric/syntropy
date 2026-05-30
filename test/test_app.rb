@@ -114,7 +114,9 @@ class AppTest < Minitest::Test
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/rss')
     assert_equal '<link>foo</link>', req.response_body
 
-    req = @test_harness.request(':method' => 'GET', ':path' => '/test/bad_mod')
+    req = @test_harness.no_raise_internal_server_error {
+      @test_harness.request(':method' => 'GET', ':path' => '/test/bad_mod')
+    }
     assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/.well-known/foo')

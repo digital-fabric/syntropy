@@ -35,7 +35,7 @@ module Syntropy
     end
 
     attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :env
-    attr_accessor :test_mode
+    attr_accessor :raise_on_internal_server_error
 
     def initialize(**env)
       @machine = env[:machine]
@@ -458,7 +458,7 @@ module Syntropy
       req.respond(msg, ':status' => status) rescue nil
     }
 
-    TEST_MODE_DEFAULT_ERROR_HANDLER = ->(req, err) {
+    RAISE_INTERNAL_SERVER_ERROR_DEFAULT_ERROR_HANDLER = ->(req, err) {
       status = Syntropy::Error.http_status(err)
       raise if status == HTTP::INTERNAL_SERVER_ERROR
 
@@ -471,8 +471,10 @@ module Syntropy
       @default_error_handler ||= begin
         if @builtin_applet
           @builtin_applet.module_loader.load('/default_error_handler')
+        elsif @raise_on_internal_server_error
+          RAISE_INTERNAL_SERVER_ERROR_DEFAULT_ERROR_HANDLER
         else
-          @test_mode ? TEST_MODE_DEFAULT_ERROR_HANDLER : RAW_DEFAULT_ERROR_HANDLER
+          RAW_DEFAULT_ERROR_HANDLER
         end
       end
     end

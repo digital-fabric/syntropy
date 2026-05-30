@@ -10,20 +10,20 @@ class RequestInfoTest < Minitest::Test
 
     r = Syntropy::MockAdapter.mock(':path' => '/test/path?a=1&b=2&c=3%2f4')
     assert_equal '/test/path', r.path
-    assert_equal({ a: '1', b: '2', c: '3/4' }, r.query)
+    assert_equal({ 'a' => '1', 'b' => '2', 'c' => '3/4' }, r.query)
   end
 
   def test_query
     r = Syntropy::MockAdapter.mock(':path' => '/GponForm/diag_Form?images/')
     assert_equal '/GponForm/diag_Form', r.path
-    assert_equal({:'images/' => true}, r.query)
+    assert_equal({ 'images/' => true }, r.query)
 
     r = Syntropy::MockAdapter.mock(':path' => '/?a=1&b=2')
     assert_equal '/', r.path
-    assert_equal({a: '1', b: '2'}, r.query)
+    assert_equal({ 'a' => '1', 'b' => '2'}, r.query)
 
     r = Syntropy::MockAdapter.mock(':path' => '/?l=a&t=&x=42')
-    assert_equal({l: 'a', t: '', x: '42'}, r.query)
+    assert_equal({ 'l' => 'a', 't' => '', 'x' => '42'}, r.query)
   end
 
   def test_host

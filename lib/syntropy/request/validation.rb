@@ -40,7 +40,7 @@ module Syntropy
     # @clauses [Array] one or more validation clauses
     # @return [any] validated parameter value
     def validate_param(name, *clauses)
-      validate(query[name], *clauses)
+      validate(query[name.to_s], *clauses)
     end
 
     # Validates and optionally converts a value against the given clauses. If no

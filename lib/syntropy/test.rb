@@ -8,7 +8,7 @@ module Syntropy
   class TestHarness
     def initialize(app)
       @app = app
-      @app.test_mode = true
+      @app.raise_internal_server_error = true if @app.respond_to?(:raise_internal_server_error=)
     end
 
     def request(headers, body = nil)
@@ -16,6 +16,18 @@ module Syntropy
       @app.call(req)
       req
     end
+
+    def no_raise_internal_server_error
+      return yield if !@app.respond_to?(:raise_internal_server_error=)
+
+      begin
+        @app.raise_internal_server_error = false
+        yield
+      ensure
+        @app.raise_internal_server_error = true
+      end
+    end
+
 
     private
 
