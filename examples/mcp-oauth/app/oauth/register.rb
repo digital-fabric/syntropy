@@ -4,7 +4,6 @@ AuthStore = import '../_lib/auth_store'
 export ->(req) {
   req.validate_http_method('post')
   req.validate_content_type('application/json')
-
   client_info = JSON.parse(req.read)
   client_id = AuthStore.store(client_info)
 
