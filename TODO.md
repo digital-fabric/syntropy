@@ -1,5 +1,7 @@
 ## Immediate
 
+- [ ] `Syntropy::DB::Connection`
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
@@ -39,9 +41,15 @@
 - [ ] Website
 - [v] Frontend part of JSON API
 - [v] Auto-refresh page when file changes
+- [ ] SQLite database capabilities
+  - [ ] Model API + tools
+    - [ ] Do we need/want migrations?
+  - [ ] Stores
+    - [ ] KV store (with TTL)
 - [v] Examples
   - [v] Reactive app - counter or some other simple app showing interaction with
     server
+  - [ ] blog
 
 ## Testing facilities
 
@@ -49,7 +57,7 @@
   - Routes
   - Route responses
   - Changes to state / DB
-  -
+  - Rendered HTML - presence of certain markup / elements / text
 
 ## Support for applets
 

@@ -69,7 +69,7 @@ This app implements a site that includes an MCP server with OAuth 2.1 authorizat
   ```
   HTTP/1.1 201 Created
   Content-Type: application/json
-  
+
   {
     "client_id": "mcp_client_xyz789",
     "client_name": "Cursor AI Agent",
@@ -102,7 +102,7 @@ This app implements a site that includes an MCP server with OAuth 2.1 authorizat
   POST /oauth/token HTTP/1.1
   Host: auth.example.com
   Content-Type: application/x-www-form-urlencoded
-  
+
   grant_type=authorization_code&code=splat-auth-code-123&redirect_uri=http%3A%2F%2Flocalhost%3A8400%2Fcallback&client_id=mcp_client_xyz789&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
   ```
 
@@ -112,7 +112,7 @@ This app implements a site that includes an MCP server with OAuth 2.1 authorizat
   ```
   HTTP/1.1 200 OK
   Content-Type: application/json
-  
+
   {
     "access_token": "mcp_access_token_abc123",
     "token_type": "Bearer",
