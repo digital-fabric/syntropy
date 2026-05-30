@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'extralite',     '~>2.14'
   s.add_dependency 'papercraft',    '~>3.2.0'
   s.add_dependency 'uringmachine',  '~>1.0.2'
-  s.add_dependency 'escape_utils',  '1.3.0'
 
   s.add_dependency 'json'
   s.add_dependency 'logger'

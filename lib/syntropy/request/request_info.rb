@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'uri'
-require 'escape_utils'
 
 module Syntropy
   module RequestInfoMethods
@@ -122,7 +121,7 @@ module Syntropy
         raise BadRequestError, 'Invalid cookie format' unless c.strip =~ COOKIE_RE
 
         key, value = Regexp.last_match[1..2]
-        h[key] = EscapeUtils.unescape_uri(value)
+        h[key] = URI.decode_www_form_component(value)
       end
     end
 
@@ -248,7 +247,7 @@ module Syntropy
         v = Regexp.last_match(2)
         raise BadRequestError, 'Invalid parameter size' if v && v.size > MAX_PARAMETER_VALUE_SIZE
 
-        m[EscapeUtils.unescape_uri(k)] = v ? EscapeUtils.unescape_uri(v) : true
+        m[URI.decode_www_form_component(k)] = v ? URI.decode_www_form_component(v) : true
       end
     end
   end

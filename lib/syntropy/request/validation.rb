@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'uri'
-require 'escape_utils'
 
 module Syntropy
   module RequestValidationMethods
