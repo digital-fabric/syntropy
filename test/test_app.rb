@@ -311,3 +311,24 @@ class AppDependenciesTest < Minitest::Test
     assert_equal HTTP::OK, req.response_status
   end
 end
+
+class AppSetupTest < Minitest::Test
+  HTTP = Syntropy::HTTP
+
+  APP_ROOT = File.join(__dir__, 'app_setup')
+
+  def test_app_setup
+    foo = { foo: 'foo' }
+    bar = { bar: 'bar' }
+
+    @machine = UM.new
+
+    @app = Syntropy::App.new(
+      root_dir: APP_ROOT,
+      mount_path: '/test',
+      machine: @machine
+    )
+
+    assert_equal true, @app.env[:setup_imported]
+  end
+end

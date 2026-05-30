@@ -37,10 +37,13 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [any] export value
-    def load(ref)
+    def load(ref, raise_on_missing: true)
       ref = "/#{ref}" if ref !~ /^\//
 
-      entry = (@modules[ref] ||= load_module(ref))
+      entry = load_module(ref, raise_on_missing:)
+      return if !entry
+
+      @modules[ref] ||= entry
       entry[:export_value]
     end
 
@@ -101,17 +104,23 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [Hash] module entry
-    def load_module(ref)
+    def load_module(ref, raise_on_missing: true)
       ref = "/#{ref}" if ref !~ /^\//
       fn = File.expand_path(File.join(@root_dir, "#{ref}.rb"))
-      raise Syntropy::Error, "File not found #{fn}" if !File.file?(fn)
+      if !File.file?(fn)
+        raise Syntropy::Error, "File not found #{fn}" if raise_on_missing
+
+        return
+      end
 
       @fn_map[fn] = ref
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
       mod = Syntropy::Module.load(env, code, fn)
       add_dependencies(ref, mod.__dependencies__)
-      export_value = transform_module_export_value(mod.__export_value__)
+      export_value = transform_module_export_value(
+        mod.__export_value__, raise_on_missing:
+      )
 
       {
         fn: fn,
@@ -133,10 +142,10 @@ module Syntropy
     #
     # @param export_value [any] module's export value
     # @return [any] transformed value
-    def transform_module_export_value(export_value)
+    def transform_module_export_value(export_value, raise_on_missing:)
       case export_value
       when nil
-        raise Syntropy::Error, 'No export found'
+        raise Syntropy::Error, 'No export found' if raise_on_missing
       when String
         ->(req) { req.respond(export_value) }
       when Class
