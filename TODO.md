@@ -1,6 +1,7 @@
 ## Immediate
 
-- [ ] `Syntropy::DB::Connection`
+- [v] `Syntropy::DB::Connection`
+- [ ] `Syntropy::DB::Store`
 
 - [ ] Collection - treat directories and files as collections of data.
 

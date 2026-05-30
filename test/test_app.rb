@@ -330,5 +330,6 @@ class AppSetupTest < Minitest::Test
     )
 
     assert_equal true, @app.env[:setup_imported]
+    assert_equal :foobar, @app.foobar
   end
 end
