@@ -40,6 +40,14 @@ module Syntropy
         with_db { it.execute(sql, *, **) }
       end
 
+      def close
+        while @queue.count > 0
+          db = @machine.shift(@queue)
+          db.close
+          @count -= 1
+        end
+      end
+
       private
 
       def checkout

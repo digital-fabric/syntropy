@@ -2,7 +2,7 @@
 
 require_relative 'helper'
 
-class ConnectionPoolTest < Minitest::Test
+class DBConnectionPoolTest < Minitest::Test
   def setup
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
@@ -12,6 +12,11 @@ class ConnectionPoolTest < Minitest::Test
     @standalone_db = Extralite::Database.new(@fn)
     @standalone_db.execute("create table foo (x,y, z)")
     @standalone_db.execute("insert into foo values (1, 2, 3)")
+  end
+
+  def teardown
+    @standalone_db.close
+    @cp.close
   end
 
   def test_with_db

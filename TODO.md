@@ -1,8 +1,5 @@
 ## Immediate
 
-- [v] `Syntropy::DB::Connection`
-- [ ] `Syntropy::DB::Store`
-
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
