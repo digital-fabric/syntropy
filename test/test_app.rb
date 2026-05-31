@@ -122,6 +122,17 @@ class AppTest < Minitest::Test
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/.well-known/foo')
     assert_equal HTTP::OK, req.response_status
     assert_equal 'foo', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/by_method')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'foo', req.response_body
+
+    req = @test_harness.request(':method' => 'POST', ':path' => '/test/by_method')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'bar', req.response_body
+
+    req = @test_harness.request(':method' => 'DELETE', ':path' => '/test/by_method')
+    assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
   end
 
   def test_automatic_redirect_on_trailing_slash
@@ -131,14 +142,14 @@ class AppTest < Minitest::Test
   end
 
   def test_app_file_watching
-    @machine.sleep 0.3
+    @machine.sleep 0.2
 
     req = @test_harness.request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'foo', req.response_body
 
     orig_body = IO.read(@tmp_fn)
     IO.write(@tmp_fn, orig_body.gsub('foo', 'bar'))
-    @machine.sleep(0.3)
+    @machine.sleep(0.2)
 
     req = @test_harness.request(':method' => 'GET', ':path' => @tmp_path)
     assert_equal 'bar', req.response_body

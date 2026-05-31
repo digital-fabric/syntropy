@@ -298,9 +298,28 @@ module Syntropy
     # environment is based on the module's env merged with the given parameters.
     #
     # @param env [Hash] environment
+    # @return [Syntropy::App]
     def app(**env)
       env = @env.merge(env)
       Syntropy::App.new(**env)
+    end
+
+    # Returns a request handler that handles requests by calling the appropriate
+    # module method (e.g. get, post, etc.)
+    #
+    # @return [Proc]
+    def http_methods
+      ->(req) { route_by_http_method(req) }
+    end
+
+    # Handles the given request by calling the module method corresponding to
+    # the request's HTTP method. If no method is found, raises a
+    # method_not_allowed error.
+    def route_by_http_method(req)
+      sym = req.method.to_sym
+      raise Syntropy::Error.method_not_allowed if !respond_to?(sym)
+
+      send(sym, req)
     end
   end
 end
