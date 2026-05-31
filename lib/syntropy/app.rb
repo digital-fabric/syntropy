@@ -519,17 +519,12 @@ module Syntropy
     #
     # @return [void]
     def file_watcher_loop
-      wf = @env[:watch_files]
-      period = wf.is_a?(Numeric) ? wf : 0.1
-
       @machine.file_watch(@root_dir, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) { |e|
         fn = e[:fn]
         @logger&.info(message: 'File change detected', fn: fn)
         @module_loader.invalidate_fn(fn)
         debounce_file_change
       }
-
-
 
       # Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
       #   @logger&.info(message: 'File change detected', fn: fn)

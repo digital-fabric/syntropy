@@ -29,7 +29,7 @@ parser = OptionParser.new do |o|
 
   o.on('-d', '--dev', 'Development mode') do
     env[:dev_mode] = true
-    env[:watch_files] = 0.1
+    env[:watch_files] = true
   end
 
   o.on('-h', '--help', 'Show this help message') do
