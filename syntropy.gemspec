@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'json'
   s.add_dependency 'logger'
+  s.add_dependency 'irb'
 
   s.add_development_dependency 'minitest',  '~>6.0.1'
   s.add_development_dependency 'rake',      '~>13.3.1'
