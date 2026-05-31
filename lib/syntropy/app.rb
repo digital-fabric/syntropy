@@ -6,7 +6,7 @@ require 'yaml'
 require 'papercraft'
 
 require 'syntropy/errors'
-require 'syntropy/module'
+require 'syntropy/module_loader'
 require 'syntropy/routing_tree'
 require 'syntropy/mime_types'
 

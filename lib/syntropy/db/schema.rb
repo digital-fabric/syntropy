@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'syntropy/module'
-
 module Syntropy
   module DB
     class Schema
