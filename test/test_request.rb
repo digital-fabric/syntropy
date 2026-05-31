@@ -157,6 +157,9 @@ class ValidationTest < Minitest::Test
     assert_equal 'foo', @req.validate('foo', [String, nil])
     assert_nil          @req.validate(nil, [String, nil])
 
+    assert_equal 'foo', @req.validate('foo', String, /.+/)
+    assert_raises(VE) { @req.validate('', String, /.+/) }
+
     assert_equal 123,   @req.validate('123', Integer)
     assert_raises(VE) { @req.validate('a123', Integer) }
     assert_equal 123,   @req.validate('123', Integer, 120..125)
