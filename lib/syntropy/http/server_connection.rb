@@ -48,7 +48,7 @@ module Syntropy
       # connection should be persisted.
       def serve_request
         @closed = nil
-        headers = parse_headers
+        headers = @io.http_read_request_headers
         return false if !headers
 
         request = Syntropy::Request.new(headers, self)
@@ -262,57 +262,6 @@ module Syntropy
       def persist_connection?(headers)
         connection = headers['connection']&.downcase
         return connection != 'close'
-      end
-
-      def parse_headers
-        headers = get_request_line(MAX_REQUEST_LINE_LEN)
-        return nil if !headers
-
-        loop do
-          line = @io.read_line(MAX_HEADER_LINE_LEN)
-          break if line.nil? || line.empty?
-
-          m = line.match(RE_HEADER_LINE)
-          raise ProtocolError, "Invalid header: #{line[0..2047].inspect}" if !m
-
-          headers[m[1].downcase] = m[2]
-        end
-
-        headers
-      end
-
-      def get_request_line(buf)
-        line = @io.read_line(MAX_REQUEST_LINE_LEN)
-        return nil if !line
-
-        m = line.match(RE_REQUEST_LINE)
-        raise ProtocolError, 'Invalid request line' if !m
-
-        http_version = m[3]
-        raise UnsupportedHTTPVersionError, 'HTTP version not supported' if http_version != '1.1'
-
-        {
-          ':method'   => m[1].downcase,
-          ':path'     => m[2],
-          ':protocol' => 'http/1.1'
-        }
-      end
-
-      def read_chunk(headers, buffer)
-        chunk_size_str = @io.read_line(MAX_CHUNK_SIZE_LEN)
-        return nil if !chunk_size_str
-
-        chunk_size = chunk_size_str.to_i(16)
-        if chunk_size == 0
-          headers[':body-done-reading'] = true
-          @io.read_line(0)
-          return nil
-        end
-
-        chunk = @io.read(chunk_size)
-        @io.read_line(0)
-
-        buffer ? (buffer << chunk) : chunk
       end
 
       INTERNAL_HEADER_REGEXP = /^:/

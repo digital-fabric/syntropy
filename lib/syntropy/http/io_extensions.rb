@@ -11,7 +11,7 @@ module Syntropy
 
       MAX_REQUEST_LINE_LEN = 1 << 14 # 16KB
       MAX_RESPONSE_LINE_LEN = 1 << 8 # 256
-      MAX_HEADER_LINE_LEN = 1 << 10 # 1KB
+      MAX_HEADER_LINE_LEN = 1 << 16 # 64KB
       MAX_CHUNK_SIZE_LEN = 16
 
       # @return [Hash] headers
