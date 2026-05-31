@@ -1,5 +1,37 @@
 ## Immediate
 
+- [ ] Session
+
+  https://guides.rubyonrails.org/action_controller_overview.html#session
+
+  We want something that offers the same features as in Ruby on Rails. A storage
+  space for session metadata which can include a user_id, flash messages etc.
+
+  - The session is attached to the request, and is valid for the browser
+    session.
+  - The session is a KV store. It can be used to store any data relevant to the
+    user's browser session.
+  - Each session has a unique ID and that ID is passed to the browser as a
+    non-persistent cookie.
+  - A session expires if not used (e.g. after 7 days)
+  - Session storage either in memory or in DB
+  - The session is generated (and session cookie set) upon first write to
+    session.
+  - Session `Set-Cookie` header should be injected into the HTTP response.
+  - The entire session info can be stored in a cookie, provided it does not
+    exceed 4KB.
+
+  ```ruby
+  req.session[:flash] = 'Title cannot be empty!'
+  req.redirect '/blah'
+  ```
+
+- [ ] Flash messages
+
+  - Flash messages are a sub-feature of session storage and are used to relay
+    messages from one request to the next in the same session.
+  - Flash messages have more complex semantics.
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
