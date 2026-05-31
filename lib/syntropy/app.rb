@@ -102,6 +102,21 @@ module Syntropy
       route
     end
 
+    def setup_db(db_path:, schema_root: '_schema')
+      @env[:db_path] = db_path
+      @env[:schema_root] = schema_root
+
+      class << self
+        def connection_pool
+          @connection_pool ||= DB::ConnectionPool.new(@machine, @env[:db_path], 4)
+        end
+
+        def schema
+          @schema ||= DB::Schema.new(module_loader: @module_loader, schema_root: @env[:schema_root])
+        end
+      end
+    end
+
     private
 
     # Handles a not found error, taking into account hooks up the tree from the

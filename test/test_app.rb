@@ -312,24 +312,44 @@ class AppDependenciesTest < Minitest::Test
   end
 end
 
-class AppSetupTest < Minitest::Test
+class AppDBSetupDBTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app_setup')
+  APP_ROOT = File.join(__dir__, 'app_with_schema')
 
-  def test_app_setup
-    foo = { foo: 'foo' }
-    bar = { bar: 'bar' }
+  def test_app_setup_db
+    machine = UM.new
 
-    @machine = UM.new
-
-    @app = Syntropy::App.new(
+    app = Syntropy::App.new(
       root_dir: APP_ROOT,
       mount_path: '/test',
-      machine: @machine
+      machine: machine
     )
 
-    assert_equal true, @app.env[:setup_imported]
-    assert_equal :foobar, @app.foobar
+    assert_equal false, app.respond_to?(:connection_pool)
+    assert_equal false, app.respond_to?(:schema)
+
+    fn = "/tmp/#{rand(100000)}.db"
+
+    app.setup_db(
+      db_path:      fn,
+      schema_root:  '_schema'
+    )
+
+    assert_equal true, app.respond_to?(:connection_pool)
+    assert_equal fn, app.connection_pool.with_db { it.filename }
+
+    assert_equal true, app.respond_to?(:schema)
+    app.schema.apply(app.connection_pool)
+    assert_equal '2026-05-30-bar', app.schema.current_version(app.connection_pool)
+
+    assert_equal [
+      {
+        id: 1,
+        title: 'foo',
+        body: 'baz'
+      }
+    ], app.connection_pool.query('select id, title, body from posts')
+
   end
 end

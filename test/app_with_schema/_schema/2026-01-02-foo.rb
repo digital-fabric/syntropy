@@ -1,0 +1,12 @@
+export ->(db) {
+  db.execute <<~SQL
+    create table posts (
+      id integer primary key autoincrement,
+      title text,
+      body text
+    );
+
+    insert into posts (title, body)
+    values ('foo', 'bar');
+  SQL
+}
