@@ -27,8 +27,8 @@ module Syntropy
     # @param env [Hash] environment hash
     # @return [void]
     def initialize(env)
-      @root_dir = env[:root_dir]
       @env = env
+      @root_dir = env[:root_dir]
       @modules = {} # maps ref to module entry
       @fn_map = {} # maps filename to ref
     end
@@ -45,6 +45,17 @@ module Syntropy
 
       @modules[ref] ||= entry
       entry[:export_value]
+    end
+
+    # Returns a list of modules found in the given relative path. The module
+    # references are returned as absolute paths (relative to the module loader
+    # root directory).
+    #
+    # @param dir [String] relative module directory
+    # @return [Array<String>] list of modules
+    def list(dir)
+      fns = Dir[File.join(@root_dir, dir, '*.rb')]
+      fns.map { it.match(/^#{@root_dir}\/(.+)\.rb$/)[1] }.sort
     end
 
     # Invalidates a module by its filename, normally following a change to the
@@ -119,7 +130,7 @@ module Syntropy
       mod = Syntropy::Module.load(env, code, fn)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
-        mod.__export_value__, raise_on_missing:
+        mod.__export_value__, fn, raise_on_missing:
       )
 
       {
@@ -142,10 +153,10 @@ module Syntropy
     #
     # @param export_value [any] module's export value
     # @return [any] transformed value
-    def transform_module_export_value(export_value, raise_on_missing:)
+    def transform_module_export_value(export_value, fn, raise_on_missing:)
       case export_value
       when nil
-        raise Syntropy::Error, 'No export found' if raise_on_missing
+        raise Syntropy::Error, "No export found in #{fn}" if raise_on_missing
       when String
         ->(req) { req.respond(export_value) }
       when Class

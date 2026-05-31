@@ -79,4 +79,35 @@ class ModuleTest < Minitest::Test
     mod = @loader.load('mod/foo/index')
     assert_equal '/mod/foo', mod.env[:ref]
   end
+
+  def test_list
+    list = @loader.list('_layout')
+    assert_equal ['_layout/default'], list
+
+    list = @loader.list('_lib')
+    assert_equal [
+      '_lib/callable',
+      '_lib/dep',
+      '_lib/env',
+      '_lib/klass',
+      '_lib/missing-export',
+      '_lib/self',
+    ], list
+
+    list = @loader.list('about')
+    assert_equal [
+      'about/_error',
+      'about/index',
+      'about/raise'
+    ], list
+
+    list = @loader.list('assets')
+    assert_equal [], list
+
+    list = @loader.list('mod')
+    assert_equal [], list
+
+    list = @loader.list('mod/bar')
+    assert_equal ['mod/bar/index+'], list
+  end
 end

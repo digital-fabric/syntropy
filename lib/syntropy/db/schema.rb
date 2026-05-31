@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
+require 'syntropy/module'
+
 module Syntropy
   module DB
     class Schema
-      def initialize(&)
-        @migrations = {
-        }
-        run_schema_block(&)
+      def initialize(module_loader: nil, schema_root: '_schema', &)
+        @migrations = {}
+        @module_loader = module_loader
+        @schema_root = schema_root
+        load_schema_from_modules if @module_loader
+        run_schema_block(&) if block_given?
       end
 
       def apply(connection_pool)
@@ -21,22 +25,25 @@ module Syntropy
 
       private
 
+      def load_schema_from_modules
+        modules = @module_loader.list(@schema_root)
+        modules.each do |name|
+          @migrations[File.basename(name)] = @module_loader.load(name)
+        end
+      end
+
       class SchemaBlockRunner
         def initialize(migrations, &)
           @migrations = migrations
           instance_eval(&)
         end
 
-        def execute(sql, *, **)
-          (@migrations['0000'] ||= []) << proc { execute(sql, *, **) }
-        end
-
         def initial(&block)
-          (@migrations['0000'] ||= []) << block
+          @migrations['0000'] = block
         end
 
         def version(key, &block)
-          (@migrations[key] ||= []) << block
+          @migrations[key] = block
         end
       end
 
@@ -52,7 +59,7 @@ module Syntropy
 
           migrations_keys.each do |key|
             db.transaction do
-              @migrations[key].each { db.instance_eval(&it) }
+              @migrations[key].(db)
               set_schema_version(db, key)
               current_version = key
             end
