@@ -84,8 +84,7 @@ class HTTPServerConnectionTest < Minitest::Test
     headers = req.headers
     assert_equal({
       ':method'   => 'get',
-      ':path'     => '/',
-      ':protocol' => 'http/1.1'
+      ':path'     => '/'
     }, headers)
   end
 
@@ -94,7 +93,7 @@ class HTTPServerConnectionTest < Minitest::Test
       GET /foo HTTP/1.1
       Server: foo.com
 
-      SCHMET /bar HTTP/1.1
+      GET /bar HTTP/1.1
 
 
 
@@ -108,16 +107,14 @@ class HTTPServerConnectionTest < Minitest::Test
     assert_equal({
       ':method'   => 'get',
       ':path'     => '/foo',
-      ':protocol' => 'http/1.1',
       'server'    => 'foo.com'
     }, headers)
 
     req1 = @reqs.shift
     headers = req1.headers
     assert_equal({
-      ':method'   => 'schmet',
-      ':path'     => '/bar',
-      ':protocol' => 'http/1.1'
+      ':method'   => 'get',
+      ':path'     => '/bar'
     }, headers)
   end
 
@@ -127,7 +124,7 @@ class HTTPServerConnectionTest < Minitest::Test
       Server: foo.com
       Content-Length: 3
 
-      abcSCHMOST /bar HTTP/1.1
+      abcPOST /bar HTTP/1.1
       Server: bar.com
       Content-Length: 6
 
@@ -145,7 +142,6 @@ class HTTPServerConnectionTest < Minitest::Test
     assert_equal({
       ':method' => 'post',
       ':path' => '/foo',
-      ':protocol' => 'http/1.1',
       'server' => 'foo.com',
       'content-length' => '3',
       ':body-done-reading' => true
@@ -156,9 +152,8 @@ class HTTPServerConnectionTest < Minitest::Test
     req1 = @reqs.shift
     headers = req1.headers
     assert_equal({
-      ':method' => 'schmost',
+      ':method' => 'post',
       ':path' => '/bar',
-      ':protocol' => 'http/1.1',
       'server' => 'bar.com',
       'content-length' => '6',
       ':body-done-reading' => true
@@ -179,7 +174,7 @@ class HTTPServerConnectionTest < Minitest::Test
       de
       0
 
-      SCHMOST /bar HTTP/1.1
+      POST /bar HTTP/1.1
       Server: bar.com
       Transfer-Encoding: chunked
 
@@ -203,7 +198,6 @@ class HTTPServerConnectionTest < Minitest::Test
     assert_equal({
       ':method'             => 'post',
       ':path'               => '/foo',
-      ':protocol'           => 'http/1.1',
       'server'              => 'foo.com',
       'transfer-encoding'   => 'chunked',
       ':body-done-reading'  => true
@@ -214,9 +208,8 @@ class HTTPServerConnectionTest < Minitest::Test
     req1 = @reqs.shift
     headers = req1.headers
     assert_equal({
-      ':method'             => 'schmost',
+      ':method'             => 'post',
       ':path'               => '/bar',
-      ':protocol'           => 'http/1.1',
       'server'              => 'bar.com',
       'transfer-encoding'   => 'chunked',
       ':body-done-reading'  => true
@@ -237,7 +230,7 @@ class HTTPServerConnectionTest < Minitest::Test
       de
       0
 
-      SCHMOST /bar HTTP/1.1
+      POST /bar HTTP/1.1
       Server: bar.com
       Content-Length: 31
 
@@ -255,7 +248,6 @@ class HTTPServerConnectionTest < Minitest::Test
     assert_equal({
       ':method'             => 'post',
       ':path'               => '/foo',
-      ':protocol'           => 'http/1.1',
       'server'              => 'foo.com',
       'transfer-encoding'   => 'chunked',
       ':body-done-reading'  => true
@@ -269,9 +261,8 @@ class HTTPServerConnectionTest < Minitest::Test
     req1 = @reqs.shift
     headers = req1.headers
     assert_equal({
-      ':method'             => 'schmost',
+      ':method'             => 'post',
       ':path'               => '/bar',
-      ':protocol'           => 'http/1.1',
       'server'              => 'bar.com',
       'content-length'      => '31',
       ':body-done-reading'  => true
