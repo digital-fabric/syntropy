@@ -105,8 +105,8 @@ module Syntropy
       adapter.set_response_headers(headers)
     end
 
-    def set_cookie(*)
-      adapter.set_cookie(*)
+    def set_cookie(k, v)
+      adapter.set_cookie(k, v)
     end
 
     def upgrade(protocol, custom_headers = nil, &block)

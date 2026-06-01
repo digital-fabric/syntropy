@@ -596,7 +596,7 @@ class HTTPServerConnectionTest < Minitest::Test
 
   def test_set_cookie_single
     @hook = ->(req) {
-      req.set_cookie('foo=bar; HttpOnly')
+      req.set_cookie('foo', 'bar; HttpOnly')
       req.respond('foo')
     }
 
@@ -610,7 +610,8 @@ class HTTPServerConnectionTest < Minitest::Test
 
   def test_set_cookie_multi1
     @hook = ->(req) {
-      req.set_cookie('foo=bar; HttpOnly', 'bar=baz')
+      req.set_cookie('foo', 'bar; HttpOnly')
+      req.set_cookie('bar', 'baz')
       req.respond('foo')
     }
 
@@ -624,9 +625,11 @@ class HTTPServerConnectionTest < Minitest::Test
 
   def test_set_cookie_multi2
     @hook = ->(req) {
-      req.set_cookie('a=1', 'b=2')
-      req.set_cookie('c=3')
-      req.set_cookie('d=4', 'e=5')
+      req.set_cookie('a', '1')
+      req.set_cookie('b', '2')
+      req.set_cookie('c', '3')
+      req.set_cookie('d', '4')
+      req.set_cookie('e', '5')
       req.respond('foo')
     }
 

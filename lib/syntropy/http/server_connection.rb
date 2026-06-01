@@ -23,12 +23,11 @@ module Syntropy
 
         @done = nil
         @response_headers = nil
+        @response_cookies = nil
       end
 
       def run
         loop do
-          @done = nil
-          @response_headers = nil
           persist = serve_request
           break if !persist
         end
@@ -47,6 +46,9 @@ module Syntropy
       # object and handing it off to the app handler. Returns true if the
       # connection should be persisted.
       def serve_request
+        @done = nil
+        @response_headers = nil
+        @response_cookies = nil
         @closed = nil
         headers = @io.http_read_request_headers
         return false if !headers
@@ -130,13 +132,10 @@ module Syntropy
         @response_headers ? @response_headers.merge!(headers) : @response_headers = headers
       end
 
-      def set_cookie(*cookies)
-        existing_cookies = @response_headers && @response_headers['Set-Cookie']
-        if existing_cookies
-          @response_headers['Set-Cookie'] = existing_cookies + cookies
-        else
-          set_response_headers('Set-Cookie' => cookies)
-        end
+      DELETE_COOKIE = "; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Max-Age=0; HttpOnly"
+
+      def set_cookie(key, value)
+        (@response_cookies ||= {})[key] = value || DELETE_COOKIE
       end
 
       SEND_FLAGS = UM::MSG_NOSIGNAL | UM::MSG_WAITALL
@@ -152,6 +151,7 @@ module Syntropy
       # @param body [String] response body
       # @param headers
       def respond(request, body, headers)
+        add_set_cookie_headers if @response_cookies
         headers = @response_headers.merge(headers) if @response_headers
 
         formatted_headers = format_headers(headers, body)
@@ -314,6 +314,12 @@ module Syntropy
         else
           lines << "#{key}: #{value}\r\n"
         end
+      end
+
+      def add_set_cookie_headers
+        @response_headers ||= {}
+        sc = (@response_headers['Set-Cookie'] ||= [])
+        @response_cookies.each { |k, v| sc << "#{k}=#{v}" }
       end
     end
   end

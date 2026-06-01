@@ -95,5 +95,9 @@ module Syntropy
     def total_transfer
       (headers[':rx'] || 0) + (headers[':tx'] || 0)
     end
+
+    def session
+      @session ||= Session.new(self)
+    end
   end
 end
