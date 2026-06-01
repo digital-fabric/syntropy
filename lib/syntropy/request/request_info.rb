@@ -158,7 +158,7 @@ module Syntropy
 
     def auth_bearer_token
       auth = headers['authorization']
-      if (m = auth.match(/Bearer\s+([^\w]+)/))
+      if auth && (m = auth.match(/Bearer\s+([^\w]+)/))
         return m[1]
       end
 
