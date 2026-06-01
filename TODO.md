@@ -30,7 +30,14 @@
 
   - Flash messages are a sub-feature of session storage and are used to relay
     messages from one request to the next in the same session.
-  - Flash messages have more complex semantics.
+  - Flash messages have more complex semantics:
+    - There can be more than one.
+    - They have types - notice, alert, etc.
+    - They normally disappear on the next request (i.e. the session cookie
+      should be updated in the response with Set-Cookie).
+    - But, you can keep them for the next request with `req.session.flash.keep`
+    - The flash messages could be used for the current request with
+      `req.session.flash.now`
 
 - [ ] Collection - treat directories and files as collections of data.
 

@@ -31,4 +31,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'minitest',  '~>6.0.1'
   s.add_development_dependency 'rake',      '~>13.3.1'
+  s.add_development_dependency 'solargraph'
 end

@@ -54,7 +54,11 @@ module Syntropy
         request = Syntropy::Request.new(headers, self)
 
         @app.call(request)
-        persist_connection?(headers)
+        persist = persist_connection?(headers)
+        if persist && !headers[':body-done-reading'] && (headers['content-length'] || headers['transfer-encoding'])
+          get_body(request)
+        end
+        persist
       rescue StandardError => e
         handle_error(request, e)
         false

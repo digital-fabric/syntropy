@@ -5,9 +5,9 @@ require 'syntropy/errors'
 module Syntropy
   module HTTP
     module ProtocolMethods
-      RE_REQUEST_LINE = /^([a-z]+)\s+([^\s]+)\s+HTTP\/([019\.]{1,3})/i
+      RE_REQUEST_LINE = /^(get|head|options|trace|put|delete|post|patch|connect)\s+([^\s]+)\s+HTTP\/([019\.]{1,3})/i
       RE_RESPONSE_LINE = /^HTTP\/1\.1\s+(\d{3})(\s+.+)?$/i
-      RE_HEADER_LINE = /^([a-z0-9-]+):\s+(.+)/i
+      RE_HEADER_LINE = /^([a-z0-9\-]+):\s+(.+)/i
 
       MAX_REQUEST_LINE_LEN = 1 << 14 # 16KB
       MAX_RESPONSE_LINE_LEN = 1 << 8 # 256
@@ -27,8 +27,7 @@ module Syntropy
 
         headers = {
           ':method'   => m[1].downcase,
-          ':path'     => m[2],
-          ':protocol' => 'http/1.1'
+          ':path'     => m[2]
         }
 
         loop do
@@ -93,6 +92,21 @@ module Syntropy
         nil
       end
 
+      def http_skip_body(headers)
+        content_length = headers['content-length']
+        if content_length
+          return skip(content_length.to_i)
+        end
+
+        chunked_encoding = headers['transfer-encoding']&.downcase == 'chunked'
+        if chunked_encoding
+          while http_skip_cte_chunk
+          end
+        end
+
+        nil
+      end
+
       def http_read_body_chunk(headers)
         content_length = headers['content-length']
         if content_length
@@ -140,6 +154,20 @@ module Syntropy
         read_line(0)
 
         buffer ? (buffer << chunk) : chunk
+      end
+
+      def http_skip_cte_chunk
+        chunk_size_str = read_line(MAX_CHUNK_SIZE_LEN)
+        return if !chunk_size_str
+
+        chunk_size = chunk_size_str.to_i(16)
+        if chunk_size == 0
+          read_line(0)
+          return nil
+        end
+
+        chunk = skip(chunk_size)
+        read_line(0)
       end
     end
   end
