@@ -32,7 +32,7 @@ end
 
   div {
     p {
-      a "Add new post", href: '/posts/new'
+      a "New post", href: '/posts/new'
     }
   }
 }

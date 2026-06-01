@@ -14,13 +14,12 @@ def get(req)
 end
 
 def post(req)
-  id = req.route_params['id'].to_i
   data = req.get_form_data
+  return delete(req) if data['method'] == 'delete'
+
+  id = req.route_params['id'].to_i
   title = req.validate(data['title'], String, /.+/)
   body = req.validate(data['body'], String, /.+/)
-
-  puts '*' * 40
-  p(id:, title:, body:)
 
   updated = @post_store.update(id, title, body)
   raise BadRequestError, "Failed to update post" if updated != 1
@@ -47,8 +46,13 @@ end
   }
   p {
     a "Edit", href: "/posts/#{post[:id]}/edit"
+    span '|'
+    a "Back to posts", href: '/posts'
   }
-  p {
-    a "Back", href: '/posts'
+  div {
+    form(method: 'post') {
+      input type: 'hidden', name: 'method', value: 'delete'
+      button 'Delete this post', name: 'delete', type: 'submit'
+    }
   }
 }
