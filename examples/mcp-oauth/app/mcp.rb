@@ -12,6 +12,7 @@ export ->(req) {
   handle(req, token_info)
 }
 
+# @param req [Syntropy::Request]
 def valid_token?(req)
   token = req.auth_bearer_token
   return false if !token
@@ -50,7 +51,7 @@ def handle(req, token_info)
 
   send(sym, req, json, token_info)
 rescue Syntropy::ValidationError => e
-  if (m = e.message.match(</(.+)\: (.+)/))
+  if (m = e.message.match(/(.+)\: (.+)/))
     type, message = m[1], m[2]
   else
     type, message = 'INVALID_REQUEST', e.message
@@ -59,10 +60,10 @@ rescue Syntropy::ValidationError => e
 end
 
 ERROR_CODES = {
-  'INVALID_REQUEST'   => -32600
-  'METHOD_NOT_FOUND'  => -32601
-  'INVALID_PARAMS'    => -32602
-  'INTERNAL_ERROR'    => -32603
+  'INVALID_REQUEST'   => -32600,
+  'METHOD_NOT_FOUND'  => -32601,
+  'INVALID_PARAMS'    => -32602,
+  'INTERNAL_ERROR'    => -32603,
   'PARSE_ERROR'       => -32700
 }
 
@@ -80,6 +81,5 @@ def respond_error(req, json, error_type, error_message)
   )
 end
 
-def handle_initialize(
-
-)
+def handle_initialize()
+end
