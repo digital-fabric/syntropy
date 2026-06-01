@@ -1,3 +1,16 @@
+# 0.32.0 2026-06-01
+
+- Ensure HTTP request body is consumed (skipped) before treating next request
+- Fix `Request#auth_bearer_token`
+- Add `syntropy console` CLI command
+- Add `Module#http_methods` method for simpler REST controllers
+- Add `App#setup_db` method
+- Add `DB::Schema` for schema migrations with support for migration modules
+- Add `DB::Store` class
+- Rename `ConnectionPool` to `DB::ConnectionPool`
+- Add support for setup file (`_setup.rb`)
+- Remove escape_utils dependency
+
 # 0.31.0 2026-05-29
 
 - Add message kwarg to `Request#validate`
