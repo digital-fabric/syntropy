@@ -9,7 +9,7 @@ def get(req)
   raise Syntropy::Error.not_found if !post
 
   req.respond_html(
-    @template.render(post:)
+    @template.render(post:, req:)
   )
 end
 
@@ -24,6 +24,7 @@ def post(req)
   updated = @post_store.update(id, title, body)
   raise BadRequestError, "Failed to update post" if updated != 1
 
+  req.flash[:notice] = 'Post was successfully updated.'
   req.redirect "/posts/#{id}", Syntropy::HTTP::SEE_OTHER
 end
 
@@ -33,11 +34,13 @@ def delete(req)
   deleted = @post_store.delete(id)
   raise BadRequestError, "Failed to delete post" if deleted != 1
 
+  req.flash[:notice] = 'Post was successfully destroyed.'
   req.redirect "/posts", Syntropy::HTTP::SEE_OTHER
 end
 
 @template = @layout.apply { |post:, **props|
   h1 "My blog"
+  p props[:req]&.flash[:notice], style: 'color: green'
   div {
     h2 {
       a post[:title]

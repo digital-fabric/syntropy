@@ -6,7 +6,7 @@ export http_methods
 def get(req)
   posts = @post_store.get_all
   req.respond_html(
-    @template.render(posts:)
+    @template.render(posts:, req:)
   )
 end
 
@@ -16,11 +16,13 @@ def post(req)
   body = req.validate(data['body'], String, /.+/)
   id = @post_store.create(title, body)
 
+  req.flash[:notice] = 'Post was successfully created.'
   req.redirect("posts/#{id}")
 end
 
 @template = @layout.apply { |**props|
   h1 "My blog"
+  p props[:req]&.flash[:notice], style: 'color: green'
   props[:posts].each { |post|
     div {
       h2 {

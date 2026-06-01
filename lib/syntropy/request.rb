@@ -100,5 +100,9 @@ module Syntropy
     def session
       @session ||= Session.new(self)
     end
+
+    def flash
+      session.flash
+    end
   end
 end

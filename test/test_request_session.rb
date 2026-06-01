@@ -65,7 +65,7 @@ class RequestSessionTest < Minitest::Test
 
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'bar' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
   end
 
   def test_session_kv_multi
@@ -80,7 +80,7 @@ class RequestSessionTest < Minitest::Test
 
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'bar', 'bar' => 'baz' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
   end
 
   def test_session_kv_sequence
@@ -101,13 +101,13 @@ class RequestSessionTest < Minitest::Test
     @connection.serve_request
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'bar' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
 
     write_http_request "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{data}\r\n\r\n"
     @connection.serve_request
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'barbaz' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
   end
 
   def test_session_kv_delete
@@ -128,13 +128,12 @@ class RequestSessionTest < Minitest::Test
     @connection.serve_request
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'bar' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
 
     write_http_request "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{data}\r\n\r\n"
     @connection.serve_request
     response = read_client_side
-    data = Base64.strict_encode64(JSON.dump({}))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Max-Age=0; HttpOnly\r\n\r\n", response
   end
 
   def test_session_discard
@@ -155,11 +154,101 @@ class RequestSessionTest < Minitest::Test
     @connection.serve_request
     response = read_client_side
     data = Base64.strict_encode64(JSON.dump({ 'foo' => 'bar' }))
-    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; HttpOnly\r\n\r\n", response
+    assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
 
     write_http_request "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{data}\r\n\r\n"
     @connection.serve_request
     response = read_client_side
     assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Max-Age=0; HttpOnly\r\n\r\n", response
+  end
+
+  def test_flash_simple
+    counter = 0
+    flash_notices = []
+
+    @app = ->(req) do
+      counter += 1
+      case counter
+      when 1
+        req.session.flash[:notice] = "Hello flash!"
+        flash_notices << req.session.flash[:notice]
+      when 2
+        flash_notices << req.session.flash[:notice]
+      when 3
+        flash_notices << req.session.flash[:notice]
+      end
+      req.respond(nil)
+    end
+
+    parse_cookie = ->(response) {
+      m = response.match(/Set-Cookie: __syntropy_session__=([^\s;]*)/)
+      m && m[1]
+    }
+
+    cookie = nil
+
+    3.times {
+      request = cookie ? "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{cookie}\r\n\r\n" : "GET / HTTP/1.1\r\n\r\n"
+      write_http_request request, false
+      @connection.serve_request
+      response = read_client_side
+      v = parse_cookie.(response)
+      if v
+        cookie = v.empty? ? nil : v
+      end
+    }
+
+    assert_equal [nil, 'Hello flash!', nil], flash_notices
+  end
+
+  def test_flash_each
+    counter = 0
+    flash_content = []
+
+    @app = ->(req) do
+      counter += 1
+      case counter
+      when 1
+        req.session.flash[:notice] = "Hello flash!"
+        a = []
+        req.session.flash.each { |k, v| a << [k, v] }
+        flash_content << a
+      when 2
+        a = []
+        req.session.flash.each { |k, v| a << [k, v] }
+        flash_content << a
+      when 3
+        a = []
+        req.session.flash.each { |k, v| a << [k, v] }
+        flash_content << a
+      end
+      req.respond(nil)
+    end
+
+    parse_cookie = ->(response) {
+      m = response.match(/Set-Cookie: __syntropy_session__=([^\s;]*)/)
+      m && m[1]
+    }
+
+    set_cookies = []
+    cookie = nil
+
+    3.times {
+      request = cookie ? "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{cookie}\r\n\r\n" : "GET / HTTP/1.1\r\n\r\n"
+      write_http_request request, false
+      @connection.serve_request
+      response = read_client_side
+      v = parse_cookie.(response)
+      if v
+        cookie = v.empty? ? nil : v
+      end
+      set_cookies << v ? cookie : nil
+    }
+
+    assert_equal [
+      [],
+      [[:notice, 'Hello flash!']],
+      []
+    ], flash_content
   end
 end
