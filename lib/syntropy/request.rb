@@ -3,6 +3,7 @@
 require_relative './request/request_info'
 require_relative './request/validation'
 require_relative './request/response'
+require_relative './request/session'
 require_relative './http/status'
 
 module Syntropy
