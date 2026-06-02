@@ -1,3 +1,10 @@
+# 0.33.0 2026-06-02
+
+- Fix `ModuleLoader` to load a module only once
+- Improve testing tools, add `Syntropy::Test` class
+- Implement `Request#session`, `Request#flash`
+- Improve `Request#set_cookie`
+
 # 0.32.0 2026-06-01
 
 - Ensure HTTP request body is consumed (skipped) before treating next request
