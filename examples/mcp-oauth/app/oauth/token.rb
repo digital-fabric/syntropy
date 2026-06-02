@@ -65,7 +65,7 @@ rescue ValidationError => e
     },
     ':status' => Syntropy::HTTP::BAD_REQUEST
   )
-rescue => e
+rescue StandardError => e
   status = Syntropy::Error.http_status(e)
   raise if status == HTTP::INTERNAL_SERVER_ERROR
 

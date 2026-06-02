@@ -36,7 +36,7 @@ rescue Timeout::Error
   req.send_chunk("retry: 0\n\n", done: true) rescue nil
 rescue SystemCallError
   # ignore
-rescue => e
+rescue StandardError => e
   @logger&.error(
     message: 'Unexpected error encountered while serving auto refresh watcher',
     error: e

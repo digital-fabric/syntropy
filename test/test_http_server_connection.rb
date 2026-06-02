@@ -454,7 +454,7 @@ class HTTPServerConnectionTest < Minitest::Test
     write_client_side("GET / HTTP/1.1\r\n\r\n")
     @machine.spin do
       @connection.serve_request
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
     end
@@ -479,7 +479,7 @@ class HTTPServerConnectionTest < Minitest::Test
 
     @hook = ->(req) do
       req.respond_with_static_file(fn, nil, nil, nil)
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
     end
@@ -490,7 +490,7 @@ class HTTPServerConnectionTest < Minitest::Test
     write_client_side("GET / HTTP/1.1\r\n\r\n")
     @machine.spin do
       @connection.serve_request
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
     end

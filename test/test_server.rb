@@ -175,7 +175,7 @@ class ServerTest < Minitest::Test
       @reqs << req
       @bodies << (b = req.read)
       req.respond("method: #{req.method}")
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
       exit!
