@@ -2,8 +2,10 @@
 
 require_relative '../lib/syntropy'
 require 'optparse'
+require 'fileutils'
 
 env = {
+  root_dir:             File.join(FileUtils.pwd, 'app'),
   mount_path:           '/',
   logger:               true,
   builtin_applet_path:  '/.syntropy',
@@ -11,7 +13,11 @@ env = {
 }
 
 parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy serve [options] DIR'
+  o.banner = 'Usage: syntropy serve [options]'
+
+  o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
+    env[:root_dir] = path
+  end
 
   o.on('-h', '--help', 'Show this help message') do
     puts o
@@ -19,7 +25,6 @@ parser = OptionParser.new do |o|
   end
 
   o.on('-m', '--mount PATH', 'Set mount path (default: /)') do |path|
-    p mount: path
     env[:mount_path] = path
     env[:builtin_applet_path] = File.join(path, '.syntropy')
   end
@@ -44,7 +49,6 @@ rescue StandardError => e
 end
 
 $syntropy_dev_mode = env[:dev_mode]
-env[:root_dir] = (ARGV.shift || '.').gsub(/\/$/, '')
 
 if !File.directory?(env[:root_dir])
   puts "#{File.expand_path(env[:root_dir])} Not a directory"

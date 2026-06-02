@@ -2,29 +2,30 @@
 
 require_relative '../lib/syntropy'
 require 'optparse'
+require 'fileutils'
 
 env = {
-  mount_path: '/',
-  logger: true,
-  builtin_applet_path: '/.syntropy',
-  server_extensions: {
+  root_dir:             File.join(FileUtils.pwd, 'app'),
+  mount_path:           '/',
+  logger:               true,
+  builtin_applet_path:  '/.syntropy',
+  server_extensions:    {
     date: true,
     name: 'Syntropy'
   }
 }
 
 parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy serve [options] DIR'
+  o.banner = 'Usage: syntropy serve [options]'
+
+  o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
+    env[:root_dir] = path
+  end
 
   o.on('-b', '--bind BIND', String,
        'Bind address (default: http://0.0.0.0:1234). You can specify this flag multiple times to bind to multiple addresses.') do
     env[:bind] ||= []
     env[:bind] << it
-  end
-
-  o.on('-s', '--silent', 'Silent mode') do
-    env[:banner] = nil
-    env[:logger] = nil
   end
 
   o.on('-d', '--dev', 'Development mode') do
@@ -50,6 +51,11 @@ parser = OptionParser.new do |o|
     env[:server_extensions] = nil
   end
 
+  o.on('-s', '--silent', 'Silent mode') do
+    env[:banner] = nil
+    env[:logger] = nil
+  end
+
   o.on('-v', '--version', 'Show version') do
     require 'syntropy/version'
     puts "Syntropy version #{Syntropy::VERSION}"
@@ -72,7 +78,6 @@ rescue StandardError => e
 end
 
 $syntropy_dev_mode = env[:dev_mode]
-env[:root_dir] = (ARGV.shift || '.').gsub(/\/$/, '')
 
 if !File.directory?(env[:root_dir])
   puts "#{File.expand_path(env[:root_dir])} Not a directory"
