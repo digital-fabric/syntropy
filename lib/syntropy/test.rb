@@ -64,7 +64,7 @@ module Syntropy
       @machine = UM.new
       @app = Syntropy::App.new(
         root_dir: @@env[:root_dir],
-        mount_path: '/',
+        mount_path: @@env[:mount_path] || '/',
         machine: @machine
       )
       @test_harness = Syntropy::TestHarness.new(@app)
