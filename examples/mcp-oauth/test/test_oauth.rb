@@ -1,28 +1,12 @@
 # frozen_string_literal: true
 
-require_relative 'helper'
 require 'base64'
 require 'digest'
 
-class OAuthBaseTest < Minitest::Test
-  APP_ROOT = File.expand_path(File.join(__dir__, '../app'))
-  HTTP = Syntropy::HTTP
-
+class OAuthBaseTest < Syntropy::Test
   def setup
-    @machine = UM.new
-    @app = Syntropy::App.new(
-      root_dir: APP_ROOT,
-      mount_path: '/',
-      machine: @machine
-    )
-    @store = @app.module_loader.load('_lib/auth_store')
-    @test_harness = Syntropy::TestHarness.new(@app)
-  end
-
-  def teardown
-    @machine = nil
-    @app = nil
-    @test_harness = nil
+    super
+    @store = load_module('_lib/auth_store')
   end
 end
 
@@ -42,18 +26,15 @@ end
 
 class OAuthPhase1DiscoveryTest < OAuthBaseTest
   def test_mcp_no_bearer_token
-    req = @test_harness.request(
+    req = post_json(
+      '/mcp',
       {
-        ':method'       => 'POST',
-        ':path'         => '/mcp',
-        'content-type'  => 'application/json'
-      },
-      JSON.dump({
         method: 'initialize',
         jsonrpc: '2.0',
         params: {}
-      })
+      }
     )
+
     assert_equal HTTP::UNAUTHORIZED, req.response_status
 
     www_auth = req.response_headers['WWW-Authenticate']
@@ -62,18 +43,14 @@ class OAuthPhase1DiscoveryTest < OAuthBaseTest
   end
 
   def test_mcp_invalid_bearer_token
-    req = @test_harness.request(
+    req = post_json(
+      '/mcp',
       {
-        ':method'       => 'POST',
-        ':path'         => '/mcp',
-        'content-type'  => 'application/json',
-        'authorization' => 'Bearer foobar'
-      },
-      JSON.dump({
         method: 'initialize',
         jsonrpc: '2.0',
         params: {}
-      })
+      },
+      'authorization' => 'Bearer foobar'
     )
     assert_equal HTTP::UNAUTHORIZED, req.response_status
 
@@ -83,10 +60,7 @@ class OAuthPhase1DiscoveryTest < OAuthBaseTest
   end
 
   def test_oauth_protected_resource_metadatas
-    req = @test_harness.request(
-      ':method' => 'GET',
-      ':path'   => '/.well-known/oauth-protected-resource'
-    )
+    req = get('/.well-known/oauth-protected-resource')
     assert_equal HTTP::OK, req.response_status
     json = req.response_json
     assert_equal ["http://localhost:1234/"],  json['authorization_servers']
@@ -94,10 +68,7 @@ class OAuthPhase1DiscoveryTest < OAuthBaseTest
   end
 
   def test_oauth_authorization_server_metadata
-    req = @test_harness.request(
-      ':method' => 'GET',
-      ':path'   => '/.well-known/oauth-authorization-server'
-    )
+    req = get('/.well-known/oauth-authorization-server')
     assert_equal HTTP::OK, req.response_status
     json = req.response_json
     assert_equal "http://localhost:1234/",                json['issuer']
@@ -117,14 +88,10 @@ class OAuthPhase2ClientRegistrationTest < OAuthBaseTest
       "grant_types"   => ["authorization_code", "refresh_token"]
     }
 
-    req = @test_harness.request(
-      {
-        ':method'       => 'POST',
-        ':path'         => '/oauth/register',
-        'content-type'  => 'application/json',
-        'authorization' => 'Bearer foobar'
-      },
-      JSON.dump(client_info)
+    req = post_json(
+      '/oauth/register',
+      client_info,
+      'authorization' => 'Bearer foobar'
     )
 
     assert_equal HTTP::CREATED, req.response_status
@@ -148,14 +115,10 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
       "redirect_uris" => ["http://localhost:8400/callback"],
       "grant_types"   => ["authorization_code", "refresh_token"]
     }
-    req = @test_harness.request(
-      {
-        ':method'       => 'POST',
-        ':path'         => '/oauth/register',
-        'content-type'  => 'application/json',
-        'authorization' => 'Bearer foobar'
-      },
-      JSON.dump(client_info)
+    req = post_json(
+      '/oauth/register',
+      client_info,
+      'authorization' => 'Bearer foobar'
     )
     assert_equal HTTP::CREATED, req.response_status
     json = req.response_json
@@ -169,10 +132,7 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
       'code_challenge_method' => 'S256',
       'state'                 => 'my_state'
     }
-    req = @test_harness.request(
-      ':method' => 'GET',
-      ':path'   => "/oauth/authorize?#{URI.encode_www_form(params)}"
-    )
+    req = get("/oauth/authorize?#{URI.encode_www_form(params)}")
     assert_equal HTTP::FOUND, req.response_status
     assert_equal '/signin', req.response_headers['Location']
 
@@ -202,17 +162,10 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
     }
     oauth_signin_id = @store.store(auth_params)
 
-    req = @test_harness.request(
-      {
-        ':method'       => 'POST',
-        ':path'         => '/signin',
-        'cookie'        => "oauth_signin_id=#{oauth_signin_id}",
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        username: 'foobar',
-        password: 'foobar'
-      )
+    req = post_form(
+      '/signin',
+      { username: 'foobar', password: 'foobar' },
+      'cookie' => "oauth_signin_id=#{oauth_signin_id}",
     )
 
     auth_info = @store.fetch(oauth_signin_id)
@@ -227,27 +180,15 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
   end
 
   def test_signin_endpoint_get
-    req = @test_harness.request(
-      {
-        ':method' => 'GET',
-        ':path'   => '/signin',
-      }
-    )
+    req = get('/signin')
     assert_equal HTTP::OK, req.response_status
     assert_equal 'text/html', req.response_content_type
   end
 
   def test_signin_endpoint_post_bad_creds
-    req = @test_harness.request(
-      {
-        ':method' => 'POST',
-        ':path'   => '/signin',
-        'content-type' => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        username: 'foobar',
-        password: 'bad'
-      )
+    req = post_form(
+      '/signin',
+      { username: 'foobar', password: 'bad' }
     )
     assert_equal HTTP::UNAUTHORIZED, req.response_status
     assert_equal 'text/html', req.response_content_type
@@ -255,16 +196,9 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
   end
 
   def test_signin_endpoint_post_good_creds
-    req = @test_harness.request(
-      {
-        ':method' => 'POST',
-        ':path'   => '/signin',
-        'content-type' => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        username: 'foobar',
-        password: 'foobar'
-      )
+    req = post_form(
+      '/signin',
+      { username: 'foobar', password: 'foobar' }
     )
     assert_equal HTTP::SEE_OTHER, req.response_status
     assert_equal '/', req.response_headers['Location']
@@ -277,22 +211,14 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_consent_endpoint_get_no_oauth_signin_id
-    req = @test_harness.request(
-      {
-        ':method' => 'GET',
-        ':path'   => '/oauth/consent',
-      }
-    )
+    req = get('/oauth/consent')
     assert_equal HTTP::BAD_REQUEST, req.response_status
   end
 
   def test_oauth_consent_endpoint_get_invalid_oauth_signin_id
-    req = @test_harness.request(
-      {
-        ':method' => 'GET',
-        ':path'   => '/oauth/consent',
-        'cookie'  => 'outh_signin_id=foo'
-      }
+    req = get(
+      '/oauth/consent',
+      'cookie' => 'outh_signin_id=foo'
     )
     assert_equal HTTP::BAD_REQUEST, req.response_status
   end
@@ -321,12 +247,9 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
     }
     oauth_signin_id = @store.store(auth_params)
 
-    req = @test_harness.request(
-      {
-        ':method' => 'GET',
-        ':path'   => '/oauth/consent',
-        'cookie'  => "oauth_signin_id=#{oauth_signin_id}"
-      }
+    req = get(
+      '/oauth/consent',
+      'cookie' => "oauth_signin_id=#{oauth_signin_id}"
     )
     assert_equal HTTP::OK, req.response_status
   end
@@ -355,16 +278,10 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
     }
     oauth_signin_id = @store.store(auth_params)
 
-    req = @test_harness.request(
-      {
-        ':method' => 'POST',
-        ':path'   => '/oauth/consent',
-        'cookie'  => "oauth_signin_id=#{oauth_signin_id}",
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        decision: 'deny',
-      )
+    req = post_form(
+      '/oauth/consent',
+      { decision: 'deny' },
+      'cookie'  => "oauth_signin_id=#{oauth_signin_id}"
     )
     assert_equal HTTP::FOUND, req.response_status
 
@@ -396,16 +313,10 @@ class OAuthPhase3AuthorizationTest < OAuthBaseTest
     }
     oauth_signin_id = @store.store(auth_params)
 
-    req = @test_harness.request(
-      {
-        ':method' => 'POST',
-        ':path'   => '/oauth/consent',
-        'cookie'  => "oauth_signin_id=#{oauth_signin_id}",
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        decision: 'allow',
-      )
+    req = post_form(
+      '/oauth/consent',
+      { decision: 'allow' },
+      'cookie'  => "oauth_signin_id=#{oauth_signin_id}"
     )
     assert_equal HTTP::FOUND, req.response_status
 
@@ -452,19 +363,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        grant_type: 'authorization_code',
-        code: @auth_code,
-        redirect_uri: 'http://localhost:4321/callback',
-        client_id: @client_id,
-        code_verifier: @code_verifier
-      )
+        grant_type:     'authorization_code',
+        code:           @auth_code,
+        redirect_uri:   'http://localhost:4321/callback',
+        client_id:      @client_id,
+        code_verifier:  @code_verifier
+      }
     )
 
     assert_equal HTTP::OK, req.response_status
@@ -483,19 +390,8 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_missing_params
-    req = @test_harness.request(
-      {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form({}
-        # grant_type: 'authorization_code',
-        # code: auth_code,
-        # redirect_uri: 'http://localhost:4321/callback',
-        # client_id: client_id,
-        # code_verifier: code_verifier
-      )
+    req = post_form(
+      '/oauth/token', {}
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status
@@ -507,19 +403,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_invalid_grant_type
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
         grant_type: 'foo',
         code: @auth_code,
         redirect_uri: 'http://localhost:4321/callback',
         client_id: @client_id,
         code_verifier: @code_verifier
-      )
+      }
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status
@@ -531,19 +423,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_invalid_code
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        grant_type: 'authorization_code',
-        code: @auth_code + '!',
-        redirect_uri: 'http://localhost:4321/callback',
-        client_id: @client_id,
-        code_verifier: @code_verifier
-      )
+        grant_type:     'authorization_code',
+        code:           @auth_code + '!',
+        redirect_uri:   'http://localhost:4321/callback',
+        client_id:      @client_id,
+        code_verifier:  @code_verifier
+      }
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status
@@ -555,19 +443,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_invalid_redirect_uri
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        grant_type: 'authorization_code',
-        code: @auth_code,
-        redirect_uri: 'http://localhost:4321/foo',
-        client_id: @client_id,
-        code_verifier: @code_verifier
-      )
+        grant_type:     'authorization_code',
+        code:           @auth_code,
+        redirect_uri:   'http://localhost:4321/foo',
+        client_id:      @client_id,
+        code_verifier:  @code_verifier
+      }
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status
@@ -579,19 +463,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_invalid_client_id
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        grant_type: 'authorization_code',
-        code: @auth_code + '!',
-        redirect_uri: 'http://localhost:4321/callback',
-        client_id: @client_id + 'foo',
-        code_verifier: @code_verifier
-      )
+        grant_type:     'authorization_code',
+        code:           @auth_code + '!',
+        redirect_uri:   'http://localhost:4321/callback',
+        client_id:      @client_id + 'foo',
+        code_verifier:  @code_verifier
+      }
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status
@@ -603,19 +483,15 @@ class OAuthPhase4AuthorizationTest < OAuthBaseTest
   end
 
   def test_oauth_token_exchange_invalid_code_verifier
-    req = @test_harness.request(
+    req = post_form(
+      '/oauth/token',
       {
-        ':method' => 'POST',
-        ':path'   => '/oauth/token',
-        'content-type'  => 'application/x-www-form-urlencoded'
-      },
-      URI.encode_www_form(
-        grant_type: 'authorization_code',
-        code: @auth_code + '!',
-        redirect_uri: 'http://localhost:4321/callback',
-        client_id: @client_id,
-        code_verifier: @code_verifier + 'abc'
-      )
+        grant_type:     'authorization_code',
+        code:           @auth_code + '!',
+        redirect_uri:   'http://localhost:4321/callback',
+        client_id:      @client_id,
+        code_verifier:  @code_verifier + 'abc'
+      }
     )
 
     assert_equal HTTP::BAD_REQUEST, req.response_status

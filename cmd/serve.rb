@@ -38,7 +38,6 @@ parser = OptionParser.new do |o|
   end
 
   o.on('-m', '--mount PATH', 'Set mount path (default: /)') do |path|
-    p mount: path
     env[:mount_path] = path
     env[:builtin_applet_path] = File.join(path, '.syntropy')
   end
@@ -82,7 +81,6 @@ end
 
 puts env[:banner] if env[:banner]
 env[:banner] = false
-
 
 # We set Syntropy.machine so we can reference it from anywhere
 env[:machine] = Syntropy.machine = UM.new
