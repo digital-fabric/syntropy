@@ -39,11 +39,12 @@ module Syntropy
     # @return [any] export value
     def load(ref, raise_on_missing: true)
       ref = "/#{ref}" if ref !~ /^\//
+      if !(entry = @modules[ref])
+        entry = load_module(ref, raise_on_missing:)
+        return if !entry
 
-      entry = load_module(ref, raise_on_missing:)
-      return if !entry
-
-      @modules[ref] ||= entry
+        @modules[ref] = entry
+      end
       entry[:export_value]
     end
 
