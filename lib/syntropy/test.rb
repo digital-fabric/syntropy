@@ -109,9 +109,10 @@ module Syntropy
 
       @machine = UM.new
       @app = Syntropy::App.new(
-        root_dir: @@env[:root_dir],
-        mount_path: @@env[:mount_path] || '/',
-        machine: @machine
+        **@@env.merge(
+          machine: @machine,
+          test_mode: true
+        )
       )
       @test_harness = Syntropy::TestHarness.new(@app)
     end

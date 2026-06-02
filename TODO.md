@@ -1,5 +1,61 @@
 ## Immediate
 
+- CLI:
+
+  - [ ] Introduce a `-a`/`--app` option to all tools which sets the app path (default `./app`)
+    - console
+    - serve
+    - test
+    - migrate (eventually)
+
+- DB:
+
+  - In the current design, the connection pool + schema are app global. This
+    makes it a bit more complicated if we want to use a different DB, e.g. for
+    testing, and also makes it impossible to use multiple DBs.
+  - We can instead turn a "DB instance" (connection pool + schema) into a
+    regular module. But, if we do this, how do we do migrations from the command
+    line? One solution:
+
+    ```ruby
+    # _lib/db.rb
+    export MODULE
+
+    def connection_pool
+      @connection_pool ||= DB::ConnectionPool.new(@machine, db_path, 4)
+    end
+
+    def schema
+      @schema ||= DB::Schema.new(module_loader: @module_loader, schema_root: '_schema')
+    end
+
+    def migrate!
+      schema.apply(connection_pool)
+    end
+
+    def post_store
+      @post_store ||= import('./post_store').new(connection_pool)
+    end
+    ```
+
+    We can then do a migrate tool that we just need to point at the db module:
+
+    ```bash
+    $ syntropy migrate _lib/db
+    ```
+
+    Another possibility is to introduce a DB abstraction:
+
+    ```ruby
+    # _lib/db.rb
+    export Syntropy::DB.new(
+      db_path: db_path,           # Can we automate this as well.?
+      schema_root: '_lib/schema', # default by convention
+      store_root: '_lib/stores'   # default by convention
+    )
+    ```
+    
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a

@@ -84,7 +84,7 @@ def watch_for_file_changes(machine)
   }
 end
 
-Syntropy::Test.env=(env)
+Syntropy::Test.env = (env)
 Minitest.run MINITEST_ARGV
 
 if env[:watch_mode]
