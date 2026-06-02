@@ -3,8 +3,16 @@
 require 'etc'
 
 module Syntropy
+  # SideRun implements running an operation on a separate thread.
   module SideRun
     class << self
+      # Runs the given block on a separate thread, using UringMachine to wait
+      # for the operation to complete. If the operation results in a raised
+      # exception, that exception will be reraised in the context of the waiting
+      # fiber.
+      #
+      # @param machine [UringMachine] machine instance
+      # @return [any] operation return value
       def call(machine, &block)
         setup if !@queue
 
@@ -15,6 +23,11 @@ module Syntropy
         result.is_a?(Exception) ? (raise result) : result
       end
 
+      private
+
+      # Sets up a thread pool for side-running operations.
+      #
+      # @return [void]
       def setup
         @queue = UM::Queue.new
         count = (Etc.nprocessors - 1).clamp(2..6)
@@ -23,9 +36,13 @@ module Syntropy
         }
       end
 
+      # Runs worker loop for running side-run operations.
+      #
+      # @param queue [UringMachine::Queue] queue for pulling operations
+      # @return [void]
       def side_run_worker(queue)
         machine = UM.new
-        loop { handle_request(machine, queue) }
+        loop { run_op(machine, queue) }
       rescue UM::Terminate
         # # We can also add a timeout here
         # t0 = Time.now
@@ -34,7 +51,13 @@ module Syntropy
         # end
       end
 
-      def handle_request(machine, queue)
+      # Pulls an operation from the given queue and runs it, pushing its return
+      # value to the corresponding mailbox.
+      #
+      # @param machine [UringMachine] machine instance
+      # @param queue [UringMachine::Queue] op queue
+      # @return [void]
+      def run_op(machine, queue)
         response_mailbox, closure = machine.shift(queue)
         result = closure.call
         machine.push(response_mailbox, result)

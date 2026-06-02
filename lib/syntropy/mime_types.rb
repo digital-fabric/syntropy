@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Syntropy
-  # File extension to MIME type mapping
+  # The MimeTypes module maps file extensions to MIME types.
   module MimeTypes
     TYPES = {
       'html'  => 'text/html',
@@ -21,16 +21,20 @@ module Syntropy
 
     EXT_REGEXP = /\.?([^\.]+)$/.freeze
 
-    def self.[](ref)
-      case ref
+    # Returns the mime type for the given file extension.
+    #
+    # @param ext [String, Symbol] file extension
+    # @return [String, nil] MIME type
+    def self.[](ext)
+      case ext
       when Symbol
-        TYPES[ref.to_s]
+        TYPES[ext.to_s]
       when EXT_REGEXP
         TYPES[Regexp.last_match(1)]
       when ''
         nil
       else
-        raise "Invalid argument #{ref.inspect}"
+        raise "Invalid argument #{ext.inspect}"
       end
     end
   end

@@ -5,6 +5,7 @@ require 'uri'
 
 module Syntropy
   module HTTP
+    # HTTP Client class.
     class Client
       def initialize(machine)
         @machine = machine

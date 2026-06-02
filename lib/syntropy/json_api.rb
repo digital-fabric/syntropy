@@ -4,11 +4,20 @@ require 'syntropy/errors'
 require 'json'
 
 module Syntropy
+  # JSONAPI is a controller that implements a JSON API.
   class JSONAPI
+    # Initializes the controller.
+    #
+    # @param env [Hash] app environment
+    # @return [void]
     def initialize(env)
       @env = env
     end
 
+    # Processes the given request.
+    #
+    # @param req [Syntropy::Request]
+    # @return [void]
     def call(req)
       response, status = __invoke__(req)
       req.respond(
@@ -20,6 +29,9 @@ module Syntropy
 
     private
 
+    # Processes the request by invoking the corresponding object method.
+    #
+    # @param req [Syntropy::Request]
     def __invoke__(req)
       q = req.validate_param(:q, String).to_sym
       response = case req.method
@@ -31,7 +43,7 @@ module Syntropy
         raise Syntropy::Error.method_not_allowed
       end
       [{ status: 'OK', response: response }, HTTP::OK]
-    rescue => e
+    rescue StandardError => e
       if !e.is_a?(Syntropy::Error)
         p e
         p e.backtrace
@@ -39,6 +51,11 @@ module Syntropy
       __error_response__(e)
     end
 
+    # Processes a GET request.
+    #
+    # @param sym [Symbol] object method
+    # @param req [Syntropy::Request] request
+    # @return [any] method call return value
     def __invoke_get__(sym,  req)
       return send(sym, req) if respond_to?(sym)
 
@@ -46,6 +63,11 @@ module Syntropy
       raise err
     end
 
+    # Processes a POST request.
+    #
+    # @param sym [Symbol] object method
+    # @param req [Syntropy::Request] request
+    # @return [any] method call return value
     def __invoke_post__(sym, req)
       sym_post = :"#{sym}!"
       return send(sym_post, req) if respond_to?(sym_post)
@@ -54,6 +76,10 @@ module Syntropy
       raise err
     end
 
+    # Generates an error response in case of exception.
+    #
+    # @param err [Exception] raised Exception
+    # @return [Hash] error response
     def __error_response__(err)
       http_status = err.respond_to?(:http_status) ? err.http_status : HTTP::INTERNAL_SERVER_ERROR
       error_name = err.class.name.split('::').last

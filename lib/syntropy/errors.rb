@@ -43,8 +43,6 @@ module Syntropy
     # @return [Syntropy::Error]
     def self.teapot(msg = 'I\'m a teapot') = new(msg, HTTP::TEAPOT)
 
-    attr_reader :http_status
-
     # Initializes a Syntropy error with the given HTTP status and message.
     #
     # @param http_status [Integer, String] HTTP status
@@ -70,21 +68,27 @@ module Syntropy
     end
   end
 
+  # ProtocolError is raised when an HTTP protocol error is encountered.
   class ProtocolError < Error
     def http_status
       HTTP::BAD_REQUEST
     end
   end
 
+  # UnsupportedHTTPVersionError is raised when an invalid protocol specified in
+  # a request's request line.
   class UnsupportedHTTPVersionError < ProtocolError
     def http_status
       HTTP::HTTP_VERSION_NOT_SUPPORTED
     end
   end
 
+  # BadRequestError is raised when a request contains invalid information.
   class BadRequestError < Error
   end
 
+  # InvalidRequestContentTypeError is raised when a request has an invalid
+  # content type.
   class InvalidRequestContentTypeError < Error
     def http_status
       HTTP::UNSUPPORTED_MEDIA_TYPE

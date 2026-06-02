@@ -156,7 +156,6 @@ module Syntropy
 
         formatted_headers = format_headers(headers, body)
         @response_headers = headers
-        request&.tx_incr(formatted_headers.bytesize + (body ? body.bytesize : 0))
         if body
           chunk_prelude = "#{body.bytesize.to_s(16)}\r\n"
           @machine.sendv(@fd, formatted_headers, chunk_prelude, body, CHUNKED_ENCODING_POSTLUDE)
@@ -175,7 +174,6 @@ module Syntropy
       # @return [void]
       def send_headers(request, headers, empty_response: false)
         formatted_headers = format_headers(headers, !empty_response)
-        request.tx_incr(formatted_headers.bytesize)
         @machine.send(@fd, formatted_headers, formatted_headers.bytesize, SEND_FLAGS)
         @response_headers = headers
       end
@@ -193,7 +191,6 @@ module Syntropy
         data << EMPTY_CHUNK if done
         return if data.empty?
 
-        request.tx_incr(data.bytesize)
         @machine.send(@fd, data, data.bytesize, SEND_FLAGS)
         return if @done || !done
 
@@ -205,7 +202,6 @@ module Syntropy
       # default headers are sent using #send_headers.
       # @return [void]
       def finish(request)
-        request.tx_incr(EMPTY_CHUNK_LEN)
         @machine.send(@fd, EMPTY_CHUNK, EMPTY_CHUNK_LEN, SEND_FLAGS)
         return if @done
 

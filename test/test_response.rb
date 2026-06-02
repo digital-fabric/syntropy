@@ -22,25 +22,6 @@ class RedirectTest < Minitest::Test
   end
 end
 
-class StaticFileResponeTest < Minitest::Test
-  def setup
-    @path = File.join(__dir__, 'helper.rb')
-    @stat = File.stat(@path)
-
-    @etag = Syntropy::StaticFileCaching.file_stat_to_etag(@stat)
-    @last_modified = Syntropy::StaticFileCaching.file_stat_to_last_modified(@stat)
-    @content = IO.read(@path)
-  end
-
-  def test_serve_file_non_existent
-    r = Syntropy::MockAdapter.mock
-    r.serve_file('foo.rb', base_path: __dir__)
-    assert_equal [
-      [:respond, r, nil, { ':status' => Syntropy::HTTP::NOT_FOUND }]
-    ], r.adapter.calls
-  end
-end
-
 class UpgradeTest < Minitest::Test
   def test_upgrade
     r = Syntropy::MockAdapter.mock

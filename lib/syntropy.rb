@@ -21,12 +21,19 @@ require 'syntropy/side_run'
 require 'syntropy/utils'
 require 'syntropy/version'
 
+# Syntropy is a web framework for building web apps in Ruby. Syntropy uses
+# UringMachine for I/O and concurrency, and provides a comprehensive and
+# flexible solution for writing web apps with minimal boilerplate.
 module Syntropy
   extend Utilities
 
   class << self
     attr_accessor :machine
 
+    # Runs the given block on a separate thread. Use this method for running
+    # code that is not fiber-aware (i.e. does not use UringMachine).
+    #
+    # @return [any] operation return value
     def side_run(&block)
       raise 'Syntropy.machine not set' if !@machine
 
@@ -35,6 +42,12 @@ module Syntropy
   end
 
   class << self
+    # Runs a web app with the given environment hash. The given block is either
+    # an instance of Syntropy::App, or a Proc/callable that takes a request as
+    # argument.
+    #
+    # @param env [Hash] environment
+    # @return [void]
     def run(env = {}, &app)
       if @in_run
         @env = env
@@ -58,23 +71,25 @@ module Syntropy
       end
     end
 
-    def env(env = nil, &app)
-      return @env if !env && !app
-
-      @env = env || {}
-      @env[:app] = app if app
-    end
-
     private
 
+    # Sets up asynchronous SIGINT handling.
+    #
+    # @param machine [UringMachine] machine instance
+    # @param fiber [Fiber] fiber to terminate on SIGINT
+    # @return [void]
     def setup_signal_handling(machine, fiber)
       queue = UM::Queue.new
       trap('SIGINT') { machine.push(queue, :SIGINT) }
       machine.spin { watch_for_int_signal(machine, queue, fiber) }
     end
 
-    # waits for signal from queue, then terminates given fiber
-    # to be done
+    # Waits for signal from queue, then terminates the given fiber.
+    #
+    # @param machine [UringMachine] machine instance
+    # @param queue [UringMachine::Queue] queue to wait on
+    # @param fiber [Fiber] fiber to terminate
+    # @return [void]
     def watch_for_int_signal(machine, queue, fiber)
       machine.shift(queue)
       machine.schedule(fiber, UM::Terminate.new)

@@ -3,36 +3,61 @@
 require 'uri'
 
 module Syntropy
+  # Request information extension methods.
   module RequestInfoMethods
+    # Returns the request host.
+    #
+    # @return [String, nil]
     def host
       @headers['host'] || @headers[':authority']
     end
     alias_method :authority, :host
 
+    # Returns the connection header value.
+    #
+    # @return [String, nil]
     def connection
       @headers['connection']
     end
 
+    # Returns the upgrade protocol.
+    #
+    # @return [String, nil]
     def upgrade_protocol
       connection == 'upgrade' && @headers['upgrade']&.downcase
     end
 
+    # Returns the websocket version.
+    #
+    # @return [String, nil]
     def websocket_version
       headers['sec-websocket-version'].to_i
     end
 
+    # Returns the protocol.
+    #
+    # @return [String, nil]
     def protocol
       @protocol ||= @adapter.protocol
     end
 
+    # Returns the HTTP method in lower case.
+    #
+    # @return [String]
     def method
       @method ||= @headers[':method'].downcase
     end
 
+    # Returns the request scheme.
+    #
+    # @return [String, nil]
     def scheme
       @scheme ||= @headers[':scheme']
     end
 
+    # Returns the request content type.
+    #
+    # @return [String, nil]
     def content_type
       ct = @headers['content-type']
       return nil if !ct
@@ -59,22 +84,37 @@ module Syntropy
       self
     end
 
+    # Returns the parsed request URI.
+    #
+    # @return [URI::Generic]
     def uri
       @uri ||= URI.parse(@headers[':path'] || '')
     end
 
+    # Returns the parsed full request URI.
+    #
+    # @return [URI::HTTP]
     def full_uri
       @full_uri = "#{scheme}://#{host}#{uri}"
     end
 
+    # Returns the request path.
+    #
+    # @return [String]
     def path
       @path ||= uri.path
     end
 
+    # Returns the request (unparsed) query string.
+    #
+    # @return [String, nil]
     def query_string
       @query_string ||= uri.query
     end
 
+    # Returns the parsed query hash.
+    #
+    # @return [Hash]
     def query
       return @query if @query
 
@@ -83,6 +123,10 @@ module Syntropy
 
     QUERY_KV_REGEXP = /([^=]+)(?:=(.*))?/
 
+    # Converts a query string into a query hash
+    #
+    # @param query [String]
+    # @return [Hash]
     def parse_query(query)
       query.split('&').each_with_object({}) do |kv, h|
         k, v = kv.match(QUERY_KV_REGEXP)[1..2]
@@ -90,10 +134,16 @@ module Syntropy
       end
     end
 
+    # Returns the request ID.
+    #
+    # @return [String, nil]
     def request_id
       @headers['x-request-id']
     end
 
+    # Returns the forwarded for value.
+    #
+    # @return [String, nil]
     def forwarded_for
       @headers['x-forwarded-for']
     end
@@ -107,6 +157,9 @@ module Syntropy
       encoding.split(',').map { |i| i.strip }
     end
 
+    # Returns the parsed cookie values.
+    #
+    # @return [String, nil]
     def cookies
       @cookies ||= parse_cookies(headers['cookie'])
     end
@@ -114,6 +167,10 @@ module Syntropy
     COOKIE_RE = /^([^=]+)=(.*)$/.freeze
     SEMICOLON = ';'
 
+    # Parses the cookie string.
+    #
+    # @param cookies [String]
+    # @return [Hash]
     def parse_cookies(cookies)
       return {} unless cookies
 
@@ -139,6 +196,9 @@ module Syntropy
       raise Syntropy::Error.new('Invalid form data', HTTP::BAD_REQUEST)
     end
 
+    # Returns true if the user-agent is a browser.
+    #
+    # @return [bool]
     def browser?
       user_agent = headers['user-agent']
       user_agent && user_agent =~ /^Mozilla\//
@@ -156,6 +216,9 @@ module Syntropy
       @accept_parts.include?(mime_type)
     end
 
+    # Returns the bearer token.
+    #
+    # @return [String, nil]
     def auth_bearer_token
       auth = headers['authorization']
       if auth && (m = auth.match(/Bearer\s+([^\w]+)/))
@@ -167,12 +230,22 @@ module Syntropy
 
     private
 
+    # Parses an accept string into an array of accepted MIME types.
+    #
+    # @param accept [string]
+    # @return [Array<String>]
     def parse_accept_parts(accept)
       accept.split(',').map { it.match(/^\s*([^\s;]+)/)[1] }
     end
   end
 
+  # Request info class methods
   module RequestInfoClassMethods
+    # Parses form data into a hash
+    #
+    # @param body [String]
+    # @param headers [Hash]
+    # @return [Hash]
     def parse_form_data(body, headers)
       case (content_type = headers['content-type'])
       when /^multipart\/form\-data; boundary=([^\s]+)/
@@ -185,6 +258,11 @@ module Syntropy
       end
     end
 
+    # Parses a multipart form body.
+    #
+    # @param body [String]
+    # @param boundary [String]
+    # @return [Hash]
     def parse_multipart_form_data(body, boundary)
       parts = body.split(boundary)
       raise BadRequestError, 'Invalid form data' if parts.size < 2
@@ -197,6 +275,11 @@ module Syntropy
       end
     end
 
+    # Parses a multipart form data part.
+    #
+    # @param body [String]
+    # @param hash [Hash] output hash
+    # @return [void]
     def parse_multipart_form_data_part(part, hash)
       body, headers = parse_multipart_form_data_part_headers(part)
       disposition = headers['content-disposition'] || ''
@@ -211,6 +294,10 @@ module Syntropy
       end
     end
 
+    # Parses a multipart form data part headers.
+    #
+    # @param part [String]
+    # @return [Hash]
     def parse_multipart_form_data_part_headers(part)
       headers = {}
       while true
@@ -234,6 +321,10 @@ module Syntropy
     MAX_PARAMETER_NAME_SIZE = 256
     MAX_PARAMETER_VALUE_SIZE = 2**20 # 1MB
 
+    # Parses a URL-encoded form.
+    #
+    # @param body [String]
+    # @return [Hash]
     def parse_urlencoded_form_data(body)
       return {} unless body
 

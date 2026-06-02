@@ -89,10 +89,13 @@ module Syntropy
       entry[:reverse_deps].each { invalidate_ref(it) }
     end
 
+    # Invalidates a collection module.
+    #
+    # @return [void]
     def invalidate_collection_modules
       refs = []
       @modules.each do |ref, entry|
-        refs << ref if entry[:module].is_collection_module?
+        refs << ref if entry[:module].collection_module?
       end
       refs.each { invalidate_ref(it) }
     end
@@ -142,6 +145,10 @@ module Syntropy
       }
     end
 
+    # Cleans up a module reference specifier, turning /index into /
+    #
+    # @param ref [String] input ref
+    # @return [String] clean ref
     def clean_ref(ref)
       return '/' if ref =~ /^index(\+)?$/
 
@@ -222,7 +229,7 @@ module Syntropy
     # #collection_module!
     #
     # @return [bool]
-    def is_collection_module?
+    def collection_module?
       @collection_module_p
     end
 
@@ -258,6 +265,10 @@ module Syntropy
       self
     end
 
+    # Normalize an import reference, turning a relative path into an absolute one.
+    #
+    # @param ref [String] input ref
+    # @return [String] normalized ref
     def normalize_import_ref(ref)
       base = @ref == '' ? '/' : @ref
       if ref =~ /^\//
@@ -274,7 +285,7 @@ module Syntropy
     # @return [Papercraft::Template] template
     def template(proc = nil, &block)
       proc ||= block
-      raise "No template block/proc given" if !proc
+      raise 'No template block/proc given' if !proc
 
       Papercraft::Template.new(proc)
     end
@@ -286,10 +297,10 @@ module Syntropy
     # @return [Papercraft::Template] template
     def template_xml(proc = nil, &block)
       proc ||= block
-      raise "No template block/proc given" if !proc
+      raise 'No template block/proc given' if !proc
 
       Papercraft::Template.new(proc, mode: :xml)
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
       raise

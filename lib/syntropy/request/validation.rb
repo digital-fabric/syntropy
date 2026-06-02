@@ -3,6 +3,7 @@
 require 'uri'
 
 module Syntropy
+  # Request validation methods.
   module RequestValidationMethods
 
     # Checks the request's HTTP method against the given accepted values. If not

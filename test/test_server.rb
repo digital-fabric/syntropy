@@ -150,8 +150,7 @@ class ServerTest < Minitest::Test
       ':path' => '/foo',
       'server' => 'foo.com',
       'content-length' => '3',
-      ':body-done-reading' => true,
-      ':tx' => 56,
+      ':body-done-reading' => true
     }, headers)
     body = @bodies.shift
     assert_equal 'abc', body
@@ -163,8 +162,7 @@ class ServerTest < Minitest::Test
       ':path' => '/bar',
       'server' => 'bar.com',
       'content-length' => '6',
-      ':body-done-reading' => true,
-      ':tx' => 56,
+      ':body-done-reading' => true
     }, headers)
     body = @bodies.shift
     assert_equal 'defghi', body
@@ -218,8 +216,7 @@ class ServerTest < Minitest::Test
       ':path'               => '/foo',
       'server'              => 'foo.com',
       'transfer-encoding'   => 'chunked',
-      ':body-done-reading'  => true,
-      ':tx'                 => 56
+      ':body-done-reading'  => true
     }, headers)
     body = @bodies.shift
     assert_equal 'abcde', body
@@ -231,8 +228,7 @@ class ServerTest < Minitest::Test
       ':path'               => '/bar',
       'server'              => 'bar.com',
       'transfer-encoding'   => 'chunked',
-      ':body-done-reading'  => true,
-      ':tx'                 => 56
+      ':body-done-reading'  => true
     }, headers)
     body = @bodies.shift
     assert_equal '123456789abcdefghijklmnopqrstuv', body

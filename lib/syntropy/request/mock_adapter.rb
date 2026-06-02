@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Syntropy
+  # Implements a mock adapter for testing
   class MockAdapter
     attr_reader :response_body, :response_headers, :calls
 
@@ -19,14 +20,13 @@ module Syntropy
     end
 
     def initialize(request_body)
-      case request_body
-      when Array
-        @request_body_chunks = request_body
-      when nil
-        @request_body_chunks = []
-      else
-        @request_body_chunks = [request_body]
-      end
+      @request_body_chunks =
+        case request_body
+        when Array then request_body
+        when nil   then []
+        else            [request_body]
+        end
+
       @calls = []
     end
 
@@ -46,6 +46,8 @@ module Syntropy
 
       response_headers[':status'] || HTTP::OK
     end
+
+    def respond_to_missing?(sym) = true
 
     def method_missing(sym, *args)
       calls << [sym, *args]

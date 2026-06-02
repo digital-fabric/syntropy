@@ -11,15 +11,25 @@ require 'syntropy/routing_tree'
 require 'syntropy/mime_types'
 
 module Syntropy
+  # The App implements a Syntropy application. It is responsible for handling
+  # incoming HTTP requests, routing them to the correct handler, and maintaining
+  # application state.
   class App
     class << self
+      # Creates an app instance based on the given environment hash.
+      #
+      # @param env [Hash] environment hash
+      # @return [Syntropy::App]
       def load(env)
         site_file_app(env) || default_app(env)
       end
 
       private
 
-      # for apps with a _site.rb file
+      # Creates a multi-hostname app if a _site.rb file is detected.
+      #
+      # @param env [Hash] environment hash
+      # @return [Syntropy::App]
       def site_file_app(env)
         fn = File.join(env[:root_dir], '_site.rb')
         return nil if !File.file?(fn)
@@ -28,7 +38,10 @@ module Syntropy
         loader.load('_site')
       end
 
-      # default app
+      # Creates a normal Syntropy app.
+      #
+      # @param env [Hash] environment hash
+      # @return [Syntropy::App]
       def default_app(env)
         new(**env)
       end
@@ -37,6 +50,10 @@ module Syntropy
     attr_reader :module_loader, :routing_tree, :root_dir, :mount_path, :env
     attr_accessor :raise_on_internal_server_error
 
+    # Initializes the app instance.
+    #
+    # @param env [Hash] environment hash
+    # @return [void]
     def initialize(**env)
       @machine = env[:machine]
       @root_dir = File.expand_path(env[:root_dir])
@@ -77,12 +94,14 @@ module Syntropy
       proc = route[:proc] ||= compute_route_proc(route)
       proc.(req)
     rescue ScriptError, StandardError => e
-      @logger&.error(
-        message: "Error while serving request: #{e.message}",
-        method: req.method,
-        path: path,
-        error: e
-      ) if Error.log_error?(e)
+      if Error.log_error?(e)
+        @logger&.error(
+          message: "Error while serving request: #{e.message}",
+          method: req.method,
+          path: path,
+          error: e
+        )
+      end
       error_handler = get_error_handler(route)
       error_handler.(req, e)
     end
@@ -102,6 +121,11 @@ module Syntropy
       route
     end
 
+    # Sets up a database connection pool schema instances.
+    #
+    # @param db_path [String] path to database file
+    # @param schema_root [String] the schema module directory reference
+    # @return [void]
     def setup_db(db_path:, schema_root: '_schema')
       @env[:db_path] = db_path
       @env[:schema_root] = schema_root
@@ -134,7 +158,10 @@ module Syntropy
       end
     end
 
-    # Returns the find
+    # Finds the first up-tree route entry for the given path.
+    #
+    # @param path [String] path
+    # @return [Hash] route entry
     def find_first_uptree_route(path)
       route = @router_proc.(path, {})
       if !route && path != '/'
@@ -164,6 +191,10 @@ module Syntropy
       @routing_tree.mount_applet(path, @builtin_applet)
     end
 
+    # Sets and returns the not found proc for the given route entry.
+    #
+    # @param route [Hash] route entry
+    # @return [Proc] not found proc
     def route_not_found_proc(route)
       route[:not_found_proc] ||= compose_up_tree_hooks(route, ->(req) {
         raise Syntropy::Error.not_found('Not found')
@@ -233,7 +264,7 @@ module Syntropy
       req.validate_cache(**cache_opts) {
         req.respond(target[:content], 'Content-Type' => target[:mime_type])
       }
-    rescue => e
+    rescue StandardError => e
       p e
       p e.backtrace
       exit!
@@ -299,7 +330,7 @@ module Syntropy
     # @param route [Hash] route entry
     # @return [String] rendered HTML
     def render_markdown(route)
-      atts, md = Syntropy.parse_markdown_file(route[:target][:fn], @env)
+      atts, md = Syntropy::Markdown.parse(route[:target][:fn], @env)
 
       layout = compute_markdown_layout(route, atts)
       Papercraft.html(layout, md:, **atts)
@@ -482,6 +513,9 @@ module Syntropy
       req.respond(msg, ':status' => status) rescue nil
     }
 
+    # Returns the default error handler for the app.
+    #
+    # @return [Proc] error handler
     def default_error_handler
       @default_error_handler ||= begin
         if @builtin_applet
@@ -525,12 +559,6 @@ module Syntropy
         @module_loader.invalidate_fn(fn)
         debounce_file_change
       }
-
-      # Syntropy.file_watch(@machine, @root_dir, period: period) do |event, fn|
-      #   @logger&.info(message: 'File change detected', fn: fn)
-      #   @module_loader.invalidate_fn(fn)
-      #   debounce_file_change
-      # end
     rescue Exception => e
       p e
       p e.backtrace
@@ -564,7 +592,7 @@ module Syntropy
 
       watcher_mod = watcher_route[:proc]
       watcher_mod.signal!
-    rescue => e
+    rescue StandardError => e
       @logger&.error(
         message: 'Unexpected error while signalling auto refresh watcher',
         error: e

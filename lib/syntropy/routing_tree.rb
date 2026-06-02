@@ -233,7 +233,7 @@ module Syntropy
     # @return [String, nil] file path if found
     def find_aux_module_entry(dir, name)
       fn = File.join(dir, name)
-      File.file?(fn) ? ({ kind: :module,  fn: }) : nil
+      File.file?(fn) ? { kind: :module,  fn: } : nil
     end
 
     # Returns a hash mapping file/dir names to route entries.
@@ -247,10 +247,10 @@ module Syntropy
 
         rel_path = compute_clean_url_path(fn)
         child = if File.file?(fn)
-          compute_route_file(fn:, rel_path:, parent:)
-        elsif File.directory?(fn)
-          compute_route_directory(dir: fn, rel_path:, parent:)
-        end
+                  compute_route_file(fn:, rel_path:, parent:)
+                elsif File.directory?(fn)
+                  compute_route_directory(dir: fn, rel_path:, parent:)
+                end
         map[child_key(child)] = child if child
       }
     end
@@ -317,7 +317,6 @@ module Syntropy
       set_index_route_target(parent:, path:, kind:, fn:, handle_subtree:)
     end
 
-
     # Sets an index route target for the given parent entry. Index files are
     # applied as targets to the immediate containing directory. HTML index files
     # are considered static and therefore not added to the routing tree.
@@ -329,7 +328,7 @@ module Syntropy
     # @param handle_subtree [bool] whether the target handles the subtree
     # @return [nil] (prevents addition of an index route)
     def set_index_route_target(parent:, path:, kind:, fn:, handle_subtree: nil)
-      if is_parametric_route?(parent) || handle_subtree
+      if parametric_route?(parent) || handle_subtree
         @dynamic_map[path] = parent
         parent[:target] = { kind:, fn: }
         parent[:handle_subtree] = handle_subtree
@@ -383,7 +382,7 @@ module Syntropy
     # @param entry [Hash] route entry
     def make_route_entry(entry)
       path = entry[:path]
-      if is_parametric_route?(entry) || entry[:handle_subtree]
+      if parametric_route?(entry) || entry[:handle_subtree]
         @dynamic_map[path] = entry
       else
         entry[:static] = true
@@ -394,8 +393,8 @@ module Syntropy
     # returns true if the route or any of its ancestors are parametric.
     #
     # @param entry [Hash] route entry
-    def is_parametric_route?(entry)
-      entry[:param] || (entry[:parent] && is_parametric_route?(entry[:parent]))
+    def parametric_route?(entry)
+      entry[:param] || (entry[:parent] && parametric_route?(entry[:parent]))
     end
 
     # Converts a relative URL path to absolute URL path.
@@ -468,7 +467,7 @@ module Syntropy
         emit_router_proc_postlude(buffer, default_route_path: wildcard_root && @root[:path])
       end
 
-      buffer#.tap { puts '*' * 40; puts it; puts }
+      buffer # .tap { puts '*' * 40; puts it; puts }
     end
 
     # Emits optimized code for a childless wildcard router.
@@ -540,7 +539,7 @@ module Syntropy
         return
       end
 
-      if is_void_route?(entry)
+      if void_route?(entry)
         parent = entry[:parent]
         parametric_sibling = parent && parent[:children] && parent[:children]['[]']
         if parametric_sibling
@@ -580,7 +579,7 @@ module Syntropy
     # @param entry [Hash] route entry
     # @return [Hash, nil] route target if exists
     def find_target_in_subtree(entry)
-      entry[:children]&.values&.each { |e|
+      entry[:children]&.each_value { |e|
         target = e[:target] || find_target_in_subtree(e)
         return target if target
       }
@@ -593,14 +592,14 @@ module Syntropy
     #
     # @param entry [Hash] route entry
     # @return [bool]
-    def is_void_route?(entry)
+    def void_route?(entry)
       return false if entry[:param] || entry[:target]
+      return true if entry[:static]
 
-      if entry[:children]
-        return true if !entry[:children]['[]'] && entry[:children]&.values&.all? { is_void_route?(it) }
-      else
-        return true if entry[:static]
-      end
+      children = entry[:children]
+      return false if !children
+
+      return true if !children['[]'] && children.values.all? { void_route?(it) }
 
       false
     end
@@ -640,7 +639,7 @@ module Syntropy
 
         elsif has_children
           # otherwise look at the next segment
-          next if is_void_route?(child_entry) && !param_entry
+          next if void_route?(child_entry) && !param_entry
 
           when_buffer = +''
           visit_routing_tree_entry(buffer: when_buffer, entry: child_entry, indent: indent + 1, segment_idx: segment_idx + 1)

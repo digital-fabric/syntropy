@@ -133,6 +133,9 @@ class AppTest < Minitest::Test
 
     req = @test_harness.request(':method' => 'DELETE', ':path' => '/test/by_method')
     assert_equal HTTP::METHOD_NOT_ALLOWED, req.response_status
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/test/http')
+    assert_equal HTTP::TEAPOT, req.response_status
   end
 
   def test_automatic_redirect_on_trailing_slash

@@ -7,18 +7,7 @@ require_relative '../http/status'
 require_relative '../mime_types'
 
 module Syntropy
-  module StaticFileCaching
-    class << self
-      def file_stat_to_etag(stat)
-        "#{stat.mtime.to_i.to_s(36)}#{stat.size.to_s(36)}"
-      end
-
-      def file_stat_to_last_modified(stat)
-        stat.mtime.httpdate
-      end
-    end
-  end
-
+  # Response methods.
   module ResponseMethods
     WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
