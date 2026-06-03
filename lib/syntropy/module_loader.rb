@@ -199,6 +199,7 @@ module Syntropy
       env[:logger]&.info(message: "Loaded module at #{fn}")
       m
     rescue SyntaxError => e
+      env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
       STDERR.puts("\n#{e.message}")
 
       if (m = e.message.match(/^(.+)\: syntax/))
@@ -209,6 +210,9 @@ module Syntropy
       else
         raise e
       end
+    rescue => e
+      env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
+      raise e
     end
 
     # Initializes a module with the given environment hash.
