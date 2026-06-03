@@ -2,6 +2,8 @@
 
 module Syntropy
   module DB
+    # The Store class represents a data store based on one or more tables, and
+    # connected to a database connection pool.
     class Store
       def initialize(connection_pool)
         @connection_pool = connection_pool

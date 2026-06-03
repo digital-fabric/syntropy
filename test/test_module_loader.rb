@@ -6,7 +6,7 @@ class ModuleTest < Minitest::Test
   def setup
     @machine = UM.new
     @root = File.join(__dir__, 'app')
-    @env = { root_dir: @root, baz: 42, machine: @machine, app: 42 }
+    @env = { app_path: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env)
   end
 
@@ -109,5 +109,8 @@ class ModuleTest < Minitest::Test
 
     list = @loader.list('mod/bar')
     assert_equal ['mod/bar/index+'], list
+
+    list = @loader.list('non-existent')
+    assert_equal [], list
   end
 end

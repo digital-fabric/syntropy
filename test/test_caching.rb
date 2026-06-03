@@ -32,7 +32,7 @@ class CachingTest < Minitest::Test
 
     @env = {
       machine: @machine,
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/test',
       watch_files: 0.05
     }

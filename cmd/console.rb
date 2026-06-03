@@ -5,7 +5,7 @@ require 'optparse'
 require 'fileutils'
 
 env = {
-  root_dir:             File.join(FileUtils.pwd, 'app'),
+  app_path:             File.join(FileUtils.pwd, 'app'),
   mount_path:           '/',
   logger:               true,
   builtin_applet_path:  '/.syntropy',
@@ -16,7 +16,7 @@ parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy serve [options]'
 
   o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
-    env[:root_dir] = path
+    env[:app_path] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -50,8 +50,8 @@ end
 
 $syntropy_dev_mode = env[:dev_mode]
 
-if !File.directory?(env[:root_dir])
-  puts "#{File.expand_path(env[:root_dir])} Not a directory"
+if !File.directory?(env[:app_path])
+  puts "#{File.expand_path(env[:app_path])} Not a directory"
   exit
 end
 

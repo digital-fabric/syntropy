@@ -5,7 +5,7 @@ module Syntropy
   # static files, markdown files, ruby modules, parametric routes, subtree routes,
   # nested middleware and error handlers.
   #
-  # A RoutingTree instance takes the given directory (root_dir) and constructs a
+  # A RoutingTree instance takes the given directory (app_path) and constructs a
   # tree of route entries corresponding to the directory's contents. Finally, it
   # generates an optimized router proc, which is used by the application to return
   # a route entry for each incoming HTTP request.
@@ -41,15 +41,15 @@ module Syntropy
   #   allows you to prevent access through the HTTP server to protected or
   #   internal modules or files.
   class RoutingTree
-    attr_reader :root_dir, :mount_path, :static_map, :dynamic_map, :root
+    attr_reader :app_path, :mount_path, :static_map, :dynamic_map, :root
 
     # Initializes a new RoutingTree instance and computes the routing tree
     #
-    # @param root_dir [String] root directory of file tree
+    # @param app_path [String] root directory of file tree
     # @param mount_path [String] base URL path
     # @return [void]
-    def initialize(root_dir:, mount_path:, **env)
-      @root_dir = root_dir
+    def initialize(app_path:, mount_path:, **env)
+      @app_path = app_path
       @mount_path = mount_path
       @static_map = {}
       @dynamic_map = {}
@@ -72,7 +72,7 @@ module Syntropy
     # @param fn [String] file path
     # @return [String] clean path
     def compute_clean_url_path(fn)
-      rel_path = fn.sub(@root_dir, '')
+      rel_path = fn.sub(@app_path, '')
       case rel_path
       when /^(.*)\/index\.(md|rb|html)$/
         Regexp.last_match(1).then { it == '' ? '/' : it }
@@ -88,7 +88,7 @@ module Syntropy
     # @param fn [String] filename
     # @return [String] relative path
     def fn_to_rel_path(fn)
-      fn.sub(/^#{Regexp.escape(@root_dir)}\//, '').sub(/\.[^\.]+$/, '')
+      fn.sub(/^#{Regexp.escape(@app_path)}\//, '').sub(/\.[^\.]+$/, '')
     end
 
     # Mounts the given applet on the routng tree at the given (absolute) mount
@@ -142,7 +142,7 @@ module Syntropy
     #
     # @return [Hash] root entry
     def compute_tree
-      compute_route_directory(dir: @root_dir, rel_path: '/', parent: nil)
+      compute_route_directory(dir: @app_path, rel_path: '/', parent: nil)
     end
 
     # Converts the given absolute path to a relative one (relative to the

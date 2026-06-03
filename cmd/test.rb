@@ -5,7 +5,7 @@ require 'optparse'
 
 pwd = FileUtils.pwd
 env = {
-  root_dir: File.join(pwd, 'app'),
+  app_path: File.join(pwd, 'app'),
   test_dir: File.join(pwd, 'test'),
   mount_path: '/'
 }
@@ -15,7 +15,7 @@ parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy test [options]'
 
   o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
-    env[:root_dir] = path
+    env[:app_path] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -95,7 +95,7 @@ if env[:watch_mode]
 
   machine.write(UM::STDOUT_FILENO, "Waiting for file changes...\n")
   m.join(
-    m.spin { restart_on_file_change(m, env[:root_dir], argv_copy) },
+    m.spin { restart_on_file_change(m, env[:app_path], argv_copy) },
     m.spin { restart_on_file_change(m, env[:test_dir], argv_copy) }
   )
 end

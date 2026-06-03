@@ -28,7 +28,7 @@ module Syntropy
     # @return [void]
     def initialize(env)
       @env = env
-      @root_dir = env[:root_dir]
+      @app_path = env[:app_path]
       @modules = {} # maps ref to module entry
       @fn_map = {} # maps filename to ref
     end
@@ -55,8 +55,8 @@ module Syntropy
     # @param dir [String] relative module directory
     # @return [Array<String>] list of modules
     def list(dir)
-      fns = Dir[File.join(@root_dir, dir, '*.rb')]
-      fns.map { it.match(/^#{@root_dir}\/(.+)\.rb$/)[1] }.sort
+      fns = Dir[File.join(@app_path, dir, '*.rb')]
+      fns.map { it.match(/^#{@app_path}\/(.+)\.rb$/)[1] }.sort
     end
 
     # Invalidates a module by its filename, normally following a change to the
@@ -121,7 +121,7 @@ module Syntropy
     # @return [Hash] module entry
     def load_module(ref, raise_on_missing: true)
       ref = "/#{ref}" if ref !~ /^\//
-      fn = File.expand_path(File.join(@root_dir, "#{ref}.rb"))
+      fn = File.expand_path(File.join(@app_path, "#{ref}.rb"))
       if !File.file?(fn)
         raise Syntropy::Error, "File not found #{fn}" if raise_on_missing
 

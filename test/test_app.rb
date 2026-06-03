@@ -14,7 +14,7 @@ class AppTest < Minitest::Test
     @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
     @app = Syntropy::App.new(
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/test',
       watch_files: 0.05,
       machine: @machine
@@ -192,7 +192,7 @@ class CustomAppTest < Minitest::Test
     @machine = UM.new
     @app = Syntropy::App.load(
       machine: @machine,
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/'
     )
     @test_harness = Syntropy::TestHarness.new(@app)
@@ -214,7 +214,7 @@ class MultiSiteAppTest < Minitest::Test
     @machine = UM.new
     @app = Syntropy::App.load(
       machine: @machine,
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/'
     )
     @test_harness = Syntropy::TestHarness.new(@app)
@@ -245,7 +245,7 @@ class AppAPITest < Minitest::Test
     @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
     @app = Syntropy::App.new(
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/test',
       watch_files: 0.05,
       machine: @machine
@@ -312,7 +312,7 @@ class AppDependenciesTest < Minitest::Test
     @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
 
     @app = Syntropy::App.new(
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/test',
       machine: @machine,
       foo: foo,
@@ -335,7 +335,7 @@ class AppDBSetupDBTest < Minitest::Test
     machine = UM.new
 
     app = Syntropy::App.new(
-      root_dir: APP_ROOT,
+      app_path: APP_ROOT,
       mount_path: '/test',
       machine: machine
     )

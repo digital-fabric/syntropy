@@ -138,8 +138,8 @@ def make_tmp_file_tree(dir, spec)
   dir
 end
 
-ROOT_DIR = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-make_tmp_file_tree(ROOT_DIR, {
+app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+make_tmp_file_tree(app_path, {
   'index.rb': "export ->(req) { req.redirect('/hello') }",
   'hello': {
     'index.rb': "export ->(req) { req.respond('Hello!', 'Content-Type' => 'text/html') }",
@@ -149,7 +149,7 @@ make_tmp_file_tree(ROOT_DIR, {
 
 machine = UM.new
 syntropy_app = Syntropy::App.new(
-  root_dir: ROOT_DIR,
+  app_path: app_path,
   mount_path: '/',
   machine: machine
 )
@@ -185,7 +185,7 @@ BM.run do
     def setup
       machine = UM.new
       syntropy_app = Syntropy::App.new(
-        root_dir: ROOT_DIR,
+        app_path: app_path,
         mount_path: '/',
         # watch_files: 0.05,
         machine: machine

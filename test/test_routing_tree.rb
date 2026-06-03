@@ -54,19 +54,19 @@ class RoutingTreeTest < Minitest::Test
   }
 
   def setup
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, FILE_TREE)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, FILE_TREE)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/docs')
   end
 
   def test_compute_clean_url_path
     c = ->(fn) { @rt.send(:compute_clean_url_path, fn) }
-    assert_equal '/', c.(File.join(@rt.root_dir, '/index.rb'))
-    assert_equal '/about', c.(File.join(@rt.root_dir, '/about.md'))
-    assert_equal '/[org]', c.(File.join(@rt.root_dir, '/[org]'))
-    assert_equal '/favicon.ico', c.(File.join(@rt.root_dir, '/favicon.ico'))
-    assert_equal '/assets/style.css', c.(File.join(@rt.root_dir, '/assets/style.css'))
-    assert_equal '/foo.js', c.(File.join(@rt.root_dir, '/foo.js'))
+    assert_equal '/', c.(File.join(@rt.app_path, '/index.rb'))
+    assert_equal '/about', c.(File.join(@rt.app_path, '/about.md'))
+    assert_equal '/[org]', c.(File.join(@rt.app_path, '/[org]'))
+    assert_equal '/favicon.ico', c.(File.join(@rt.app_path, '/favicon.ico'))
+    assert_equal '/assets/style.css', c.(File.join(@rt.app_path, '/assets/style.css'))
+    assert_equal '/foo.js', c.(File.join(@rt.app_path, '/foo.js'))
   end
 
   def test_routing_tree_generation
@@ -80,40 +80,40 @@ class RoutingTreeTest < Minitest::Test
     ], root[:children].keys.sort_by(&:to_s)
 
     entry = @rt.static_map['/docs']
-    assert_equal File.join(@rt.root_dir, 'index.rb'), entry[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'index.rb'), entry[:target][:fn]
 
     about = root[:children]['about']
     assert_equal '/docs/about', about[:path]
     assert_equal root, about[:parent]
-    assert_equal File.join(@rt.root_dir, 'about.md'), about[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'about.md'), about[:target][:fn]
     assert_nil about[:children]
 
     org = root[:children]['[]']
     assert_equal '/docs/[org]', org[:path]
     assert_equal 'org', org[:param]
     refute_nil org[:target]
-    assert_equal File.join(@rt.root_dir, '[org]/index.rb'), org[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/index.rb'), org[:target][:fn]
     assert_equal ['[]'], org[:children].keys.sort_by(&:to_s)
 
     repo = org[:children]['[]']
     assert_equal org, repo[:parent]
     assert_equal '/docs/[org]/[repo]', repo[:path]
     assert_equal 'repo', repo[:param]
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/index.rb'), repo[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/index.rb'), repo[:target][:fn]
     assert_equal ['commits', 'issues'], repo[:children].keys.sort_by(&:to_s)
 
     issues = repo[:children]['issues']
     assert_equal repo, issues[:parent]
     assert_equal '/docs/[org]/[repo]/issues', issues[:path]
     assert_nil issues[:param]
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/index.rb'), issues[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/index.rb'), issues[:target][:fn]
     assert_equal ['[]'], issues[:children].keys.sort_by(&:to_s)
 
     id = issues[:children]['[]']
     assert_equal issues, id[:parent]
     assert_equal '/docs/[org]/[repo]/issues/[id]', id[:path]
     assert_equal 'id', id[:param]
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/[id]/index.rb'), id[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/[id]/index.rb'), id[:target][:fn]
     assert_equal [], id[:children].keys.sort_by(&:to_s)
 
     posts = root[:children]['posts']
@@ -126,7 +126,7 @@ class RoutingTreeTest < Minitest::Test
     assert_equal posts, id[:parent]
     assert_equal '/docs/posts/[id]', id[:path]
     assert_equal 'id', id[:param]
-    assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), id[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/[id].rb'), id[:target][:fn]
     assert_nil id[:children]
 
     old = root[:children]['old']
@@ -154,35 +154,35 @@ class RoutingTreeTest < Minitest::Test
     ], keys
 
     o = map['/docs/.well-known/foo']
-    assert_equal File.join(@rt.root_dir, '.well-known/foo.rb'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, '.well-known/foo.rb'), o[:target][:fn]
 
     o = map['/docs/assets/css/style.css']
-    assert_equal File.join(@rt.root_dir, 'assets/css/style.css'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'assets/css/style.css'), o[:target][:fn]
 
     o = map['/docs/assets/img/foo.jpg']
-    assert_equal File.join(@rt.root_dir, 'assets/img/foo.jpg'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'assets/img/foo.jpg'), o[:target][:fn]
 
     o = map['/docs/old/baz']
-    assert_equal File.join(@rt.root_dir, 'old/baz.html'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'old/baz.html'), o[:target][:fn]
 
     o = map['/docs/posts']
-    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/index.rb'), o[:target][:fn]
     refute_nil o[:parent]
     assert_equal '/docs', o[:parent][:path]
 
     o = map['/docs/old/baz']
-    assert_equal File.join(@rt.root_dir, 'old/baz.html'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'old/baz.html'), o[:target][:fn]
 
     o = map['/docs/old']
-    assert_equal File.join(@rt.root_dir, 'old/index.html'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'old/index.html'), o[:target][:fn]
     refute_nil o[:parent]
     assert_equal '/docs', o[:parent][:path]
 
     o = map['/docs']
-    assert_equal File.join(@rt.root_dir, 'index.rb'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'index.rb'), o[:target][:fn]
 
     o = map['/docs/about']
-    assert_equal File.join(@rt.root_dir, 'about.md'), o[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'about.md'), o[:target][:fn]
   end
 
   def test_dynamic_map
@@ -210,7 +210,7 @@ class RoutingTreeTest < Minitest::Test
       '[org]/[repo]/issues/[id]/index.rb',
       'api+.rb',
       'posts/[id].rb'
-    ].map { File.join(@rt.root_dir, it) }, keys.map { map[it][:target][:fn] }
+    ].map { File.join(@rt.app_path, it) }, keys.map { map[it][:target][:fn] }
   end
 
   def test_router_proc
@@ -244,35 +244,35 @@ class RoutingTreeTest < Minitest::Test
     assert_nil route
 
     route = router.('/docs/assets/img/foo.jpg', {})
-    assert_equal File.join(@rt.root_dir, 'assets/img/foo.jpg'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'assets/img/foo.jpg'), route[:target][:fn]
 
     route = router.('/docs/assets/img/bar.jpg', {})
     assert_nil route
 
     route = router.('/docs/about', {})
-    assert_equal File.join(@rt.root_dir, 'about.md'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'about.md'), route[:target][:fn]
 
     route = router.('/docs/foo', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
 
     route = router.('/docs/foo/bar', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
     assert_equal 'bar', params['repo']
 
     route = router.('/docs/bar/baz/commits', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
     assert_equal 'bar', params['org']
     assert_equal 'baz', params['repo']
 
     route = router.('/docs/foo/bar/issues', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
     assert_equal 'bar', params['repo']
 
     route = router.('/docs/bar/baz/issues/14', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
     assert_equal 'bar', params['org']
     assert_equal 'baz', params['repo']
     assert_equal '14', params['id']
@@ -284,24 +284,24 @@ class RoutingTreeTest < Minitest::Test
     assert_nil route
 
     route = router.('/docs/api', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/docs/api/foo/bar', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/docs/api/foo/bar', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/docs/posts', {})
-    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/index.rb'), route[:target][:fn]
 
     route = router.('/docs/posts/foo', params = {})
-    assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/[id].rb'), route[:target][:fn]
     assert_equal 'foo', params['id']
   end
 
   def test_routing_root_mounted
-    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/')
     router = rt.router_proc
 
     route = router.('/docs/df/papercraft/issues/14', {})
@@ -326,35 +326,35 @@ class RoutingTreeTest < Minitest::Test
     assert_nil route
 
     route = router.('/assets/img/foo.jpg', {})
-    assert_equal File.join(@rt.root_dir, 'assets/img/foo.jpg'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'assets/img/foo.jpg'), route[:target][:fn]
 
     route = router.('/assets/img/bar.jpg', {})
     assert_nil route
 
     route = router.('/about', {})
-    assert_equal File.join(@rt.root_dir, 'about.md'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'about.md'), route[:target][:fn]
 
     route = router.('/foo', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
 
     route = router.('/foo/bar', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
     assert_equal 'bar', params['repo']
 
     route = router.('/bar/baz/commits', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
     assert_equal 'bar', params['org']
     assert_equal 'baz', params['repo']
 
     route = router.('/foo/bar/issues', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
     assert_equal 'foo', params['org']
     assert_equal 'bar', params['repo']
 
     route = router.('/bar/baz/issues/14', params = {})
-    assert_equal File.join(@rt.root_dir, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
     assert_equal 'bar', params['org']
     assert_equal 'baz', params['repo']
     assert_equal '14', params['id']
@@ -366,24 +366,24 @@ class RoutingTreeTest < Minitest::Test
     assert_nil route
 
     route = router.('/api', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/api/foo/bar', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/api/foo/bar', {})
-    assert_equal File.join(@rt.root_dir, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'api+.rb'), route[:target][:fn]
 
     route = router.('/posts', {})
-    assert_equal File.join(@rt.root_dir, 'posts/index.rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/index.rb'), route[:target][:fn]
 
     route = router.('/posts/foo', params = {})
-    assert_equal File.join(@rt.root_dir, 'posts/[id].rb'), route[:target][:fn]
+    assert_equal File.join(@rt.app_path, 'posts/[id].rb'), route[:target][:fn]
     assert_equal 'foo', params['id']
   end
 
   def test_mount_applet
-    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/')
     applet = ->(req) { :foo }
     rt.mount_applet('/foo/bar', applet)
     router = rt.router_proc
@@ -396,7 +396,7 @@ class RoutingTreeTest < Minitest::Test
   end
 
   def test_mount_applet_nested_mount_path
-    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/my/site')
+    rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/my/site')
     applet = ->(req) { :foo }
     rt.mount_applet('/my/site/foo/bar', applet)
     router = rt.router_proc
@@ -409,7 +409,7 @@ class RoutingTreeTest < Minitest::Test
   end
 
   def test_mount_applet_clash
-    rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/')
     applet = ->(req) { :foo }
     assert_raises(Syntropy::Error) {
       rt.mount_applet('/about', applet)
@@ -429,9 +429,9 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
       }
     }
 
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, file_tree)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/docs')
 
     router = @rt.router_proc
 
@@ -455,9 +455,9 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
       }
     }
 
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, file_tree)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/')
 
     router = @rt.router_proc
 
@@ -480,9 +480,9 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
       }
     }
 
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, file_tree)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/docs')
     router = @rt.router_proc
 
     route = router.('/docs', {})
@@ -513,9 +513,9 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
       }
     }
 
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, file_tree)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/docs')
     router = @rt.router_proc
 
     route = router.('/docs', {})
@@ -552,9 +552,9 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
       }
     }
 
-    @root_dir = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
-    make_tmp_file_tree(@root_dir, file_tree)
-    @rt = Syntropy::RoutingTree.new(root_dir: File.join(@root_dir, 'site'), mount_path: '/docs')
+    @app_path = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_path, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_path: File.join(@app_path, 'site'), mount_path: '/docs')
     router = @rt.router_proc
 
     route = router.('/docs', {})

@@ -5,7 +5,7 @@ require 'syntropy/test'
 
 class TestTest < Syntropy::Test
   self.env = {
-    root_dir: File.join(__dir__, 'app'),
+    app_path: File.join(__dir__, 'app'),
     mount_path: '/syntest'
   }
 
@@ -20,12 +20,12 @@ class TestTest < Syntropy::Test
 
   def test_env
     assert_kind_of Hash, env
-    assert_equal File.join(__dir__, 'app'), env[:root_dir]
+    assert_equal File.join(__dir__, 'app'), env[:app_path]
   end
 
   def test_app
     assert_kind_of Syntropy::App, app
-    assert_equal File.join(__dir__, 'app'), app.root_dir
+    assert_equal File.join(__dir__, 'app'), app.app_path
   end
 
   def test_machine
