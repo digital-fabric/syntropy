@@ -13,11 +13,11 @@ ErrorPage = ->(error:, status:, backtrace:) {
         big status
         h2 error.message
         if backtrace
-          p "Backtrace:"
+          p 'Backtrace:'
           ul {
             backtrace.each {
               li {
-                a(it[:entry], href: it[:url])
+                a(it[:title], href: it[:url])
               }
             }
           }
@@ -28,15 +28,24 @@ ErrorPage = ->(error:, status:, backtrace:) {
   }
 }
 
+GEMS_DIR = Gem.dir
+SYNTROPY_DIR = File.expand_path(File.join(__dir__, '../../../..'))
+
 def transform_backtrace(backtrace)
-  backtrace.map do
-    if (m = it.match(/^(.+:\d+):/))
-      location = m[1]
-      { entry: it, url: "zed://file/#{location}" }
-    else
-      { entry: it, url: nil }
+  backtrace
+    .map do
+      if (m = it.match(/^(.+:\d+):?/))
+        location = m[1]
+        title = location.sub(GEMS_DIR, '...').sub(SYNTROPY_DIR, '...')
+        { entry: it, url: "zed://file/#{location}", title: }
+      else
+        { entry: it, url: nil, title: it }
+      end
     end
-  end
+rescue Exception => e
+  p e
+  p e.backtrace
+  exit!
 end
 
 def error_response_html(req, error)

@@ -198,6 +198,17 @@ module Syntropy
       m.instance_eval(code, fn)
       env[:logger]&.info(message: "Loaded module at #{fn}")
       m
+    rescue SyntaxError => e
+      STDERR.puts("\n#{e.message}")
+
+      if (m = e.message.match(/^(.+)\: syntax/))
+        location = m[1]
+        e2 = SyntaxError.new("Syntax errors found in module #{env[:ref]}")
+        e2.set_backtrace([location] + e.backtrace)
+        raise e2
+      else
+        raise e
+      end
     end
 
     # Initializes a module with the given environment hash.
