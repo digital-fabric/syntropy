@@ -1,3 +1,7 @@
+# 0.34.1 2026-06-03
+
+- Improve error display in browser, fix `SyntaxError` message and backtrace
+
 # 0.34.0 2026-06-03
 
 - Streamline options for CLI commands
