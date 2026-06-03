@@ -1,3 +1,7 @@
+# 0.34.4 2026-06-03
+
+- Really fix running test in watch mode with docker compose
+
 # 0.34.3 2026-06-03
 
 - Fix running tests in watch mode with docker compose

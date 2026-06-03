@@ -101,7 +101,7 @@ if env[:watch_mode]
   m.write(UM::STDOUT_FILENO, "\n")
   trap('SIGINT') { m.write(UM::STDOUT_FILENO, "\n"); exit! }
 
-  machine.write(UM::STDOUT_FILENO, "Waiting for file changes...\n")
+  m.write(UM::STDOUT_FILENO, "Waiting for file changes...\n")
   m.join(
     m.spin { restart_on_file_change(m, env[:app_root], argv_copy) },
     m.spin { restart_on_file_change(m, env[:test_root], argv_copy) }
