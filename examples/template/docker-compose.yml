@@ -1,0 +1,42 @@
+#version: "3.8"
+
+services:
+  web:
+    build: .
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - .:/syntropy
+    ports:
+      - "1234:1234"
+    stop_signal: SIGINT
+    stop_grace_period: 10s
+    restart: always
+
+    # environment:
+    # - SYNTROPY_MODE=development
+  console:
+    build: .
+    command: bundle exec syntropy console
+    stdin_open: true # docker run -i
+    tty: true
+    security_opt:
+      - seccomp:unconfined
+    profiles:
+      - dev
+    volumes:
+      - .:/syntropy
+    stop_signal: SIGINT
+  test:
+    build: .
+    command: bundle exec syntropy test -w
+    stdin_open: true # docker run -i
+    tty: true
+    security_opt:
+      - seccomp:unconfined
+    profiles:
+      - dev
+    volumes:
+      - .:/syntropy
+    stop_signal: SIGINT
+    restart: never

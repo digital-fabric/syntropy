@@ -85,7 +85,6 @@ $stderr.sync = true
 Dir.glob("#{File.expand_path(env[:test_root])}/test_*.rb").each { require(it) }
 
 def restart_on_file_change(machine, dir, restart_argv)
-
   machine.file_watch(dir, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) {
     machine.write(UM::STDOUT_FILENO, "File changed: #{it[:fn]}\n")
     break
