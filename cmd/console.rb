@@ -6,17 +6,23 @@ require 'fileutils'
 
 env = {
   app_path:             File.join(FileUtils.pwd, 'app'),
+  config_path:          File.join(FileUtils.pwd, 'config'),
+  mode:                 ENV['SYNTROPY_MODE'] || 'development',
   mount_path:           '/',
-  logger:               true,
   builtin_applet_path:  '/.syntropy',
+  logger:               true,
   watch_files:          true
 }
 
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy serve [options]'
 
-  o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
     env[:app_path] = path
+  end
+
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+    env[:config_path] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -48,7 +54,8 @@ rescue StandardError => e
   exit
 end
 
-$syntropy_dev_mode = env[:dev_mode]
+Syntropy.dev_mode = env[:mode] == 'development'
+Syntropy.load_config(env)
 
 if !File.directory?(env[:app_path])
   puts "#{File.expand_path(env[:app_path])} Not a directory"

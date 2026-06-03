@@ -53,7 +53,7 @@ module Syntropy
         connection_pool.with_db do |db|
           current_version = get_schema_version(db)
           migrations_keys = @migrations.keys.sort
-          migrations_keys.select { it > current_version } if current_version
+          migrations_keys.select! { it > current_version } if current_version
 
           migrations_keys.each do |key|
             db.transaction do

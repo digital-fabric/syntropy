@@ -5,17 +5,23 @@ require 'optparse'
 
 pwd = FileUtils.pwd
 env = {
-  app_path: File.join(pwd, 'app'),
-  test_dir: File.join(pwd, 'test'),
-  mount_path: '/'
+  app_path:             File.join(FileUtils.pwd, 'app'),
+  config_path:          File.join(FileUtils.pwd, 'config'),
+  test_dir:             File.join(pwd, 'test'),
+  mode:                 'test',
+  mount_path:           '/'
 }
 MINITEST_ARGV = []
 
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy test [options]'
 
-  o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
     env[:app_path] = path
+  end
+
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+    env[:config_path] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -36,7 +42,7 @@ parser = OptionParser.new do |o|
     MINITEST_ARGV << '--seed' << seed
   end
 
-  o.on('-t', '--test PATH', 'Set test root (default: ./test)') do |path|
+  o.on('-t', '--test PATH', 'Set test directory (default: ./test)') do |path|
     env[:test_dir] = path
   end
 
@@ -70,6 +76,8 @@ end
 
 require_relative '../lib/syntropy'
 require_relative '../lib/syntropy/test'
+
+Syntropy.load_config(env)
 
 $stdout.sync = true
 $stderr.sync = true

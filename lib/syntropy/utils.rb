@@ -1,8 +1,14 @@
 # frozen_string_literal: true
 
+require 'securerandom'
+
 module Syntropy
   # Utilities for use in modules
   module Utilities
+    def tmp_path(prefix = 'syntropy')
+      "/tmp/#{prefix}-#{SecureRandom.hex(16)}"
+    end
+
     # Returns a request handler that routes request according to the host
     # header. Looks for site directories (named by host name) in the app's root
     # directory. A map may be given in order to provide additional hostnames to

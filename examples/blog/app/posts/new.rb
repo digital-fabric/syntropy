@@ -1,4 +1,4 @@
-@post_store = import '/_lib/post_store'
+@posts = import '/_lib/posts'
 @layout = import '/_layout/default'
 
 export http_methods

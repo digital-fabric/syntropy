@@ -1,10 +1,10 @@
-@post_store = import '_lib/post_store'
+@posts = import '_lib/posts'
 @layout = import '_layout/default'
 
 export http_methods
 
 def get(req)
-  posts = @post_store.get_all
+  posts = @posts.get_all
   req.respond_html(
     @template.render(posts:, req:)
   )
@@ -14,14 +14,14 @@ def post(req)
   data = req.get_form_data
   title = req.validate(data['title'], String, /.+/)
   body = req.validate(data['body'], String, /.+/)
-  id = @post_store.create(title, body)
+  id = @posts.create(title, body)
 
   req.flash[:notice] = 'Post was successfully created.'
   req.redirect("posts/#{id}")
 end
 
 @template = @layout.apply { |**props|
-  h1 "My blog"
+  h1 "My awesome blog"
   p props[:req]&.flash[:notice], style: 'color: green'
   props[:posts].each { |post|
     div {

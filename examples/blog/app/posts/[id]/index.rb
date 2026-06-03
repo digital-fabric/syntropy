@@ -1,11 +1,11 @@
-@post_store = import '/_lib/post_store'
+@posts = import '/_lib/posts'
 @layout = import '/_layout/default'
 
 export http_methods
 
 def get(req)
   id = req.route_params['id'].to_i
-  post = @post_store.get(id)
+  post = @posts.get(id)
   raise Syntropy::Error.not_found if !post
 
   req.respond_html(
@@ -21,7 +21,7 @@ def post(req)
   title = req.validate(data['title'], String, /.+/)
   body = req.validate(data['body'], String, /.+/)
 
-  updated = @post_store.update(id, title, body)
+  updated = @posts.update(id, title, body)
   raise BadRequestError, "Failed to update post" if updated != 1
 
   req.flash[:notice] = 'Post was successfully updated.'
@@ -31,7 +31,7 @@ end
 def delete(req)
   id = req.route_params['id'].to_i
 
-  deleted = @post_store.delete(id)
+  deleted = @posts.delete(id)
   raise BadRequestError, "Failed to delete post" if deleted != 1
 
   req.flash[:notice] = 'Post was successfully destroyed.'

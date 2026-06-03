@@ -32,8 +32,8 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [any] module
-    def load_module(ref)
-      app.module_loader.load(ref)
+    def load_module(ref, raise_on_missing: true)
+      app.module_loader.load(ref, raise_on_missing:)
     end
 
     # Makes an HTTP request to the test app.
@@ -107,6 +107,8 @@ module Syntropy
     def setup
       raise 'Environment not set' if !@@env
 
+      Syntropy.load_config(@@env)
+
       @machine = UM.new
       @app = Syntropy::App.new(
         **@@env.merge(
@@ -115,6 +117,9 @@ module Syntropy
         )
       )
       @test_harness = Syntropy::TestHarness.new(@app)
+
+      @db = load_module('/_lib/database', raise_on_missing: false)
+      @db&.migrate!
     end
 
     # Cleans up a test instance.

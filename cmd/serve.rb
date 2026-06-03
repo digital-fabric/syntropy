@@ -6,9 +6,11 @@ require 'fileutils'
 
 env = {
   app_path:             File.join(FileUtils.pwd, 'app'),
+  config_path:          File.join(FileUtils.pwd, 'config'),
+  mode:                 ENV['SYNTROPY_MODE'] || 'development',
   mount_path:           '/',
-  logger:               true,
   builtin_applet_path:  '/.syntropy',
+  logger:               true,
   server_extensions:    {
     date: true,
     name: 'Syntropy'
@@ -18,7 +20,7 @@ env = {
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy serve [options]'
 
-  o.on('-a', '--app PATH', 'Set app path (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
     env[:app_path] = path
   end
 
@@ -28,9 +30,8 @@ parser = OptionParser.new do |o|
     env[:bind] << it
   end
 
-  o.on('-d', '--dev', 'Development mode') do
-    env[:dev_mode] = true
-    env[:watch_files] = true
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+    env[:config_path] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -77,7 +78,9 @@ rescue StandardError => e
   exit
 end
 
-$syntropy_dev_mode = env[:dev_mode]
+Syntropy.dev_mode = env[:mode] == 'development'
+Syntropy.load_config(env)
+env[:watch_files] = Syntropy.dev_mode
 
 if !File.directory?(env[:app_path])
   puts "#{File.expand_path(env[:app_path])} Not a directory"
@@ -92,7 +95,7 @@ env[:machine] = Syntropy.machine = UM.new
 env[:logger] = env[:logger] && Syntropy::Logger.new(env[:machine], **env)
 
 require 'syntropy/version'
-require 'syntropy/dev_mode' if env[:dev_mode]
+require 'syntropy/dev_mode' if Syntropy.dev_mode
 
 app = Syntropy::App.load(env)
 Syntropy.run(env) { app.call(it) }

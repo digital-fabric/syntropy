@@ -1,11 +1,11 @@
-@post_store = import '/_lib/post_store'
+@posts = import '/_lib/posts'
 @layout = import '/_layout/default'
 
 export http_methods
 
 def get(req)
   id = req.route_params['id'].to_i
-  post = @post_store.get(id)
+  post = @posts.get(id)
   raise Syntropy::Error.not_found if !post
 
   req.respond_html(

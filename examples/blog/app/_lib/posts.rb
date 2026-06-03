@@ -1,3 +1,5 @@
+DB = import '/_lib/database'
+
 class PostStore < Syntropy::DB::Store
   # @return [Integer] post id
   def create(title, body)
@@ -44,4 +46,4 @@ class PostStore < Syntropy::DB::Store
   end
 end
 
-export PostStore.new(@app.connection_pool)
+export PostStore.new(DB.connection_pool)

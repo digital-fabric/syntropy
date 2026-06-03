@@ -2,6 +2,7 @@
 
 require 'uringmachine'
 require 'papercraft'
+require 'yaml'
 
 require 'syntropy/request'
 require 'syntropy/logger'
@@ -28,7 +29,7 @@ module Syntropy
   extend Utilities
 
   class << self
-    attr_accessor :machine
+    attr_accessor :machine, :dev_mode
 
     # Runs the given block on a separate thread. Use this method for running
     # code that is not fiber-aware (i.e. does not use UringMachine).
@@ -39,9 +40,7 @@ module Syntropy
 
       SideRun.call(@machine, &block)
     end
-  end
 
-  class << self
     # Runs a web app with the given environment hash. The given block is either
     # an instance of Syntropy::App, or a Proc/callable that takes a request as
     # argument.
@@ -60,7 +59,14 @@ module Syntropy
         @in_run = true
         machine = env[:machine] || UM.new
 
-        env[:logger]&.info(message: "Running Syntropy #{Syntropy::VERSION}, UringMachine #{UM::VERSION}, Ruby #{RUBY_VERSION}")
+        if (logger = env[:logger])
+          logger.info(
+            message: "Syntropy #{Syntropy::VERSION}, UringMachine #{UM::VERSION}, Ruby #{RUBY_VERSION}"
+          )
+          logger.info(
+            message: "Running in #{env[:mode]} mode"
+          )
+        end
 
         server = HTTP::Server.new(machine, env, &app)
 
@@ -69,6 +75,19 @@ module Syntropy
       ensure
         @in_run = false
       end
+    end
+
+    def load_config(env)
+      return if !env[:config_path]
+
+      loader_env = env.merge(
+        app_path: env[:config_path],
+        logger: nil
+      )
+      loader = ModuleLoader.new(loader_env)
+      config = loader.load(env[:mode])
+
+      env[:config] = config
     end
 
     private
