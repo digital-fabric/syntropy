@@ -1,3 +1,10 @@
+# 0.34.0 2026-06-03
+
+- Streamline options for CLI commands
+- Remove `App#setup_db`
+- Add support for config modules (e.g. `config/development.rb`)
+- Add support for running modes: production, development, test
+
 # 0.33.0 2026-06-02
 
 - Fix `ModuleLoader` to load a module only once
