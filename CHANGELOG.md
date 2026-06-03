@@ -1,3 +1,7 @@
+# 0.34.2 2026-06-03
+
+- Add minitest as runtime dependency
+
 # 0.34.1 2026-06-03
 
 - Improve error display in browser, fix `SyntaxError` message and backtrace
