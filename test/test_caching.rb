@@ -6,7 +6,7 @@ require 'digest/sha1'
 class CachingTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app')
+  APP_ROOT = File.join(__dir__, 'fixtures/app')
 
   def make_socket_pair
     port = SecureRandom.random_number(10000..40000)

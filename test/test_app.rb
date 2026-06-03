@@ -5,7 +5,7 @@ require_relative 'helper'
 class AppTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app')
+  APP_ROOT = File.join(__dir__, 'fixtures/app')
 
   def setup
     @machine = UM.new
@@ -186,7 +186,7 @@ end
 class CustomAppTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app_custom')
+  APP_ROOT = File.join(__dir__, 'fixtures/app_custom')
 
   def setup
     @machine = UM.new
@@ -208,7 +208,7 @@ end
 class MultiSiteAppTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app_multi_site')
+  APP_ROOT = File.join(__dir__, 'fixtures/app_multi_site')
 
   def setup
     @machine = UM.new
@@ -236,7 +236,7 @@ end
 class AppAPITest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app')
+  APP_ROOT = File.join(__dir__, 'fixtures/app')
 
   def setup
     @machine = UM.new
@@ -300,7 +300,7 @@ end
 class AppDependenciesTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'app')
+  APP_ROOT = File.join(__dir__, 'fixtures/app')
 
   def test_app_dependencies
     foo = { foo: 'foo' }

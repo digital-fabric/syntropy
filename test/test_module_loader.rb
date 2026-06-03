@@ -5,7 +5,7 @@ require_relative 'helper'
 class ModuleTest < Minitest::Test
   def setup
     @machine = UM.new
-    @root = File.join(__dir__, 'app')
+    @root = File.join(__dir__, 'fixtures/app')
     @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env)
   end
