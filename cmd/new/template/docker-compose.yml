@@ -1,7 +1,7 @@
 #version: "3.8"
 
 services:
-  web:
+  app_server:
     build: .
     security_opt:
       - seccomp:unconfined
@@ -12,9 +12,12 @@ services:
     stop_signal: SIGINT
     stop_grace_period: 10s
     restart: always
-
-    # environment:
-    # - SYNTROPY_MODE=development
+    healthcheck:
+      test: "curl 'http://localhost:1234/'"
+      interval: "30s"
+      timeout: "3s"
+      start_period: "5s"
+      retries: 3
   console:
     build: .
     command: bundle exec syntropy console
@@ -27,6 +30,7 @@ services:
     volumes:
       - .:/syntropy
     stop_signal: SIGINT
+    restart: never
   test:
     build: .
     command: bundle exec syntropy test -w

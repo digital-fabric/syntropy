@@ -1,6 +1,7 @@
 FROM ruby:4.0-slim AS base
 WORKDIR /syntropy
 RUN apt-get update -qq && apt-get install -y \
+    curl \
     build-essential \
     libpq-dev \
     libsqlite3-dev \

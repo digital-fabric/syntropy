@@ -15,7 +15,7 @@ env = {
 }
 
 parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy serve [options]'
+  o.banner = 'Usage: syntropy console [options]'
 
   o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
     env[:app_root] = path

@@ -11,5 +11,5 @@ cmd = 'help' if cmd !~ /^[a-z]+$/
 fn = cmd_fn(cmd)
 fn = cmd_fn('help') if !File.file?(fn)
 
-puts SYNTROPY_BANNER
+# puts SYNTROPY_BANNER
 require(fn)
