@@ -29,8 +29,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'base64'
   s.add_dependency 'logger'
   s.add_dependency 'irb'
+  s.add_dependency 'minitest'
 
-  s.add_development_dependency 'minitest',  '~>6.0.1'
   s.add_development_dependency 'rake',      '~>13.3.1'
   s.add_development_dependency 'solargraph'
 end
