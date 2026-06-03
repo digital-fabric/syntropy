@@ -1,3 +1,8 @@
+# 0.35.0 2026-06-04
+
+- Add `syntropy new` command
+- Finalize work on new app template
+
 # 0.34.4 2026-06-03
 
 - Really fix running test in watch mode with docker compose
