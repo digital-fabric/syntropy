@@ -5,9 +5,9 @@ require 'optparse'
 
 pwd = FileUtils.pwd
 env = {
-  app_path:             File.join(FileUtils.pwd, 'app'),
-  config_path:          File.join(FileUtils.pwd, 'config'),
-  test_dir:             File.join(pwd, 'test'),
+  app_root:             File.join(FileUtils.pwd, 'app'),
+  config_root:          File.join(FileUtils.pwd, 'config'),
+  test_root:             File.join(pwd, 'test'),
   mode:                 'test',
   mount_path:           '/'
 }
@@ -17,11 +17,11 @@ parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy test [options]'
 
   o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
-    env[:app_path] = path
+    env[:app_root] = path
   end
 
   o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
-    env[:config_path] = path
+    env[:config_root] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -43,7 +43,7 @@ parser = OptionParser.new do |o|
   end
 
   o.on('-t', '--test PATH', 'Set test directory (default: ./test)') do |path|
-    env[:test_dir] = path
+    env[:test_root] = path
   end
 
   o.on('-V', '--verbose', 'Verbose test output') do
@@ -82,7 +82,7 @@ Syntropy.load_config(env)
 $stdout.sync = true
 $stderr.sync = true
 
-Dir.glob("#{File.expand_path(env[:test_dir])}/test_*.rb").each { require(it) }
+Dir.glob("#{File.expand_path(env[:test_root])}/test_*.rb").each { require(it) }
 
 def restart_on_file_change(machine, dir, restart_argv)
 
@@ -103,7 +103,7 @@ if env[:watch_mode]
 
   machine.write(UM::STDOUT_FILENO, "Waiting for file changes...\n")
   m.join(
-    m.spin { restart_on_file_change(m, env[:app_path], argv_copy) },
-    m.spin { restart_on_file_change(m, env[:test_dir], argv_copy) }
+    m.spin { restart_on_file_change(m, env[:app_root], argv_copy) },
+    m.spin { restart_on_file_change(m, env[:test_root], argv_copy) }
   )
 end

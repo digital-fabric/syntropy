@@ -35,7 +35,7 @@ module Syntropy
     # @param ref [String] directory path
     # @return [Array<Hash>] array of page entries
     def page_list(env, ref)
-      full_path = File.join(env[:app_path], ref)
+      full_path = File.join(env[:app_root], ref)
       raise 'Not a directory' if !File.directory?(full_path)
 
       Dir[File.join(full_path, '*.md')].sort.map {
@@ -51,7 +51,7 @@ module Syntropy
       Syntropy::App.new(**)
     end
 
-    BUILTIN_APPLET_app_path = File.expand_path(File.join(__dir__, 'applets/builtin'))
+    BUILTIN_APPLET_app_root = File.expand_path(File.join(__dir__, 'applets/builtin'))
 
     # Creates a builtin applet with the given environment hash. By default the
     # builtin applet is mounted at /.syntropy.
@@ -62,7 +62,7 @@ module Syntropy
     def builtin_applet(env, mount_path: '/.syntropy')
       app(
         machine:    env[:machine],
-        app_path:   BUILTIN_APPLET_app_path,
+        app_root:   BUILTIN_APPLET_app_root,
         mount_path: mount_path,
         builtin_applet_path: nil,
         watch_files: nil
@@ -76,11 +76,11 @@ module Syntropy
     # @param env [Hash] app environment hash
     # @return [Hash] hash mapping hostname to app
     def find_hostname_sites(env)
-      Dir[File.join(env[:app_path], '*')]
+      Dir[File.join(env[:app_root], '*')]
         .select { File.directory?(it) && File.basename(it) !~ /^_/ }
         .each_with_object({}) { |fn, h|
           name = File.basename(fn)
-          h[name] = Syntropy::App.new(**env.merge(app_path: fn))
+          h[name] = Syntropy::App.new(**env.merge(app_root: fn))
         }
     end
   end

@@ -6,7 +6,7 @@ class ModuleTest < Minitest::Test
   def setup
     @machine = UM.new
     @root = File.join(__dir__, 'app')
-    @env = { app_path: @root, baz: 42, machine: @machine, app: 42 }
+    @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env)
   end
 

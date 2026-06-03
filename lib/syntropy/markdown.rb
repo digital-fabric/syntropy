@@ -22,7 +22,7 @@ module Syntropy
 
         parse_date(path, atts)
         content = parse_content(content, atts)
-        atts[:url] = path_to_url(path, env[:app_path]) if env[:app_path]
+        atts[:url] = path_to_url(path, env[:app_root]) if env[:app_root]
 
         [atts, content]
       end
@@ -60,10 +60,10 @@ module Syntropy
       # Converts the markdown file path to URL
       #
       # @param path [String] file path
-      # @param app_path [String] app root directory
+      # @param app_root [String] app root directory
       # @return [String] url
-      def path_to_url(path, app_path)
-        path.gsub(/#{app_path}/, '').gsub(/\.md$/, '')
+      def path_to_url(path, app_root)
+        path.gsub(/#{app_root}/, '').gsub(/\.md$/, '')
       end
     end
   end

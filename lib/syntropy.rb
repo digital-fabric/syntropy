@@ -78,10 +78,10 @@ module Syntropy
     end
 
     def load_config(env)
-      return if !env[:config_path]
+      return if !env[:config_root]
 
       loader_env = env.merge(
-        app_path: env[:config_path],
+        app_root: env[:config_root],
         logger: nil
       )
       loader = ModuleLoader.new(loader_env)

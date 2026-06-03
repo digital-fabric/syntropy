@@ -31,7 +31,7 @@ module Syntropy
       # @param env [Hash] environment hash
       # @return [Syntropy::App]
       def site_file_app(env)
-        fn = File.join(env[:app_path], '_site.rb')
+        fn = File.join(env[:app_root], '_site.rb')
         return nil if !File.file?(fn)
 
         loader = Syntropy::ModuleLoader.new(env)
@@ -47,7 +47,7 @@ module Syntropy
       end
     end
 
-    attr_reader :module_loader, :routing_tree, :app_path, :mount_path, :env
+    attr_reader :module_loader, :routing_tree, :app_root, :mount_path, :env
     attr_accessor :raise_on_internal_server_error
 
     # Initializes the app instance.
@@ -56,7 +56,7 @@ module Syntropy
     # @return [void]
     def initialize(**env)
       @machine = env[:machine]
-      @app_path = File.expand_path(env[:app_path])
+      @app_root = File.expand_path(env[:app_root])
       @mount_path = env[:mount_path]
       @env = env
       @logger = env[:logger]
@@ -156,7 +156,7 @@ module Syntropy
     # @return [void]
     def setup_routing_tree
       @routing_tree = Syntropy::RoutingTree.new(
-        app_path: @app_path, mount_path: @mount_path, **@env
+        app_root: @app_root, mount_path: @mount_path, **@env
       )
       mount_builtin_applet if @env[:builtin_applet_path]
       @router_proc = @routing_tree.router_proc
@@ -521,7 +521,7 @@ module Syntropy
         @machine.sleep 0.1
         route_count = @routing_tree.static_map.size + @routing_tree.dynamic_map.size
         @logger&.info(
-          message: "Serving from #{@app_path} (#{route_count} routes found)"
+          message: "Serving from #{@app_root} (#{route_count} routes found)"
         )
 
         file_watcher_loop if @env[:watch_files]
@@ -533,7 +533,7 @@ module Syntropy
     #
     # @return [void]
     def file_watcher_loop
-      @machine.file_watch(@app_path, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) { |e|
+      @machine.file_watch(@app_root, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) { |e|
         fn = e[:fn]
         @logger&.info(message: 'File change detected', fn: fn)
         @module_loader.invalidate_fn(fn)
