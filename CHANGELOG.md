@@ -1,3 +1,8 @@
+# 0.36.0 2026-06-04
+
+- Rename `DB` to `Storage`
+- Add `PreparedQuery`, `KVStore`
+
 # 0.35.0 2026-06-04
 
 - Add `syntropy new` command
