@@ -119,7 +119,7 @@ module Syntropy
       @test_harness = Syntropy::TestHarness.new(@app)
 
       @db = load_module('/_lib/storage', raise_on_missing: false)
-      @db&.migrate!
+      @db&.migrate! if @db.respond_to?(:migrate!)
     end
 
     # Cleans up a test instance.
