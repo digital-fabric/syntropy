@@ -2,12 +2,12 @@
 
 require_relative 'helper'
 
-class DBSchemaTest < Minitest::Test
+class SchemaTest < Minitest::Test
   def setup
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
     FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::DB::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
   end
 
   def teardown
@@ -15,7 +15,7 @@ class DBSchemaTest < Minitest::Test
   end
 
   def test_db_schema_initial
-    schema = Syntropy::DB::Schema.new do
+    schema = Syntropy::Storage::Schema.new do
       initial do |db|
         db.execute <<~SQL
           create table posts (
@@ -35,7 +35,7 @@ class DBSchemaTest < Minitest::Test
   end
 
   def test_db_schema_version_blocks
-    schema = Syntropy::DB::Schema.new do
+    schema = Syntropy::Storage::Schema.new do
       initial do |db|
         db.execute <<~SQL
           create table posts (
@@ -79,7 +79,7 @@ class DBSchemaTest < Minitest::Test
     module_loader = Syntropy::ModuleLoader.new({
       app_root: File.join(__dir__, 'fixtures/schema')
     })
-    schema = Syntropy::DB::Schema.new(module_loader:, schema_root: '/')
+    schema = Syntropy::Storage::Schema.new(module_loader:, schema_root: '/')
 
     assert_nil schema.current_version(@cp)
     schema.apply(@cp)

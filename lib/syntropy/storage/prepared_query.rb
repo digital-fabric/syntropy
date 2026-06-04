@@ -3,14 +3,14 @@
 require 'extralite'
 
 module Syntropy
-  module DB
+  module Storage
     class << self
       def prepare(sql)
-        Syntropy::DB::PreparedQuery.new(sql)
+        PreparedQuery.new(sql)
       end
 
       def prepare_splat(sql)
-        Syntropy::DB::PreparedQuery.new(sql, :prepare_splat)
+        PreparedQuery.new(sql, :prepare_splat)
       end
     end
 

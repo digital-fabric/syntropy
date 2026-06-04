@@ -1,3 +1,0 @@
-source 'https://rubygems.org'
-
-gem 'syntropy', '0.3'

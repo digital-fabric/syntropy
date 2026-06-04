@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Syntropy
-  module DB
+  module Storage
     # The Store class represents a data store based on one or more tables, and
     # connected to a database connection pool.
     class Store

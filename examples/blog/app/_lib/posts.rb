@@ -1,6 +1,6 @@
-DB = import '/_lib/database'
+Storage = import '/_lib/storage'
 
-class PostStore < Syntropy::DB::Store
+class PostStore < Syntropy::Storage::Store
   # @return [Integer] post id
   def create(title, body)
     query_single_value <<~SQL, title:, body:
@@ -46,4 +46,4 @@ class PostStore < Syntropy::DB::Store
   end
 end
 
-export PostStore.new(DB.connection_pool)
+export PostStore.new(Storage.connection_pool)

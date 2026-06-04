@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'syntropy/db/store'
+require 'syntropy/storage/store'
 
 module Syntropy
-  module DB
+  module Storage
     # The KVStore class implements an SQLite-backed key-value store
     class KVStore < Store
       attr_reader :q_get, :q_set
@@ -41,24 +41,24 @@ module Syntropy
       private
 
       def setup_queries
-        @q_get = Syntropy::DB.prepare_splat <<~SQL
+        @q_get = Storage.prepare_splat <<~SQL
           select value from #{@table_name}
           where key = ?
         SQL
 
-        @q_set = Syntropy::DB.prepare <<~SQL
+        @q_set = Storage.prepare <<~SQL
           insert into #{@table_name} (key, value)
           values($1, $2)
           on conflict (key) do update set value = $2, expires = null
         SQL
 
-        @q_setex = Syntropy::DB.prepare <<~SQL
+        @q_setex = Storage.prepare <<~SQL
           insert into #{@table_name} (key, value, expires)
           values($1, $2, $3)
           on conflict (key) do update set value = $2, expires = $3
         SQL
 
-        @q_sweep = Syntropy::DB.prepare <<~SQL
+        @q_sweep = Storage.prepare <<~SQL
           delete from #{@table_name}
           where expires < ?
         SQL

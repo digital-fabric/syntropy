@@ -2,12 +2,12 @@
 
 require_relative 'helper'
 
-class DBStoreTest < Minitest::Test
+class StoreTest < Minitest::Test
   def setup
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
     FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::DB::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
   end
 
   def teardown
@@ -15,7 +15,7 @@ class DBStoreTest < Minitest::Test
   end
 
   def test_db_store
-    store = Syntropy::DB::Store.new(@cp)
+    store = Syntropy::Storage::Store.new(@cp)
 
     assert_equal [{a: 42}], store.query("select ? as a", 42)
     assert_equal({a: 42}, store.query_single_row("select ? as a", 42))

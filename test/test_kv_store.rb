@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
-require 'syntropy/db/kv_store'
+require 'syntropy/storage/kv_store'
 
 class KVStoreTest < Minitest::Test
   def setup
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
     FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::DB::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
   end
 
   def teardown
@@ -16,8 +16,8 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_connection_pool_prepare
-    pq = Syntropy::DB.prepare('select ? as a, 42 as b')
-    assert_kind_of Syntropy::DB::PreparedQuery, pq
+    pq = Syntropy::Storage.prepare('select ? as a, 42 as b')
+    assert_kind_of Syntropy::Storage::PreparedQuery, pq
     assert_equal 'select ? as a, 42 as b', pq.sql
     assert_equal :prepare, pq.mode
 
@@ -26,8 +26,8 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_connection_pool_prepare_splat
-    pq = Syntropy::DB.prepare_splat('select ?')
-    assert_kind_of Syntropy::DB::PreparedQuery, pq
+    pq = Syntropy::Storage.prepare_splat('select ?')
+    assert_kind_of Syntropy::Storage::PreparedQuery, pq
     assert_equal 'select ?', pq.sql
     assert_equal :prepare_splat, pq.mode
 
@@ -36,16 +36,16 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_kv_store_apply_schema
-    assert_respond_to Syntropy::DB::KVStore, :apply_schema
+    assert_respond_to Syntropy::Storage::KVStore, :apply_schema
 
     assert_raises(Extralite::SQLError) { @cp.query('select * from kv') }
-    Syntropy::DB::KVStore.apply_schema(@cp, 'kv')
+    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
     assert_equal [], @cp.query('select * from kv')
   end
 
   def test_kv_store_get_set
-    Syntropy::DB::KVStore.apply_schema(@cp, 'kv')
-    kv_store = Syntropy::DB::KVStore.new(@cp, 'kv')
+    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
+    kv_store = Syntropy::Storage::KVStore.new(@cp, 'kv')
 
     @cp.with_db do |db|
       assert_nil kv_store.get(db, 'foo')
@@ -63,8 +63,8 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_kv_store_setex_sweep
-    Syntropy::DB::KVStore.apply_schema(@cp, 'kv')
-    kv_store = Syntropy::DB::KVStore.new(@cp, 'kv')
+    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
+    kv_store = Syntropy::Storage::KVStore.new(@cp, 'kv')
 
     @cp.with_db do |db|
       kv_store.set(db, 'foo', '123')

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Syntropy
-  module DB
+  module Storage
     class Schema
       def initialize(module_loader: nil, schema_root: '_schema', &)
         @migrations = {}

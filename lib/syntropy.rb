@@ -9,12 +9,7 @@ require 'syntropy/logger'
 require 'syntropy/http'
 require 'syntropy/mime_types'
 require 'syntropy/app'
-
-require 'syntropy/db/connection_pool'
-require 'syntropy/db/schema'
-require 'syntropy/db/store'
-require 'syntropy/db/prepared_query'
-
+require 'syntropy/storage'
 require 'syntropy/errors'
 require 'syntropy/markdown'
 require 'syntropy/module_loader'
