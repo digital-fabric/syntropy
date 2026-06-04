@@ -83,9 +83,9 @@ module Syntropy
         logger: nil
       )
       loader = ModuleLoader.new(loader_env)
-      config = loader.load(env[:mode])
-
-      env[:config] = config
+      if (config = loader.load(env[:mode], raise_on_missing: false))
+        env[:config] = config
+      end
     end
 
     private
