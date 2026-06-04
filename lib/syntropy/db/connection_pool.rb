@@ -4,6 +4,7 @@ require 'extralite'
 
 module Syntropy
   module DB
+    # ConnectionPool implements concurrent access to an SQLite database.
     class ConnectionPool
       attr_reader :count
 

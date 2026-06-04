@@ -9,9 +9,12 @@ require 'syntropy/logger'
 require 'syntropy/http'
 require 'syntropy/mime_types'
 require 'syntropy/app'
+
 require 'syntropy/db/connection_pool'
 require 'syntropy/db/schema'
 require 'syntropy/db/store'
+require 'syntropy/db/prepared_query'
+
 require 'syntropy/errors'
 require 'syntropy/markdown'
 require 'syntropy/module_loader'
@@ -29,7 +32,7 @@ module Syntropy
   extend Utilities
 
   class << self
-    attr_accessor :machine, :dev_mode
+    attr_accessor :machine, :dev_mode, :test_mode
 
     # Runs the given block on a separate thread. Use this method for running
     # code that is not fiber-aware (i.e. does not use UringMachine).

@@ -241,3 +241,5 @@ module Syntropy
 
   Request.include TestRequestExtensions
 end
+
+Syntropy.test_mode = true

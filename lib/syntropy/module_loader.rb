@@ -200,7 +200,7 @@ module Syntropy
       m
     rescue SyntaxError => e
       env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
-      STDERR.puts("\n#{e.message}")
+      STDERR.puts("\n#{e.message}") if !Syntropy.test_mode
 
       if (m = e.message.match(/^(.+)\: syntax/))
         location = m[1]

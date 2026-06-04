@@ -40,8 +40,6 @@
 - [v] Frontend part of JSON API
 - [v] Auto-refresh page when file changes
 - [ ] SQLite database capabilities
-  - [ ] Model API + tools
-    - [ ] Do we need/want migrations?
   - [ ] Stores
     - [ ] KV store (with TTL)
 - [v] Examples

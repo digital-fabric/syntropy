@@ -19,7 +19,7 @@ class DBConnectionPoolTest < Minitest::Test
     @cp.close
   end
 
-  def test_with_db
+  def test_connection_pool_with_db
     assert_equal 0, @cp.count
 
     @cp.with_db do |db|
@@ -74,7 +74,7 @@ class DBConnectionPoolTest < Minitest::Test
     assert_equal 4, @cp.count
   end
 
-  def test_with_db_reentrant
+  def test_connection_pool_with_db_reentrant
     dbs = @cp.with_db do |db1|
       @cp.with_db do |db2|
         [db1, db2]
