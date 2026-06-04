@@ -81,10 +81,10 @@ module Syntropy
       end
 
       def set_schema_version(db, version)
-        db.execute <<~SQL, v: version
+        db.execute <<~SQL, version
           insert into __syntropy_schema__ (k, v)
-          values ('version', :v)
-          on conflict(k) do update set v = :v
+          values ('version', $1)
+          on conflict(k) do update set v = $1
         SQL
       end
     end
