@@ -21,4 +21,4 @@ class API < Syntropy::JSONAPI
   end
 end
 
-export API
+export API.new(@env)

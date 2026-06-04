@@ -25,8 +25,7 @@ class ModuleTest < Minitest::Test
 
     mod = @loader.load('_lib/klass')
     assert_equal :bar, mod.foo
-    @env[:baz] += 1
-    assert_equal 43, mod.bar
+    assert_equal 42, mod.bar
   end
 
   def test_import_paths

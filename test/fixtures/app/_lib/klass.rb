@@ -12,4 +12,4 @@ class Klass
   end
 end
 
-export Klass
+export Klass.new(@env)

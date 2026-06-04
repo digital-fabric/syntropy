@@ -25,6 +25,11 @@ module Syntropy
         ':status'       => status,
         'Content-Type'  => 'application/json'
       )
+    rescue => e
+      puts '*' * 40
+      p e
+      p e.backtrace.join
+      puts
     end
 
     private

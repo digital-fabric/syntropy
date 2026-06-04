@@ -167,8 +167,6 @@ module Syntropy
         raise Syntropy::Error, "No export found in #{fn}" if raise_on_missing
       when String
         ->(req) { req.respond(export_value) }
-      when Class
-        export_value.new(@env)
       else
         export_value
       end

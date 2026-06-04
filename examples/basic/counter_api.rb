@@ -19,4 +19,4 @@ class CounterAPI < Syntropy::JSONAPI
   end
 end
 
-export CounterAPI
+export CounterAPI.new(@env)
