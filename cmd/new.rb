@@ -3,8 +3,14 @@
 require 'optparse'
 require 'fileutils'
 
+opts = {}
+
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy new NAME [options]'
+
+  o.on('-y', '--yes', 'Confirm all overwrites') do
+    opts[:yes] = true
+  end
 
   o.on('-h', '--help', 'Show this help message') do
     puts o
@@ -37,7 +43,7 @@ template_path = File.join(__dir__, 'new/template')
 
 begin
   `mkdir -p "#{path}"`
-  `cp -r #{template_path}/* "#{path}/"`
+  system("cp -rv#{opts[:yes] ? '' : 'i'} #{template_path}/* \"#{path}/\"")
   puts "Your app is ready in #{path}"
 rescue => e
   p e
