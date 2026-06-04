@@ -94,7 +94,9 @@ env[:banner] = false
 env[:machine] = Syntropy.machine = UM.new
 env[:logger] = env[:logger] && Syntropy::Logger.new(env[:machine], **env)
 
-require 'syntropy/version'
+require 'uringmachine/fiber_scheduler'
+Fiber.set_scheduler(UM::FiberScheduler.new(env[:machine]))
+
 require 'syntropy/dev_mode' if Syntropy.dev_mode
 
 app = Syntropy::App.load(env)
