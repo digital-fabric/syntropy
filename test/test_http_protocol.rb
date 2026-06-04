@@ -248,3 +248,57 @@ class HTTPProtocolResponseTest < HTTPProtocolTest
     assert_raises(Syntropy::ProtocolError) { @io.http_read_response_headers }
   end
 end
+
+class PipelineTest < HTTPProtocolTest
+  def test_pipeline_post_zero_content_length
+    msg = "POST /counter_api?q=incr HTTP/1.1\r\n" +
+          "Host: localhost:1234\r\n" +
+          "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0\r\n" +
+          "Accept: */*\r\n" +
+          "Accept-Language: en-US,en;q=0.9\r\n" +
+          "Accept-Encoding: gzip, deflate, br, zstd\r\n" +
+          "Referer: http://localhost:1234/counter\r\n" +
+          "Origin: http://localhost:1234\r\n" +
+          "Connection: keep-alive\r\n" +
+          "Sec-Fetch-Dest: empty\r\n" +
+          "Sec-Fetch-Mode: cors\r\n" +
+          "Sec-Fetch-Site: same-origin\r\n" +
+          "Priority: u=0\r\nPragma: no-cache\r\n" +
+          "Cache-Control: no-cache\r\n" +
+          "Content-Length: 0\r\n\r\n"
+
+    write(msg * 3)
+    3.times {
+      h = @io.http_read_request_headers
+      assert_equal '*/*', h['accept']
+      assert_nil @io.http_read_body_chunk(h)
+    }
+  end
+
+  def test_pipeline_post_with_body
+    msg = "POST /counter_api?q=incr HTTP/1.1\r\n" +
+          "Host: localhost:1234\r\n" +
+          "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0\r\n" +
+          "Accept: */*\r\n" +
+          "Accept-Language: en-US,en;q=0.9\r\n" +
+          "Accept-Encoding: gzip, deflate, br, zstd\r\n" +
+          "Referer: http://localhost:1234/counter\r\n" +
+          "Origin: http://localhost:1234\r\n" +
+          "Connection: keep-alive\r\n" +
+          "Sec-Fetch-Dest: empty\r\n" +
+          "Sec-Fetch-Mode: cors\r\n" +
+          "Sec-Fetch-Site: same-origin\r\n" +
+          "Priority: u=0\r\nPragma: no-cache\r\n" +
+          "Cache-Control: no-cache\r\n" +
+          "Content-Length: 3\r\n\r\n" +
+          "abc"
+
+    write(msg * 3)
+    3.times {
+      h = @io.http_read_request_headers
+      assert_equal '*/*', h['accept']
+      assert_equal 'abc', @io.http_read_body_chunk(h)
+    }
+
+  end
+end

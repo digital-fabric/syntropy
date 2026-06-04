@@ -76,6 +76,9 @@ module Syntropy
       def http_read_body(headers)
         content_length = headers['content-length']
         if content_length
+          content_length = content_length.to_i
+          return nil if content_length == 0
+
           chunk = read(content_length.to_i)
           return chunk
         end
@@ -95,6 +98,9 @@ module Syntropy
       def http_skip_body(headers)
         content_length = headers['content-length']
         if content_length
+          content_length = content_length.to_i
+          return if content_length == 0
+
           return skip(content_length.to_i)
         end
 
@@ -110,6 +116,9 @@ module Syntropy
       def http_read_body_chunk(headers)
         content_length = headers['content-length']
         if content_length
+          content_length = content_length.to_i
+          return nil if content_length == 0
+
           chunk = read(content_length.to_i)
           return chunk
         end
