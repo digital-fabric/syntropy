@@ -7,8 +7,6 @@ services:
       - seccomp:unconfined
     volumes:
       - .:/syntropy
-    ports:
-      - "1234:1234"
     stop_signal: SIGINT
     stop_grace_period: 10s
     restart: unless-stopped
