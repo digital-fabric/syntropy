@@ -1,3 +1,4 @@
 Gemfile.lock
-storage/*
+storage/*.db*
+storage/caddy/*
 vendor/bundle
