@@ -39,6 +39,7 @@ module Syntropy
           error:    e
         )
       ensure
+        @io.clear
         @machine.close_async(@fd)
       end
 
