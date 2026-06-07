@@ -1,3 +1,18 @@
+# 0.37.0 2026-06-07
+
+- Call `IO#clear` before closing server connection
+- syntropy new:
+  - Remove socket mapping for backend in docker-compose.yml
+  - Add caddy reverse proxy to template
+  - Add overwrite confirmation, better file copying
+- Verify storage module `migrate!` method exists
+- Fix `set_schema_version` for usage in PG DB
+- Do not raise exception on missing config module
+- Do not convert class export value to class instance, allow exporting a
+  class
+- Fix HTTP protocol error when pipelining post requests with empty body
+- Setup fiber scheduler when running server
+
 # 0.36.0 2026-06-04
 
 - Rename `DB` to `Storage`
