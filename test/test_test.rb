@@ -34,7 +34,7 @@ class TestTest < Syntropy::Test
 
   def test_load_module
     mod = load_module('_lib/env')
-    assert_kind_of Syntropy::Module, mod
+    assert_kind_of Syntropy::ModuleContext, mod
     assert_equal app, mod.app
 
     assert_raises(Syntropy::Error) { load_module('_lib/blah')}

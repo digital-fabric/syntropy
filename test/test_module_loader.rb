@@ -19,7 +19,7 @@ class ModuleTest < Minitest::Test
     assert_raises(Syntropy::Error) { @loader.load('_lib/missing-export') }
 
     mod = @loader.load('_lib/callable')
-    assert_kind_of Syntropy::Module, mod
+    assert_kind_of Syntropy::ModuleContext, mod
     assert_equal 'barbarbar', mod.call(3)
     assert_raises(NoMethodError) { mod.foo(2) }
 
@@ -35,13 +35,13 @@ class ModuleTest < Minitest::Test
 
     assert_equal :foo, mod[:a1]
     assert_equal :foo, mod[:a2]
-    assert_kind_of Syntropy::Module, mod[:foo]
+    assert_kind_of Syntropy::ModuleContext, mod[:foo]
     assert_equal 'barbarbar', mod[:callable].(3)
   end
 
   def test_export_self
     mod = @loader.load('_lib/self')
-    assert_kind_of Syntropy::Module, mod
+    assert_kind_of Syntropy::ModuleContext, mod
     assert_equal :bar, mod.foo
   end
 

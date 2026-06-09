@@ -131,7 +131,7 @@ module Syntropy
       @fn_map[fn] = ref
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
-      mod = Syntropy::Module.load(env, code, fn)
+      mod = Syntropy::ModuleContext.load(env, code, fn)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
         mod.__export_value__, fn, raise_on_missing:
@@ -173,9 +173,9 @@ module Syntropy
     end
   end
 
-  # The Syntropy::Module class implements a reloadable module. A module is a
-  # `.rb` source file that implements a route endpoint, a template, utility
-  # methods or any other functionality needed by the web app.
+  # The Syntropy::ModuleContext class provides a context for loading a module. A
+  # module is a `.rb` source file that implements a route endpoint, a template,
+  # utility methods or any other functionality needed by the web app.
   #
   # The following instance variables are available to modules:
   #
@@ -189,7 +189,7 @@ module Syntropy
   # In addition, the module code also has access to the `MODULE` constant which
   # is set to `self`, and may be used to refer to various methods defined in the
   # module.
-  class Module
+  class ModuleContext
     # Loads a module, returning the module instance
     def self.load(env, code, fn)
       m = new(**env)
