@@ -192,32 +192,20 @@ module Syntropy
   class ModuleContext
     # Loads a module, returning the module instance
     def self.load(env, code, fn)
-      m = new(**env)
+      m = new(env)
       m.instance_eval(code, fn)
       env[:logger]&.info(message: "Loaded module at #{fn}")
       m
-    rescue SyntaxError => e
+    rescue StandardError, SyntaxError => e
       env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
-      STDERR.puts("\n#{e.message}") if !Syntropy.test_mode
-
-      if (m = e.message.match(/^(.+)\: syntax/))
-        location = m[1]
-        e2 = SyntaxError.new("Syntax errors found in module #{env[:ref]}")
-        e2.set_backtrace([location] + e.backtrace)
-        raise e2
-      else
-        raise e
-      end
-    rescue => e
-      env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
-      raise e
+      e.is_a?(SyntaxError) ? handle_syntax_error(env, e) : (raise e)
     end
 
     # Initializes a module with the given environment hash.
     #
     # @param env [Hash] environment hash
     # @return [void]
-    def initialize(**env)
+    def initialize(env)
       @env = env
       @machine = env[:machine]
       @module_loader = env[:module_loader]
@@ -345,6 +333,17 @@ module Syntropy
       raise Syntropy::Error.method_not_allowed if !respond_to?(sym)
 
       send(sym, req)
+    end
+
+    def handle_syntax_error(env, e)
+      $stderr.puts("\n#{e.message}") if !Syntropy.test_mode
+      m = e.message.match(/^(.+): syntax/)
+      raise e if !m
+
+      location = m[1]
+      e2 = SyntaxError.new("Syntax errors found in module #{env[:ref]}")
+      e2.set_backtrace([location] + e.backtrace)
+      raise e2
     end
   end
 end

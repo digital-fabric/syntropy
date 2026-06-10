@@ -458,9 +458,9 @@ module Syntropy
         emit_router_proc_prelude(buffer)
         segment_idx = 1
         if @root[:path] != '/'
-          root_parts = @root[:path].split('/')
-          segment_idx = root_parts.size
-          emit_root_validate_guard(buffer:, root_parts:)
+          root_segments = @root[:path].split('/')
+          segment_idx = root_segments.size
+          emit_root_validate_guard(buffer:, root_segments:)
         end
 
         visit_routing_tree_entry(buffer:, entry: @root, segment_idx:)
@@ -492,18 +492,18 @@ module Syntropy
     def emit_router_proc_prelude(buffer)
       emit_code_line(buffer, '->(path, params) {')
       emit_code_line(buffer, '  entry = @static_map[path]; return entry if entry')
-      emit_code_line(buffer, '  parts = path.split("/")')
+      emit_code_line(buffer, '  segments = path.split("/")')
     end
 
     # Emits root path validation guard code.
     #
     # @param buffer [String] output buffer
-    # @param root_parts [Array<String>] root path parts
+    # @param root_segments [Array<String>] root path segments
     # @return [void]
-    def emit_root_validate_guard(buffer:, root_parts:)
+    def emit_root_validate_guard(buffer:, root_segments:)
       validate_parts = []
-      (1...root_parts.size).each do |i|
-        validate_parts << "(parts[#{i}] != #{root_parts[i].inspect})"
+      (1...root_segments.size).each do |i|
+        validate_parts << "(segments[#{i}] != #{root_segments[i].inspect})"
       end
       emit_code_line(buffer, "  return nil if #{validate_parts.join(' || ')}")
     end
@@ -568,7 +568,7 @@ module Syntropy
 
       # Get next segment
       if !case_buffer.empty?
-        emit_code_line(buffer, "#{ws}case (p = parts[#{segment_idx}])")
+        emit_code_line(buffer, "#{ws}case (s = segments[#{segment_idx}])")
         buffer << case_buffer
         emit_code_line(buffer, "#{ws}end")
       end
@@ -630,7 +630,7 @@ module Syntropy
           next if child_entry[:static]
 
           emit_code_line(buffer, "#{ws}when #{k.inspect}")
-          if_clause = child_entry[:handle_subtree] ? '' : " if !parts[#{segment_idx + 1}]"
+          if_clause = child_entry[:handle_subtree] ? '' : " if !segments[#{segment_idx + 1}]"
 
           child_path = child_entry[:path]
           route_value = "@dynamic_map[#{child_path.inspect}]"
@@ -657,12 +657,12 @@ module Syntropy
       # parametric route
       if param_entry
         if when_count == 0
-          emit_code_line(buffer, "#{ws}when p")
+          emit_code_line(buffer, "#{ws}when s")
         else
           emit_code_line(buffer, "#{ws}else")
         end
 
-        emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = p")
+        emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = s")
         visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
       # wildcard route
       elsif entry[:handle_subtree]
