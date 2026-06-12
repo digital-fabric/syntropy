@@ -119,6 +119,11 @@ class AppTest < Minitest::Test
     }
     assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
 
+    req = @test_harness.no_raise_internal_server_error {
+      @test_harness.request(':method' => 'GET', ':path' => '/test/bad_mod_arity')
+    }
+    assert_equal HTTP::INTERNAL_SERVER_ERROR, req.response_status
+
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/.well-known/foo')
     assert_equal HTTP::OK, req.response_status
     assert_equal 'foo', req.response_body
@@ -180,6 +185,46 @@ class AppTest < Minitest::Test
     req = @test_harness.request(':method' => 'HEAD', ':path' => '/test/azerty?foo=bar')
     assert_equal HTTP::NOT_FOUND, req.response_status
     assert_equal 'bar', req.ctx[:foo]
+  end
+end
+
+class MiddlewareTest < Minitest::Test
+  HTTP = Syntropy::HTTP
+
+  APP_ROOT = File.join(__dir__, 'fixtures/app_hooks')
+
+  def setup
+    @machine = UM.new
+
+    @tmp_path = '/test/tmp'
+    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+
+    @app = Syntropy::App.new(
+      app_root: APP_ROOT,
+      mount_path: '/',
+      watch_files: 0.05,
+      machine: @machine
+    )
+
+    @test_harness = Syntropy::TestHarness.new(@app)
+  end
+
+  def test_middleware_composition
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'root: root', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'foo: root foo', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'bar: root foo bar', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar/baz')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal 'baz: root foo bar baz', req.response_body
   end
 end
 

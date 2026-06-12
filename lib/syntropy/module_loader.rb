@@ -150,10 +150,10 @@ module Syntropy
     # @param ref [String] input ref
     # @return [String] clean ref
     def clean_ref(ref)
-      return '/' if ref =~ /^index(\+)?$/
+      return '/' if ref =~ /^index[+]?$/
 
-      clean = ref.gsub(/\/index(?:\+)?$/, '')
-      clean == '' ? '/' : clean
+      clean = ref.gsub(/\/index[+]?$/, '')
+      (clean == '') ? '/' : clean
     end
 
     # Transforms the given export value. If the value is nil, an exception is

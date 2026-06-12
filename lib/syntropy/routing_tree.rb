@@ -339,8 +339,8 @@ module Syntropy
           target: { kind:, fn: },
           # In case we're at the tree root, we need to copy over the hook and
           # error refs.
-          hook: !parent[:parent] && parent[:hook],
-          error: !parent[:parent] && parent[:error]
+          hook: parent[:hook],
+          error: parent[:error]
         }
       end
       nil

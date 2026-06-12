@@ -105,6 +105,7 @@ class RoutingTreeTest < Minitest::Test
     issues = repo[:children]['issues']
     assert_equal repo, issues[:parent]
     assert_equal '/docs/[org]/[repo]/issues', issues[:path]
+    refute_nil issues[:hook]
     assert_nil issues[:param]
     assert_equal File.join(@rt.app_root, '[org]/[repo]/issues/index.rb'), issues[:target][:fn]
     assert_equal ['[]'], issues[:children].keys.sort_by(&:to_s)
