@@ -188,7 +188,7 @@ class AppTest < Minitest::Test
   end
 end
 
-class MiddlewareTest < Minitest::Test
+class MiddlewareHooksTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
   APP_ROOT = File.join(__dir__, 'fixtures/app_hooks')
@@ -225,6 +225,46 @@ class MiddlewareTest < Minitest::Test
     req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar/baz')
     assert_equal HTTP::OK, req.response_status
     assert_equal 'baz: root foo bar baz', req.response_body
+  end
+end
+
+class ErrorHandlerTest < Minitest::Test
+  HTTP = Syntropy::HTTP
+
+  APP_ROOT = File.join(__dir__, 'fixtures/app_errors')
+
+  def setup
+    @machine = UM.new
+
+    @tmp_path = '/test/tmp'
+    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+
+    @app = Syntropy::App.new(
+      app_root: APP_ROOT,
+      mount_path: '/',
+      watch_files: 0.05,
+      machine: @machine
+    )
+
+    @test_harness = Syntropy::TestHarness.new(@app)
+  end
+
+  def test_error_handlers
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+    assert_equal HTTP::TEAPOT, req.response_status
+    assert_equal 'root: root', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo')
+    assert_equal HTTP::TEAPOT, req.response_status
+    assert_equal 'foo: foo', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar')
+    assert_equal HTTP::TEAPOT, req.response_status
+    assert_equal 'bar: bar', req.response_body
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/foo/bar/baz')
+    assert_equal HTTP::TEAPOT, req.response_status
+    assert_equal 'bar: baz', req.response_body
   end
 end
 

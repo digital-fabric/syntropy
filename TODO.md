@@ -1,12 +1,5 @@
 ## Immediate
 
-- [ ] Testing
-  - [v] A module that exports a proc that takes 2 args, or maybe kwargs, how
-    does the system deal with that?
-  - [ ] middleware hook composition
-    - [ ] Scenario with multiple hooks on different levels
-  - [ ] error handler 
-    - [ ] Scenario with multiple error handlers on different levels
 - [ ] Controllers
   - [ ] Streamline names of ready-made control methods:
     - [ ] dispatch_by_host('.', mapping:) - currently `route_by_hosst`
