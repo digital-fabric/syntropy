@@ -1,12 +1,22 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative '../cmd/_banner'
-
 def cmd_fn(cmd)= File.join(__dir__, "../cmd/#{cmd}.rb")
 
 cmd = ARGV.shift || 'help'
 cmd = 'help' if cmd !~ /^[a-z]+$/
+
+SHORTCUTS = {
+  'c' => 'console',
+  'n' => 'new',
+  's' => 'serve',
+  't' => 'test',
+  'v' => 'version'
+}
+
+if (target_cmd = SHORTCUTS[cmd])
+  cmd = target_cmd
+end
 
 fn = cmd_fn(cmd)
 fn = cmd_fn('help') if !File.file?(fn)
