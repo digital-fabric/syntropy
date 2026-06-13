@@ -1,3 +1,7 @@
+# 0.38.1 2026-06-13
+
+- Fix builtin app, controller extensions
+
 # 0.38.0 2026-06-13
 
 - Reimplement controller extensions: `dispatch_by_host`,
