@@ -1,3 +1,11 @@
+# 0.38.0 2026-06-13
+
+- Reimplement controller extensions: `dispatch_by_host`,
+  `dispatch_by_http_method`
+- Fix middleware composition
+- Add CLI command shortcuts
+- Rename `Syntropy::Module` to `Syntropy::ModuleContext`
+
 # 0.37.0 2026-06-07
 
 - Call `IO#clear` before closing server connection
