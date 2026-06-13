@@ -243,14 +243,6 @@ module Syntropy
 
     attr_reader :__export_value__, :__dependencies__
 
-    # Returns a list of pages found at the given ref.
-    #
-    # @param ref [String] directory reference
-    # @return [Array] array of pages found in directory
-    def page_list(ref)
-      Syntropy.page_list(@env, ref)
-    end
-
     # Returns true if the module is a collection module. See also
     # #collection_module!
     #

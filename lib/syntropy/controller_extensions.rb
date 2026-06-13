@@ -46,15 +46,14 @@ module Syntropy
 
     # Returns a list of parsed markdown pages at the given path.
     #
-    # @param env [Hash] app environment hash
     # @param ref [String] directory path
     # @return [Array<Hash>] array of page entries
-    def page_list(env, ref)
-      full_path = File.join(env[:app_root], ref)
+    def page_list(ref)
+      full_path = File.join(@env[:app_root], ref)
       raise 'Not a directory' if !File.directory?(full_path)
 
       Dir[File.join(full_path, '*.md')].sort.map {
-        atts, markdown = Syntropy::Markdown.parse(it, env)
+        atts, markdown = Syntropy::Markdown.parse(it, @env)
         { atts:, markdown: }
       }
     end
@@ -64,24 +63,6 @@ module Syntropy
     # @return [Syntropy::App]
     def app(**)
       Syntropy::App.new(**)
-    end
-
-    BUILTIN_APPLET_app_root = File.expand_path(File.join(__dir__, 'applets/builtin'))
-
-    # Creates a builtin applet with the given environment hash. By default the
-    # builtin applet is mounted at /.syntropy.
-    #
-    # @param env [Hash] app environment
-    # @param mount_path [String] mount path for the builtin applet
-    # @return [Syntropy::App] applet
-    def builtin_applet(env, mount_path: '/.syntropy')
-      app(
-        machine:    env[:machine],
-        app_root:   BUILTIN_APPLET_app_root,
-        mount_path: mount_path,
-        builtin_applet_path: nil,
-        watch_files: nil
-      )
     end
 
     private

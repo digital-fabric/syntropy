@@ -25,6 +25,24 @@ module Syntropy
         site_file_app(env) || default_app(env)
       end
 
+      BUILTIN_APPLET_app_root = File.expand_path(File.join(__dir__, 'applets/builtin'))
+  
+      # Creates a builtin applet with the given environment hash. By default the
+      # builtin applet is mounted at /.syntropy.
+      #
+      # @param env [Hash] app environment
+      # @param mount_path [String] mount path for the builtin applet
+      # @return [Syntropy::App] applet
+      def builtin_applet(env, mount_path: '/.syntropy')
+        new(
+          machine:    env[:machine],
+          app_root:   BUILTIN_APPLET_app_root,
+          mount_path: mount_path,
+          builtin_applet_path: nil,
+          watch_files: nil
+        )
+      end
+
       private
 
       # Creates a multi-hostname app if a _site.rb file is detected.
@@ -171,7 +189,7 @@ module Syntropy
     # @return [void]
     def mount_builtin_applet
       path = @env[:builtin_applet_path]
-      @builtin_applet ||= Syntropy.builtin_applet(@env, mount_path: path)
+      @builtin_applet ||= App.builtin_applet(@env, mount_path: path)
       @routing_tree.mount_applet(path, @builtin_applet)
     end
 
