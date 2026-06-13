@@ -113,3 +113,42 @@ class ModuleTest < Minitest::Test
     assert_equal [], list
   end
 end
+
+
+class ModuleExtensionsTest < Minitest::Test
+  module E1
+    def e1_foo = :foo
+  end
+
+  module E2
+    def e2_bar = :bar
+  end
+
+  module E3
+    def e3_baz = :baz
+  end
+
+  def test_module_extension_single
+    @machine = UM.new
+    @root = File.join(__dir__, 'fixtures/app')
+    @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
+    @loader = Syntropy::ModuleLoader.new(@env, extensions: E1)
+
+    mod = @loader.load('_lib/self')
+    assert_equal true, mod.respond_to?(:e1_foo)
+    assert_equal :foo, mod.e1_foo
+  end
+
+  def test_module_extension_multi
+    @machine = UM.new
+    @root = File.join(__dir__, 'fixtures/app')
+    @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
+    @loader = Syntropy::ModuleLoader.new(@env, extensions: [E2, E3])
+
+    mod = @loader.load('_lib/self')
+    assert_equal true, mod.respond_to?(:e2_bar)
+    assert_equal :bar, mod.e2_bar
+    assert_equal true, mod.respond_to?(:e3_baz)
+    assert_equal :baz, mod.e3_baz
+  end
+end

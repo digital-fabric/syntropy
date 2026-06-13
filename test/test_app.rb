@@ -305,7 +305,7 @@ class MultiSiteAppTest < Minitest::Test
     @test_harness = Syntropy::TestHarness.new(@app)
   end
 
-  def test_route_by_host
+  def test_dispatch_by_host
     req = @test_harness.request(':method' => 'GET', ':path' => '/', 'host' => 'blah')
     assert_nil req.response_body
     assert_equal HTTP::BAD_REQUEST, req.response_status

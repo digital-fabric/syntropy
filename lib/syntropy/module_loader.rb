@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'papercraft'
+require 'syntropy/errors'
 
 module Syntropy
   # The ModuleLoader class implemenets a module loader. It handles loading of
@@ -25,12 +26,14 @@ module Syntropy
     # Instantiates a module loader
     #
     # @param env [Hash] environment hash
+    # @param extensions [Module, Array<Module>] extension module(s)
     # @return [void]
-    def initialize(env)
+    def initialize(env, extensions: nil)
       @env = env
       @app_root = env[:app_root]
       @modules = {} # maps ref to module entry
       @fn_map = {} # maps filename to ref
+      @extensions = extensions
     end
 
     # Loads a module (if not already loaded) and returns its export value.
@@ -131,7 +134,7 @@ module Syntropy
       @fn_map[fn] = ref
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
-      mod = Syntropy::ModuleContext.load(env, code, fn)
+      mod = Syntropy::ModuleContext.load(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
         mod.__export_value__, fn, raise_on_missing:
@@ -191,14 +194,36 @@ module Syntropy
   # module.
   class ModuleContext
     # Loads a module, returning the module instance
-    def self.load(env, code, fn)
-      m = new(env)
-      m.instance_eval(code, fn)
+    # @param env [Hash] app environment
+    # @param code [String] module source code
+    # @param fn [String] module file name
+    # @param extensions [Module, Array<Module>] extension module(s)
+    # @return [Syntropy::ModuleContext] created module context
+    def self.load(env, code, fn, extensions)
+      mod = new(env)
+      apply_extensions(mod, extensions)
+      mod.instance_eval(code, fn)
       env[:logger]&.info(message: "Loaded module at #{fn}")
-      m
+      mod
     rescue StandardError, SyntaxError => e
       env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
       e.is_a?(SyntaxError) ? handle_syntax_error(env, e) : (raise e)
+    end
+
+    # Applies the given extension(s) to the given module context.
+    #
+    # @param mod [Syntropy::ModuleContext] module context
+    # @param extensions [Module, Array<Module>] extension module(s)
+    def self.apply_extensions(mod, extensions)
+      case extensions
+      when Array
+        extensions.each { mod.extend(it) }
+      when Module
+        mod.extend(extensions)
+      when nil # return
+      else
+        raise Syntropy::Error, "Invalid module extensions: #{extensions.inspect}"
+      end
     end
 
     # Initializes a module with the given environment hash.
@@ -315,24 +340,6 @@ module Syntropy
     def app(**env)
       env = @env.merge(env)
       Syntropy::App.new(**env)
-    end
-
-    # Returns a request handler that handles requests by calling the appropriate
-    # module method (e.g. get, post, etc.)
-    #
-    # @return [Proc]
-    def http_methods
-      ->(req) { route_by_http_method(req) }
-    end
-
-    # Handles the given request by calling the module method corresponding to
-    # the request's HTTP method. If no method is found, raises a
-    # method_not_allowed error.
-    def route_by_http_method(req)
-      sym = req.method.to_sym
-      raise Syntropy::Error.method_not_allowed if !respond_to?(sym)
-
-      send(sym, req)
     end
 
     def handle_syntax_error(env, e)

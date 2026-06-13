@@ -1,1 +1,1 @@
-export Syntropy.route_by_host(@env)
+export dispatch_by_host('.')

@@ -1,7 +1,7 @@
 @posts = import '/_lib/posts'
 @layout = import '/_layout/default'
 
-export http_methods
+export dispatch_by_http_method
 
 def get(req)
   req.respond_html(

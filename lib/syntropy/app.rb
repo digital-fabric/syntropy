@@ -9,6 +9,7 @@ require 'syntropy/errors'
 require 'syntropy/module_loader'
 require 'syntropy/routing_tree'
 require 'syntropy/mime_types'
+require 'syntropy/controller_extensions'
 
 module Syntropy
   # The App implements a Syntropy application. It is responsible for handling
@@ -34,7 +35,7 @@ module Syntropy
         fn = File.join(env[:app_root], '_site.rb')
         return nil if !File.file?(fn)
 
-        loader = Syntropy::ModuleLoader.new(env)
+        loader = Syntropy::ModuleLoader.new(env, extensions: ControllerExtensions)
         loader.load('_site')
       end
 
@@ -61,7 +62,10 @@ module Syntropy
       @env = env
       @logger = env[:logger]
 
-      @module_loader = Syntropy::ModuleLoader.new(app: self, **env)
+      @module_loader = Syntropy::ModuleLoader.new(
+        env.merge(app: self),
+        extensions: ControllerExtensions
+      )
       setup_routing_tree
       start
     end

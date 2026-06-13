@@ -1,9 +1,9 @@
 export dispatch_by_http_method
 
 def get(req)
-  req.respond('foo')
+  req.respond('get')
 end
 
 def post(req)
-  req.respond('bar')
+  req.respond('post')
 end

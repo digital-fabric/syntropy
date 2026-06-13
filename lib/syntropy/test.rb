@@ -11,12 +11,9 @@ module Syntropy
   class Test < Minitest::Test
     HTTP = Syntropy::HTTP
 
-    # Sets the app environment for all Syntropy tests.
-    #
-    # @param env [Hash] app environment hash
-    # @return [void]
-    def self.env=(env)
-      @@env = env
+    class << self
+      # Gets/sets app environment for tests
+      attr_accessor :env
     end
 
     attr_reader :machine, :app
@@ -25,7 +22,7 @@ module Syntropy
     #
     # @return [Hash] test app environment
     def env
-      @@env
+      self.class.env
     end
 
     # Loads and returns a module with the given reference.
@@ -101,17 +98,38 @@ module Syntropy
       post(path, 'application/x-www-form-urlencoded', URI.encode_www_form(data), **)
     end
 
+    # Makes an HTTP PATCH request to the test app.
+    #
+    # @param path [String] request path
+    # @param content_type [String, nil] content MIME type
+    # @param body [String] request body
+    # @param headers [Hash] request headers
+    # @return [Syntropy::Request]
+    def patch(path, content_type, body, **headers)
+      headers = headers.merge('content-type' => content_type) if content_type
+      http_request(
+        headers.merge(
+          {
+            ':method' => 'PATCH',
+            ':path'   => path
+          }
+        ),
+        body
+      )
+    end
+
     # Sets up a test instance.
     #
     # @return [void]
     def setup
-      raise 'Environment not set' if !@@env
+      env = self.class.env
+      raise 'Environment not set' if !env
 
-      Syntropy.load_config(@@env)
+      Syntropy.load_config(env)
 
       @machine = UM.new
       @app = Syntropy::App.new(
-        **@@env.merge(
+        **env.merge(
           machine: @machine,
           test_mode: true
         )

@@ -17,15 +17,12 @@ require 'syntropy/papercraft_extensions'
 require 'syntropy/routing_tree'
 require 'syntropy/json_api'
 require 'syntropy/side_run'
-require 'syntropy/utils'
 require 'syntropy/version'
 
 # Syntropy is a web framework for building web apps in Ruby. Syntropy uses
 # UringMachine for I/O and concurrency, and provides a comprehensive and
 # flexible solution for writing web apps with minimal boilerplate.
 module Syntropy
-  extend Utilities
-
   class << self
     attr_accessor :machine, :dev_mode, :test_mode
 

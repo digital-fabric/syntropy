@@ -2,8 +2,6 @@
 
 - [ ] Controllers
   - [ ] Streamline names of ready-made control methods:
-    - [ ] dispatch_by_host('.', mapping:) - currently `route_by_hosst`
-    - [ ] dispatch_by_http_method - currently `http_methods`
     - [ ] dispatch_json_rpc
 
 - [ ] Collection - treat directories and files as collections of data.
