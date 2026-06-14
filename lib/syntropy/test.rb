@@ -12,6 +12,14 @@ module Syntropy
     HTTP = Syntropy::HTTP
 
     class << self
+      def global_env=(env)
+        @@global_env = env
+      end
+
+      def global_env
+        @@global_env
+      end
+    
       # Gets/sets app environment for tests
       attr_accessor :env
     end
@@ -22,7 +30,8 @@ module Syntropy
     #
     # @return [Hash] test app environment
     def env
-      self.class.env
+      klass = self.class
+      klass.env || klass.global_env
     end
 
     # Loads and returns a module with the given reference.
@@ -122,7 +131,7 @@ module Syntropy
     #
     # @return [void]
     def setup
-      env = self.class.env
+      env = self.env
       raise 'Environment not set' if !env
 
       Syntropy.load_config(env)
