@@ -20,17 +20,16 @@ env = {
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy serve [options]'
 
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
     env[:app_root] = path
   end
 
-  o.on('-b', '--bind BIND', String,
-       'Bind address (default: http://0.0.0.0:1234). You can specify this flag multiple times to bind to multiple addresses.') do
+  o.on('-b', '--bind ADDRESS', String, 'Bind address (default: 0.0.0.0:1234)') do
     env[:bind] ||= []
     env[:bind] << it
   end
 
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
     env[:config_root] = path
   end
 

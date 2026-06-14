@@ -17,11 +17,11 @@ env = {
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy console [options]'
 
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
     env[:app_root] = path
   end
 
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
     env[:config_root] = path
   end
 

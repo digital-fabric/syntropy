@@ -32,14 +32,14 @@ def delete(req)
   id = req.route_params['id'].to_i
 
   deleted = @posts.delete(id)
-  raise BadRequestError, "Failed to delete post" if deleted != 1
+  raise BadRequestError, 'Failed to delete post' if deleted != 1
 
   req.flash[:notice] = 'Post was successfully destroyed.'
-  req.redirect "/posts", Syntropy::HTTP::SEE_OTHER
+  req.redirect '/posts', Syntropy::HTTP::SEE_OTHER
 end
 
 @template = @layout.apply { |post:, **props|
-  h1 "My blog"
+  h1 'My blog'
   p props[:req]&.flash[:notice], style: 'color: green'
   div {
     h2 {
@@ -48,9 +48,9 @@ end
     p post[:body]
   }
   p {
-    a "Edit", href: "/posts/#{post[:id]}/edit"
+    a 'Edit', href: 'edit'
     span '|'
-    a "Back to posts", href: '/posts'
+    a 'Back to posts', href: '/posts'
   }
   div {
     form(method: 'post') {

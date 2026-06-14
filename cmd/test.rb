@@ -16,17 +16,21 @@ MINITEST_ARGV = []
 parser = OptionParser.new do |o|
   o.banner = 'Usage: syntropy test [options]'
 
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app') do |path|
+  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
     env[:app_root] = path
   end
 
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config') do |path|
+  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
     env[:config_root] = path
   end
 
   o.on('-h', '--help', 'Show this help message') do
     puts o
     exit
+  end
+
+  o.on('-f', '--file PATH', 'Set test file') do |path|
+    env[:test_file] = path
   end
 
   o.on('-m', '--mount PATH', 'Set mount path (default: /)') do |path|
@@ -82,7 +86,11 @@ Syntropy.load_config(env)
 $stdout.sync = true
 $stderr.sync = true
 
-Dir.glob("#{File.expand_path(env[:test_root])}/test_*.rb").each { require(it) }
+if env[:test_file]
+  require(File.expand_path(env[:test_file]))
+else
+  Dir.glob("#{File.expand_path(env[:test_root])}/test_*.rb").each { require(it) }
+end
 
 def restart_on_file_change(machine, dir, restart_argv)
   machine.file_watch(dir, UM::IN_CREATE | UM::IN_DELETE | UM::IN_CLOSE_WRITE) {
@@ -92,7 +100,7 @@ def restart_on_file_change(machine, dir, restart_argv)
   exec('ruby', __FILE__, *restart_argv)
 end
 
-Syntropy::Test.env = (env)
+Syntropy::Test.global_env = env
 Minitest.run MINITEST_ARGV
 
 if env[:watch_mode]
