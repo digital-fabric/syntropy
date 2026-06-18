@@ -29,6 +29,11 @@
 - [ ] Controllers
   - [ ] add dispatch_json_rpc, dispatch_json_api
 
+- [ ] Event Bus
+  - [ ] Ruby side
+  - [ ] JS side
+  - [ ] Reimplement `auto_refresh` using a *default* event bus provided by Syntropy
+
 - [ ] Collection - treat directories and files as collections of data.
 
   Kind of similar to the routing tree, but instead of routes it just takes a
