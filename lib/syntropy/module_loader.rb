@@ -34,6 +34,7 @@ module Syntropy
       @modules = {} # maps ref to module entry
       @fn_map = {} # maps filename to ref
       @extensions = extensions
+      @loading = Set.new
     end
 
     # Loads a module (if not already loaded) and returns its export value.
@@ -131,6 +132,12 @@ module Syntropy
         return
       end
 
+      raise Syntropy::Error, "Circular dependency detected" if @loading.include?(ref)
+      do_load_module(ref, fn, raise_on_missing:)
+    end
+
+    def do_load_module(ref, fn, raise_on_missing:)
+      @loading << ref
       @fn_map[fn] = ref
       code = IO.read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
@@ -146,6 +153,8 @@ module Syntropy
         export_value: export_value,
         reverse_deps: []
       }
+    ensure
+      @loading.delete(ref)
     end
 
     # Cleans up a module reference specifier, turning /index into /

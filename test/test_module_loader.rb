@@ -112,6 +112,12 @@ class ModuleTest < Minitest::Test
     list = @loader.list('non-existent')
     assert_equal [], list
   end
+
+  def test_circular_dependency
+    assert_raises(Syntropy::Error) { @loader.load('_lib/circular/a') }
+    assert_raises(Syntropy::Error) { @loader.load('_lib/circular/b') }
+    assert_raises(Syntropy::Error) { @loader.load('_lib/circular/c') }
+  end
 end
 
 
