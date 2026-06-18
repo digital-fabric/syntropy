@@ -139,7 +139,7 @@ module Syntropy
     def do_load_module(ref, fn, raise_on_missing:)
       @loading << ref
       @fn_map[fn] = ref
-      code = IO.read(fn)
+      code = read_file(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
       mod = Syntropy::ModuleContext.load(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
@@ -155,6 +155,16 @@ module Syntropy
       }
     ensure
       @loading.delete(ref)
+    end
+
+    def read_file(fn)
+      machine = @env[:machine]
+
+      machine.open(fn, UM::O_RDONLY) { |fd|
+        buf = +''
+        res = machine.read(fd, buf, 1 << 20)
+        buf
+      }
     end
 
     # Cleans up a module reference specifier, turning /index into /
