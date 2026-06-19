@@ -5,9 +5,7 @@ export dispatch_by_http_method
 
 def get(req)
   posts = @posts.get_all
-  req.respond_html(
-    @template.render(posts:, req:)
-  )
+  req.respond_html(@template.render(posts:, req:))
 end
 
 def post(req)

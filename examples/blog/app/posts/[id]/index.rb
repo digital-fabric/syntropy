@@ -8,9 +8,7 @@ def get(req)
   post = @posts.get(id)
   raise Syntropy::Error.not_found if !post
 
-  req.respond_html(
-    @template.render(post:, req:)
-  )
+  req.respond_html(@template.render(post:, req:))
 end
 
 def post(req)

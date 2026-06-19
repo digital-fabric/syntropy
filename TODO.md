@@ -1,5 +1,9 @@
 ## Immediate
 
+- [ ] Concurrent module loading
+  - [ ] Add failing test
+  - [ ] Fix test
+
 - [ ] Relative redirects
 
     ```ruby

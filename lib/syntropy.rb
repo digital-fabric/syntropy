@@ -77,7 +77,8 @@ module Syntropy
 
       loader_env = env.merge(
         app_root: env[:config_root],
-        logger: nil
+        logger: nil,
+        machine: UM.new(size: 8)
       )
       loader = ModuleLoader.new(loader_env)
       if (config = loader.load(env[:mode], raise_on_missing: false))
