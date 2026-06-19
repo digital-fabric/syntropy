@@ -141,11 +141,12 @@ module Syntropy
       @fn_map[fn] = ref
       code = read_file(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
-      mod = Syntropy::ModuleContext.load(env, code, fn, @extensions)
+      mod = Syntropy::ModuleContext.new(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
         mod.__export_value__, fn, raise_on_missing:
       )
+      @env[:logger]&.info(message: "Loaded module at #{fn}")
 
       {
         fn: fn,
@@ -153,6 +154,9 @@ module Syntropy
         export_value: export_value,
         reverse_deps: []
       }
+    rescue StandardError, SyntaxError => e
+      env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
+      e.is_a?(SyntaxError) ? handle_syntax_error(fn, e) : (raise e)
     ensure
       @loading.delete(ref)
     end
@@ -193,6 +197,17 @@ module Syntropy
         export_value
       end
     end
+
+    def handle_syntax_error(fn, e)
+      $stderr.puts("\n#{e.message}") if !Syntropy.test_mode
+      m = e.message.match(/^(.+): syntax/)
+      raise e if !m
+
+      location = m[1]
+      e2 = SyntaxError.new("Syntax errors found in module at #{fn}")
+      e2.set_backtrace([location] + e.backtrace)
+      raise e2
+    end
   end
 
   # The Syntropy::ModuleContext class provides a context for loading a module. A
@@ -212,44 +227,14 @@ module Syntropy
   # is set to `self`, and may be used to refer to various methods defined in the
   # module.
   class ModuleContext
-    # Loads a module, returning the module instance
-    # @param env [Hash] app environment
-    # @param code [String] module source code
-    # @param fn [String] module file name
-    # @param extensions [Module, Array<Module>] extension module(s)
-    # @return [Syntropy::ModuleContext] created module context
-    def self.load(env, code, fn, extensions)
-      mod = new(env)
-      apply_extensions(mod, extensions)
-      mod.instance_eval(code, fn)
-      env[:logger]&.info(message: "Loaded module at #{fn}")
-      mod
-    rescue StandardError, SyntaxError => e
-      env[:logger]&.error(message: "Error while loading module at #{fn}", error: e)
-      e.is_a?(SyntaxError) ? handle_syntax_error(env, e) : (raise e)
-    end
-
-    # Applies the given extension(s) to the given module context.
-    #
-    # @param mod [Syntropy::ModuleContext] module context
-    # @param extensions [Module, Array<Module>] extension module(s)
-    def self.apply_extensions(mod, extensions)
-      case extensions
-      when Array
-        extensions.each { mod.extend(it) }
-      when Module
-        mod.extend(extensions)
-      when nil # return
-      else
-        raise Syntropy::Error, "Invalid module extensions: #{extensions.inspect}"
-      end
-    end
-
     # Initializes a module with the given environment hash.
     #
     # @param env [Hash] environment hash
+    # @param code [String] module source code
+    # @param fn [String] module filename
+    # @param extensions [Array<Module>, Module] 
     # @return [void]
-    def initialize(env)
+    def initialize(env, code, fn, extensions)
       @env = env
       @machine = env[:machine]
       @module_loader = env[:module_loader]
@@ -258,6 +243,9 @@ module Syntropy
       @logger = env[:logger]
       @__dependencies__ = []
       singleton_class.const_set(:MODULE, self)
+
+      apply_extensions(extensions)
+      instance_eval(code, fn)
     end
 
     attr_reader :__export_value__, :__dependencies__
@@ -353,15 +341,20 @@ module Syntropy
       Syntropy::App.new(**env)
     end
 
-    def handle_syntax_error(env, e)
-      $stderr.puts("\n#{e.message}") if !Syntropy.test_mode
-      m = e.message.match(/^(.+): syntax/)
-      raise e if !m
-
-      location = m[1]
-      e2 = SyntaxError.new("Syntax errors found in module #{env[:ref]}")
-      e2.set_backtrace([location] + e.backtrace)
-      raise e2
+    # Applies the given extension(s) to the given module context.
+    #
+    # @param extensions [Module, Array<Module>] extension module(s)
+    # @return [void]
+    def apply_extensions(extensions)
+      case extensions
+      when Array
+        extensions.each { extend(it) }
+      when Module
+        extend(extensions)
+      when nil # return
+      else
+        raise Syntropy::Error, "Invalid module extensions: #{extensions.inspect}"
+      end
     end
   end
 end
