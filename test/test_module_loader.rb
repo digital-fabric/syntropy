@@ -2,7 +2,7 @@
 
 require_relative 'helper'
 
-class ModuleTest < Minitest::Test
+class ModuleLoaderTest < Minitest::Test
   def setup
     @machine = UM.new
     @root = File.join(__dir__, 'fixtures/app')
@@ -104,7 +104,7 @@ class ModuleTest < Minitest::Test
     assert_equal [], list
 
     list = @loader.list('mod')
-    assert_equal [], list
+    assert_equal ['mod/concurrent'], list
 
     list = @loader.list('mod/bar')
     assert_equal ['mod/bar/index+'], list
@@ -117,6 +117,25 @@ class ModuleTest < Minitest::Test
     assert_raises(Syntropy::Error) { @loader.load('_lib/circular/a') }
     assert_raises(Syntropy::Error) { @loader.load('_lib/circular/b') }
     assert_raises(Syntropy::Error) { @loader.load('_lib/circular/c') }
+  end
+
+  def test_concurrent_import
+    c1 = nil
+    c2 = nil
+    bar = nil
+
+    @env[:concurrent_counter] = { count: 0 }
+
+    @machine.join(
+      @machine.spin { c1 = @loader.load('mod/concurrent') },
+      @machine.spin { c2 = @loader.load('mod/concurrent') },
+      @machine.spin { bar = @loader.load('mod/bar/index+') }
+    )
+
+    assert_equal c1, c2
+    assert_equal c1.id, c2.id
+
+    assert_kind_of Hash, bar.env
   end
 end
 

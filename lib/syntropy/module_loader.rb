@@ -30,11 +30,14 @@ module Syntropy
     # @return [void]
     def initialize(env, extensions: nil)
       @env = env
+      @machine = env[:machine]
       @app_root = env[:app_root]
       @modules = {} # maps ref to module entry
       @fn_map = {} # maps filename to ref
       @extensions = extensions
       @loading = Set.new
+      @lock = UM::Mutex.new
+      @lock_holder = nil
     end
 
     # Loads a module (if not already loaded) and returns its export value.
@@ -42,14 +45,16 @@ module Syntropy
     # @param ref [String] module reference
     # @return [any] export value
     def load(ref, raise_on_missing: true)
-      ref = "/#{ref}" if ref !~ /^\//
-      if !(entry = @modules[ref])
-        entry = load_module(ref, raise_on_missing:)
-        return if !entry
+      lock do
+        ref = "/#{ref}" if ref !~ /^\//
+        if !(entry = @modules[ref])
+          entry = load_module(ref, raise_on_missing:)
+          return if !entry
 
-        @modules[ref] = entry
+          @modules[ref] = entry
+        end
+        entry[:export_value]
       end
-      entry[:export_value]
     end
 
     # Returns a list of modules found in the given relative path. The module
@@ -71,12 +76,26 @@ module Syntropy
     # @param fn [String] module filename
     # @return [void]
     def invalidate_fn(fn)
-      ref = @fn_map[fn]
-      invalidate_ref(ref) if ref
-      invalidate_collection_modules
+      lock do
+        ref = @fn_map[fn]
+        invalidate_ref(ref) if ref
+        invalidate_collection_modules
+      end
     end
 
     private
+
+    # Synchronizes access to the module loader state
+    def lock
+      return yield if @lock_holder == Fiber.current
+
+      @machine.synchronize(@lock) do
+        @lock_holder = Fiber.current
+        yield
+      ensure
+        @lock_holder = nil
+      end
+    end
 
     # Invalidates a module by its reference, normally following a change to the
     # underlying file (in order to cause reloading of the module). The module
@@ -162,11 +181,9 @@ module Syntropy
     end
 
     def read_file(fn)
-      machine = @env[:machine]
-
-      machine.open(fn, UM::O_RDONLY) { |fd|
+      @machine.open(fn, UM::O_RDONLY) { |fd|
         buf = +''
-        res = machine.read(fd, buf, 1 << 20)
+        res = @machine.read(fd, buf, 1 << 20)
         buf
       }
     end
