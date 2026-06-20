@@ -52,6 +52,8 @@ Syntropy is based on:
 - [Extralite](https://github.com/digital-fabric/extralite) a fast and innovative
   SQLite wrapper for Ruby.
 
+Syntropy is 100% brain-coded.
+
 ## Examples
 
 To get a taste of some of Syntropy's capabilities, you can run the included
