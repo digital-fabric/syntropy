@@ -15,16 +15,16 @@ def post(req)
   id = @posts.create(title, body)
 
   req.flash[:notice] = 'Post was successfully created.'
-  req.redirect("posts/#{id}")
+  req.redirect("./#{id}")
 end
 
-@template = @layout.apply { |**props|
+@template = @layout.apply { |req:, **props|
   h1 "My awesome blog"
-  p props[:req]&.flash[:notice], style: 'color: green'
+  p req.flash[:notice], style: 'color: green'
   props[:posts].each { |post|
     div {
       h2 {
-        a post[:title], href: "/posts/#{post[:id]}"
+        a post[:title], href: req.rel("./#{post[:id]}")
       }
       p post[:body]
     }
@@ -32,7 +32,7 @@ end
 
   div {
     p {
-      a "New post", href: '/posts/new'
+      a "New post", href: req.rel('./new')
     }
   }
 }

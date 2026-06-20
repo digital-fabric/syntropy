@@ -5,14 +5,14 @@ export dispatch_by_http_method
 
 def get(req)
   req.respond_html(
-    @template.render
+    @template.render(req:)
   )
 end
 
-@template = @layout.apply { |**props|
+@template = @layout.apply { |req:, **props|
   h1 "Create blog post"
   div {
-    form(action: "/posts", method: 'post') {
+    form(action: req.rel(".."), method: 'post') {
       div {
         label 'Title', for: 'title'
         input name: 'title', type: 'text'

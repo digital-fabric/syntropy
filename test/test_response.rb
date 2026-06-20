@@ -20,6 +20,36 @@ class RedirectTest < Minitest::Test
       [:respond, r, nil, {":status"=>301, "Location"=>"/bar"}]
     ], r.adapter.calls
   end
+
+  def test_redirect_relative_path
+    r = Syntropy::MockAdapter.mock(':path' => '/foo')
+    r.redirect('./bar')
+    assert_equal '/foo/bar', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/foo/bar')
+    r.redirect('./baz')
+    assert_equal '/foo/bar/baz', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/foo/bar')
+    r.redirect('../baz')
+    assert_equal '/foo/baz', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/')
+    r.redirect('./baz')
+    assert_equal '/baz', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/')
+    r.redirect('../baz')
+    assert_equal '/baz', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/posts')
+    r.redirect('./42')
+    assert_equal '/posts/42', r.response_headers['Location']
+
+    r = Syntropy::MockAdapter.mock(':path' => '/posts/42')
+    r.redirect('..')
+    assert_equal '/posts', r.response_headers['Location']
+  end
 end
 
 class UpgradeTest < Minitest::Test

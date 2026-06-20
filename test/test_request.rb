@@ -113,6 +113,13 @@ class RequestInfoTest < Minitest::Test
     assert_equal URI.parse('/ho?a=b&c=d'), r.uri
     assert_equal 'https://foo.bar/ho?a=b&c=d', r.full_uri
   end
+
+  def test_rel
+    r = Syntropy::MockAdapter.mock(
+      ':path' => '/posts/42'
+    )
+    assert_equal '/posts', r.rel('..')
+  end
 end
 
 class ValidationTest < Minitest::Test

@@ -1,35 +1,5 @@
 ## Immediate
 
-- [ ] Concurrent module loading
-  - [ ] Add failing test
-  - [ ] Fix test
-
-- [ ] Relative redirects
-
-    ```ruby
-    # from examples/blog/posts/index.rb
-    ...
-    # instead of this:
-    req.redirect("posts/#{id}")
-
-    # do this:
-    req.redirect("./#{id}")
-
-
-    # instead of this:
-    req.redirect '/posts', Syntropy::HTTP::SEE_OTHER
-
-    # do this: 
-    req.redirect '..', Syntropy::HTTP::SEE_OTHER
-    ```
-
-- [ ] We also need relative path to request path, so something like:
-
-    ```ruby
-    req.rel_path('edit')
-    req.rel_path('..')
-    ```
-
 - [ ] Controllers
   - [ ] add dispatch_json_rpc, dispatch_json_api
 

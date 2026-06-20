@@ -9,14 +9,14 @@ def get(req)
   raise Syntropy::Error.not_found if !post
 
   req.respond_html(
-    @template.render(post:)
+    @template.render(post:, req:)
   )
 end
 
-@template = @layout.apply { |post:, **props|
+@template = @layout.apply { |post:, req:, **props|
   h1 "Edit blog post"
   div {
-    form(action: "/posts/#{post[:id]}", method: 'post') {
+    form(action: req.rel(".."), method: 'post') {
       div {
         label 'Title', for: 'title'
         input name: 'title', type: 'text', value: post[:title]

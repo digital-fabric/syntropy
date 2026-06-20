@@ -23,6 +23,7 @@ module Syntropy
     end
 
     def redirect(url, status = HTTP::FOUND)
+      url = File.expand_path(File.join(path, url)) if url =~ /^\./
       respond(nil, ':status' => status, 'Location' => url)
     end
 

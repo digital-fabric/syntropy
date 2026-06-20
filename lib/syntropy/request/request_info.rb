@@ -228,6 +228,14 @@ module Syntropy
       nil
     end
 
+    # Expands a relative path based on the request's path.
+    #
+    # param rel_path [String]
+    # @return [String]
+    def rel(rel_path)
+      File.expand_path(File.join(path, rel_path))
+    end 
+
     private
 
     # Parses an accept string into an array of accepted MIME types.
