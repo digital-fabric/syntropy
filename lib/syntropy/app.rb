@@ -319,63 +319,9 @@ module Syntropy
     # @param route [Hash] route entry
     # @return [Proc] route proc
     def markdown_route_proc(route)
-      headers = { 'Content-Type' => 'text/html' }
-
-      ->(req) {
-        req.respond_by_http_method(
-          'head'  => [nil, headers],
-          'get'   => -> { [render_markdown(route), headers] }
-        )
-      }
-    end
-
-    # Renders and returns the given markdown route as HTML.
-    #
-    # @param route [Hash] route entry
-    # @return [String] rendered HTML
-    def render_markdown(route)
-      atts, md = Syntropy::Markdown.parse(route[:target][:fn], @env)
-
-      layout = compute_markdown_layout(route, atts)
-      Papercraft.html(layout, md:, **atts)
-    end
-
-    def compute_markdown_layout(route, atts)
-      if (layout = atts[:layout])
-        route[:applied_layouts] ||= {}
-        route[:applied_layouts][layout] ||= markdown_layout_template(layout)
-      else
-        default_markdown_layout_template
-      end
-    end
-
-    # Returns a markdown template based on the given layout.
-    #
-    # @param layout [String] layout name
-    # @return [Proc] layout template
-    def markdown_layout_template(layout)
-      @layouts ||= {}
-      template = @module_loader.load("_layout/#{layout}")
-      @layouts[layout] = Papercraft.apply(template) { |md:, **| markdown(md) }
-    end
-
-    # Returns the default markdown layout, which renders to HTML and includes a
-    # title, the markdown content, and emits code for auto refreshing the page
-    # on file change.
-    #
-    # @return [Proc] default Markdown layout template
-    def default_markdown_layout_template
-      @default_markdown_layout ||= ->(md:, **atts) {
-        html5 {
-          head {
-            title atts[:title]
-          }
-          body {
-            markdown md
-            auto_refresh! if Syntropy.dev_mode
-          }
-        }
-      }
+      env = @env.merge(module_loader: @module_loader)
+      atts, md = Syntropy::Markdown.parse_file(route[:target][:fn], env)
+      Syntropy::Markdown.make_controller(env, atts, md)
     end
 
     # Returns the route proc for a module route.

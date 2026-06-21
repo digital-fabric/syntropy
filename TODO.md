@@ -53,7 +53,8 @@ module. One interesting question: do we process the markdown once, or on each
 render?
 
 Processing the embedded code on each render can be super expensive. We *can*
-come up with a way to turn each snippet into a proper template that can then be rendered into the markdown file:
+come up with a way to turn each snippet into a proper template that can then be
+rendered into the markdown file:
 
 ```ruby
 # on each render:
@@ -67,6 +68,9 @@ def prepare_snippet_template(snippet, location)
   instance_eval "->() do\n#{snippet}\nend"
 end
 ```
+
+What happens to dependencies being reloaded? There should be no problem, since
+the routing tree is regenerated.
 
 ## Collections
 

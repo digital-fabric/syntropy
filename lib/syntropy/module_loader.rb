@@ -21,7 +21,7 @@ module Syntropy
   # reference `_lib/foo` will point to a module residing in
   # `/my_site/_lib/foo.rb`.
   class ModuleLoader
-    attr_reader :modules
+    attr_reader :modules, :app_root
 
     # Instantiates a module loader
     #

@@ -53,7 +53,7 @@ module Syntropy
       raise 'Not a directory' if !File.directory?(full_path)
 
       Dir[File.join(full_path, '*.md')].sort.map {
-        atts, markdown = Syntropy::Markdown.parse(it, @env)
+        atts, markdown = Syntropy::Markdown.parse_file(it, @env)
         { atts:, markdown: }
       }
     end

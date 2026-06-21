@@ -100,7 +100,7 @@ class AppTest < Minitest::Test
     assert_equal 'About', req.response_body.chomp
 
     req = @test_harness.request(':method' => 'GET', ':path' => '/test/about/foo')
-    assert_equal '<!DOCTYPE html><html><head><title></title></head><body><p>Hello from Markdown</p></body></html>', req.response_body.gsub(/\n/, '')
+    assert_equal '<!DOCTYPE html><html><head></head><body><p>Hello from Markdown</p></body></html>', req.response_body.gsub(/\n/, '')
 
     req = @test_harness.request(':method' => 'HEAD', ':path' => '/test/about/foo')
     assert_nil req.response_body

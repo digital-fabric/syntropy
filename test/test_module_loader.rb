@@ -81,7 +81,7 @@ class ModuleLoaderTest < Minitest::Test
 
   def test_list
     list = @loader.list('_layout')
-    assert_equal ['_layout/default'], list
+    assert_equal ['_layout/default', '_layout/kuku'], list
 
     list = @loader.list('_lib')
     assert_equal [
