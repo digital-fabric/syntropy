@@ -75,7 +75,7 @@ class CachingTest < Minitest::Test
     @adapter.serve_request
     response = read_client_side
 
-    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=3600\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
+    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=604800\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
     assert_equal expected, response
   end
 
@@ -92,7 +92,7 @@ class CachingTest < Minitest::Test
     @adapter.serve_request
     response = read_client_side
 
-    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=3600\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
+    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=604800\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
     assert_equal expected, response
 
     # good etag
@@ -118,7 +118,7 @@ class CachingTest < Minitest::Test
     @adapter.serve_request
     response = read_client_side
 
-    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=3600\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
+    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nCache-Control: max-age=604800\r\nEtag: #{etag}\r\nLast-Modified: #{last_modified}\r\nContent-Type: text/css\r\n\r\n#{size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
     assert_equal expected, response
 
     # good etag

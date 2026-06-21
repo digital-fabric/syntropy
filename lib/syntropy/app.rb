@@ -251,6 +251,8 @@ module Syntropy
       }
     end
 
+    DEFAULT_CACHE_CONTROL = 'max-age=604800' # one week
+
     # Serves a static file from the given target hash with cache validation.
     #
     # @param req [Syntropy::Request] request
@@ -259,7 +261,7 @@ module Syntropy
     def serve_static_file(req, target)
       validate_static_file_info(target)
       cache_opts = {
-        cache_control:  'max-age=3600',
+        cache_control:  DEFAULT_CACHE_CONTROL,
         last_modified:  target[:last_modified_date],
         etag:           target[:etag]
       }
