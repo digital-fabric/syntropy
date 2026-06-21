@@ -133,4 +133,136 @@ class MarkdownControllerTest < Minitest::Test
       req = @test_harness.request(':method' => 'GET', ':path' => '/')
     }
   end
+
+  def test_markdown_renderer_with_code_snipet
+    md = <<~MD
+      foo
+
+      ```ruby
+      foo { bar }
+      ```
+
+      bar
+    MD
+
+    atts = { foo: 'bar' }
+
+    @controller = Syntropy::Markdown.make_controller(@env, atts, md)
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+
+    assert_equal HTTP::OK, req.response_status
+    assert_equal(
+      (
+        <<~HTML.chomp
+        <!DOCTYPE html><html><head></head><body><p>foo</p>
+
+        <div class=\"language-ruby highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code><span class=\"n\">foo</span> <span class=\"p\">{</span> <span class=\"n\">bar</span> <span class=\"p\">}</span>
+        </code></pre></div></div>
+
+        <p>bar</p>
+        </body></html>
+        HTML
+      ),
+      req.response_body
+    )
+  end
+
+  def test_markdown_renderer_with_embedded_papercraft_simple
+    md = <<~MD
+      foo
+
+      ```ruby
+      # render: true
+      foo { bar }
+      ```
+
+      bar
+    MD
+
+    atts = { foo: 'bar' }
+
+    @controller = Syntropy::Markdown.make_controller(@env, atts, md)
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+
+    assert_equal HTTP::OK, req.response_status
+    assert_equal(
+      (
+        <<~HTML.chomp
+        <!DOCTYPE html><html><head></head><body><p>foo</p>
+
+        <foo><bar></bar></foo>
+        <p>bar</p>
+        </body></html>
+        HTML
+      ),
+      req.response_body
+    )
+  end
+
+  def test_markdown_renderer_with_embedded_papercraft_env
+    md = <<~MD
+      ```ruby
+      # render: true
+      h3 @env[:app_root]
+      ```
+      bar
+    MD
+
+    atts = { foo: 'bar' }
+
+    @controller = Syntropy::Markdown.make_controller(@env, atts, md)
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+
+    assert_equal HTTP::OK, req.response_status
+    assert_equal(
+      (
+        <<~HTML.chomp
+        <!DOCTYPE html><html><head></head><body><h3>#{@env[:app_root]}</h3>
+        <p>bar</p>
+        </body></html>
+        HTML
+      ),
+      req.response_body
+    )
+  end
+
+  def test_markdown_renderer_with_embedded_papercraft_dynamic
+    md = <<~MD
+      ```ruby
+      # render: true
+      @env[:count] ||= 0
+      h3 (@env[:count] += 1)
+      ```
+      bar
+    MD
+
+    atts = { foo: 'bar' }
+
+    @controller = Syntropy::Markdown.make_controller(@env, atts, md)
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal(
+      (
+        <<~HTML.chomp
+        <!DOCTYPE html><html><head></head><body><h3>1</h3>
+        <p>bar</p>
+        </body></html>
+        HTML
+      ),
+      req.response_body
+    )
+
+    req = @test_harness.request(':method' => 'GET', ':path' => '/')
+    assert_equal HTTP::OK, req.response_status
+    assert_equal(
+      (
+        <<~HTML.chomp
+        <!DOCTYPE html><html><head></head><body><h3>2</h3>
+        <p>bar</p>
+        </body></html>
+        HTML
+      ),
+      req.response_body
+    )
+  end
 end

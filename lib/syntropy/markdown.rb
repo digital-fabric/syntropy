@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'securerandom'
 
 module Syntropy
   # Markdown parsing.
@@ -25,7 +26,8 @@ module Syntropy
           when 'head'
             req.respond_html(nil)
           when 'get'
-            html = render
+            md = process_md_embeds
+            html = render(md)
             req.respond_html(html)
           else
             req.respond(nil, ':status' => HTTP::METHOD_NOT_ALLOWED)
@@ -35,9 +37,27 @@ module Syntropy
 
       private
 
-      def render
+      def process_md_embeds
+        return @md if @embedded_templates&.empty?
+
+        @embedded_templates = {}
+        @md.gsub(/^```ruby\n# render: true\n(.*?)\r?\n```\n/m) {
+          snippet = Regexp.last_match[1]
+          templ = @embedded_templates[snippet] ||= prepare_snippet_template(snippet)
+          Papercraft.html(templ)
+        }
+      end
+
+      def prepare_snippet_template(snippet, location = nil)
+        fn = "/tmp/snippet-#{SecureRandom.hex(8)}.rb"
+        src = "->() do\n#{snippet}\nend"
+        IO.write(fn, src)
+        instance_eval src, fn
+      end
+
+      def render(md)
         @template ||= make_template
-        Papercraft.html(@template, md: @md, **@atts)
+        Papercraft.html(@template, md: md, **@atts)
       end
 
       def make_template
