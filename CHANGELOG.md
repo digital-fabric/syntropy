@@ -1,3 +1,15 @@
+# 0.39.0 2026-06-21
+
+- Add support for embedded Papercraft snippets in Markdown files
+- Reimplement Markdown rendering
+- Increase cache-control max-age to one week
+- Add support for relative redirects, add `Request#rel`
+- Add support for concurrent loading, add mutex lock to module loader
+- Fix `Syntropy.load_config`
+- Read module source file using UringMachine
+- Raise on circular module dependency
+- Streamline CLI options across commands
+
 # 0.38.1 2026-06-13
 
 - Fix builtin app, controller extensions
