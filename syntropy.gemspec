@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.executables = ['syntropy']
 
   s.add_dependency 'extralite',     '~>2.14'
-  s.add_dependency 'papercraft',    '~>3.2.0'
+  s.add_dependency 'papercraft',    '~>3.2.2'
   s.add_dependency 'uringmachine',  '~>1.0.2'
 
   s.add_dependency 'json'
