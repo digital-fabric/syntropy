@@ -230,8 +230,8 @@ class MarkdownControllerTest < Minitest::Test
     md = <<~MD
       ```ruby
       # render: true
-      @env[:count] ||= 0
-      h3 (@env[:count] += 1)
+      @count ||= 0
+      h3 (@count += 1)
       ```
       bar
     MD
