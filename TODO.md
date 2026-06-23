@@ -1,16 +1,30 @@
 ## Immediate
 
 - [ ] Ability to load modules from builtin applet
-  - [ ] Can we mount them on the app's module loader?
 
-- [ ] Controllers
-  - [ ] add dispatch_json_rpc, dispatch_json_api
+  Why we need that? The use case is making use of a default pub/sub instance:
+
+  ```ruby
+  ```
+
+  
+
+- [ ] Can we mount them on the app's module loader?
+
+
 
 - [ ] Pub/sub
   - [ ] Ruby side
   - [ ] JS side
   - [ ] Reimplement `auto_refresh` using a *default* event bus provided by
         Syntropy
+
+- [ ] An alternative to the pub/sub design - add streaming responses to the
+  JSON/jS API (using SSE).
+
+  ```ruby
+  export ->(req)
+  ```
 
 ## Collections
 

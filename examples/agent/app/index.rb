@@ -15,5 +15,5 @@ export layout.apply {
     }
   }
   # script(src: '/assets/minigfm.js' )
-  script(src: '/assets/agent_new.js', type: 'module')
+  script(src: '/assets/agent.js', type: 'module')
 }

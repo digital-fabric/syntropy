@@ -44,7 +44,7 @@ template_path = File.join(__dir__, 'new/template')
 begin
   `mkdir -p "#{path}"`
   system("cp -rv#{opts[:yes] ? '' : 'i'} #{template_path}/* \"#{path}/\"")
-  puts "Your app is ready in #{path}"
+  puts "Your app is ready in #{full_path}"
 rescue => e
   p e
   p e.backtrace
