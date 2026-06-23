@@ -1,0 +1,25 @@
+* {
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+  line-height: 1.5em;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+  color: #222;
+}
+
+body {
+  max-width: 800px;
+  margin: 4em auto;
+
+  font-size: 1.5em;
+  font-family: sans-serif;
+}
+
+@media (max-width: 768px) {
+  body {
+    margin-inline: 1em;
+  }
+}

@@ -1,0 +1,5 @@
+- switch to JS modules, reorganize code
+- bring it over to the Reality code
+- Implement error response from tool (using try..catch)
+- Implement OpenRouter OAuth integration (can it work  on localhost?)
+-

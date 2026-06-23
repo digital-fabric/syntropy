@@ -1,0 +1,5 @@
+localhost {
+  reverse_proxy app_server:1234
+  tls internal
+  encode
+}

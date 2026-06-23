@@ -1,0 +1,108 @@
+{
+  "id": "gen-1782133158-2Ap6AR8TBbCGsoP4ACkh",
+  "object": "chat.completion",
+  "created": 1782133158,
+  "model": "google/gemma-4-26b-a4b-it-20260403",
+  "provider": "DeepInfra",
+  "system_fingerprint": null,
+  "service_tier": null,
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "native_finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "reasoning": null,
+        "tool_calls": [
+          {
+            "type": "function",
+            "index": 0,
+            "id": "chatcmpl-tool-a10b45dc6cb1da7c",
+            "function": {
+              "name": "get_unit_alarms",
+              "arguments": "{\"units\": []}"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 138,
+    "completion_tokens": 15,
+    "total_tokens": 153,
+    "cost": 0.00001476,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00001476,
+      "upstream_inference_prompt_cost": 0.00000966,
+      "upstream_inference_completions_cost": 0.0000051
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
+
+
+
+
+
+{
+  "id": "gen-1782148953-LA0Rlt0gpMPn8Zoe0tuz",
+  "object": "chat.completion",
+  "created": 1782148953,
+  "model": "google/gemma-4-26b-a4b-it-20260403",
+  "provider": "DeepInfra",
+  "system_fingerprint": null,
+  "service_tier": null,
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "The current alarms are:\n- **High pressure in region 1** (Path: `/a1`)\n- **Low temperature in region 2** (Path: `/a2`)",
+        "refusal": null,
+        "reasoning": null
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 197,
+    "completion_tokens": 44,
+    "total_tokens": 241,
+    "cost": 0.00002875,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00002875,
+      "upstream_inference_prompt_cost": 0.00001379,
+      "upstream_inference_completions_cost": 0.00001496
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
