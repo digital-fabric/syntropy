@@ -38,8 +38,8 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [any] module
-    def load_module(ref, raise_on_missing: true)
-      app.module_loader.load(ref, raise_on_missing:)
+    def load_module(ref, raise_on_missing_export: true)
+      app.module_loader.load(ref, raise_on_missing_export:)
     end
 
     # Makes an HTTP request to the test app.
@@ -145,7 +145,7 @@ module Syntropy
       )
       @test_harness = Syntropy::TestHarness.new(@app)
 
-      @db = load_module('/_lib/storage', raise_on_missing: false)
+      @db = load_module('/_lib/storage', raise_on_missing_export: false)
       @db&.migrate! if @db.respond_to?(:migrate!)
     end
 

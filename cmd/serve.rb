@@ -38,6 +38,11 @@ parser = OptionParser.new do |o|
     exit
   end
 
+  o.on('-i', '--irb', 'Start an IRB session while serving') do
+    env[:interactive] = true
+    env[:logger] = nil
+  end
+
   o.on('-m', '--mount PATH', 'Set mount path (default: /)') do |path|
     env[:mount_path] = path
     env[:builtin_applet_path] = File.join(path, '.syntropy')
@@ -99,4 +104,15 @@ Fiber.set_scheduler(UM::FiberScheduler.new(env[:machine]))
 require 'syntropy/dev_mode' if Syntropy.dev_mode
 
 app = Syntropy::App.load(env)
+if env[:interactive]
+  @app = app
+  @env = env
+  @machine = env[:machine]
+  @connection_pool = @app.connection_pool if @app.respond_to?(:connection_pool)
+  @schema = @app.schema if @app.respond_to?(:schema)
+  @module_loader = @app.module_loader
+
+  require 'irb'
+  Thread.new { IRB.start; exit! }
+end
 Syntropy.run(env) { app.call(it) }

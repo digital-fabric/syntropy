@@ -81,7 +81,7 @@ module Syntropy
         machine: UM.new(size: 8)
       )
       loader = ModuleLoader.new(loader_env)
-      if (config = loader.load(env[:mode], raise_on_missing: false))
+      if (config = loader.load(env[:mode], raise_on_missing_export: false))
         env[:config] = config
       end
     end

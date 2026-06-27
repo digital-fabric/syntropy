@@ -44,11 +44,11 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [any] export value
-    def load(ref, raise_on_missing: true)
+    def load(ref, raise_on_missing_export: true)
       lock do
         ref = "/#{ref}" if ref !~ /^\//
         if !(entry = @modules[ref])
-          entry = load_module(ref, raise_on_missing:)
+          entry = load_module(ref, raise_on_missing_export:)
           return if !entry
 
           @modules[ref] = entry
@@ -86,6 +86,8 @@ module Syntropy
     private
 
     # Synchronizes access to the module loader state
+    #
+    # @return [any] block return value
     def lock
       return yield if @lock_holder == Fiber.current
 
@@ -142,20 +144,25 @@ module Syntropy
     #
     # @param ref [String] module reference
     # @return [Hash] module entry
-    def load_module(ref, raise_on_missing: true)
+    def load_module(ref, raise_on_missing_export: true)
       ref = "/#{ref}" if ref !~ /^\//
       fn = File.expand_path(File.join(@app_root, "#{ref}.rb"))
       if !File.file?(fn)
-        raise Syntropy::Error, "File not found #{fn}" if raise_on_missing
+        raise Syntropy::Error, "File not found #{fn}" if raise_on_missing_export
 
         return
       end
 
       raise Syntropy::Error, "Circular dependency detected" if @loading.include?(ref)
-      do_load_module(ref, fn, raise_on_missing:)
+      do_load_module(ref, fn, raise_on_missing_export:)
     end
 
-    def do_load_module(ref, fn, raise_on_missing:)
+    # Loads a module.
+    #
+    # @param ref [String] module reference
+    # @param fn [String] module filename
+    # @param raise_on_missing_export [bool] whether to raise on missing export
+    def do_load_module(ref, fn, raise_on_missing_export:)
       @loading << ref
       @fn_map[fn] = ref
       code = read_file(fn)
@@ -163,7 +170,7 @@ module Syntropy
       mod = Syntropy::ModuleContext.new(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
-        mod.__export_value__, fn, raise_on_missing:
+        mod.__export_value__, fn, raise_on_missing_export:
       )
       @env[:logger]&.info(message: "Loaded module at #{fn}")
 
@@ -204,10 +211,10 @@ module Syntropy
     #
     # @param export_value [any] module's export value
     # @return [any] transformed value
-    def transform_module_export_value(export_value, fn, raise_on_missing:)
+    def transform_module_export_value(export_value, fn, raise_on_missing_export:)
       case export_value
       when nil
-        raise Syntropy::Error, "No export found in #{fn}" if raise_on_missing
+        raise Syntropy::Error, "No export found in #{fn}" if raise_on_missing_export
       when String
         ->(req) { req.respond(export_value) }
       else

@@ -483,7 +483,7 @@ module Syntropy
     #
     # @return [void]
     def start
-      @module_loader.load('_setup', raise_on_missing: false)
+      @module_loader.load('_setup', raise_on_missing_export: false)
 
       @machine.spin do
         # we do startup stuff asynchronously, in order to first let Syntropy do
