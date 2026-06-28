@@ -12,6 +12,7 @@ module Syntropy
       symbolize_names: true
     }.freeze
 
+    # Implements a Markdown file controller.
     class Controller
       def initialize(env, atts, md)
         @env = env
@@ -20,6 +21,9 @@ module Syntropy
         @module_loader = env[:module_loader]
       end
 
+      # Returns the controller proc.
+      #
+      # @return [Proc] controller proc
       def to_proc
         ->(req) {
           case req.method
@@ -37,6 +41,10 @@ module Syntropy
 
       private
 
+      # Process any Papercraft embeds in the markdown file by rendering them
+      # into the markdown code.
+      #
+      # @return [String] Markdown with rendered embeds
       def process_md_embeds
         return @md if @embedded_templates&.empty?
 
@@ -48,23 +56,40 @@ module Syntropy
         }
       end
 
-      def prepare_snippet_template(snippet, location = nil)
+      # Prepares a snippet template by writing it to a temporary file and
+      # instance_eval'ing the code, returning a Papercraft template.
+      #
+      # @param snippet [String] Papercraft snippet
+      # @param _location [String] currently not used
+      # @return [Proc] Papercraft template
+      def prepare_snippet_template(snippet, _location = nil)
         fn = "/tmp/snippet-#{SecureRandom.hex(8)}.rb"
         src = "->() do\n#{snippet}\nend"
         IO.write(fn, src)
         instance_eval src, fn
       end
 
+      # Renders the given markdown to HTML.
+      #
+      # @param md [String] markdown
+      # @return [String] HTML
       def render(md)
         @template ||= make_template
         Papercraft.html(@template, md: md, **@atts)
       end
 
+      # Makes a Markdown rendering template based on the corresponding layout.
+      #
+      # @return [Proc] Papercraft template
       def make_template
         layout = make_layout
         Papercraft.apply(layout) { |md:, **| markdown(md) }
       end
 
+      # Makes a layout template by loading the layout module. If no layout
+      # module was specified, returns the default layout.
+      #
+      # @return [Proc] Layout template
       def make_layout
         return default_layout if !@atts[:layout]
         raise Error, 'Missing module loader' if !@module_loader
@@ -72,6 +97,9 @@ module Syntropy
         @module_loader.load("_layout/#{@atts[:layout]}")
       end
 
+      # Creates a default layout template.
+      #
+      # @return [Proc] Default layout template
       def default_layout
         ->(**atts) {
           html5 {
@@ -101,26 +129,26 @@ module Syntropy
         parse_md(atts, md)
       end
 
+      # Parses the markdown content, returning the attributes and cleaned up
+      # markdown.
+      #
+      # @param atts [Hash] attributes hash
+      # @param md [String] markdown file
+      # @return [Array<atts, md>] Array containing attributes and clean markdown
       def parse_md(atts, md)
-        html = parse_content(atts, md)
-        [atts, html]
+        md = parse_content(atts, md)
+        [atts, md]
       end
 
+      # Creates a Markdown file contoroller for the given environment,
+      # attributes and markdown.
+      #
+      # @param env [Hash]  app environment
+      # @param atts [Hash] markdown file attributes
+      # @param md [String] markdown
+      # @return [Markdown::Controller] controller instance
       def make_controller(env, atts, md)
         Controller.new(env, atts, md).to_proc
-        # layout = setup_layout_template(env, atts)
-        
-        # ->(req) {
-        #   case req.method
-        #   when 'head'
-        #     req.respond_html(nil)
-        #   when 'get'
-        #     html = render_md(env, atts, md)
-        #     req.respond_html(html)
-        #   else
-        #     req.respond(nil, ':status' => HTTP::METHOD_NOT_ALLOWED)
-        #   end
-        # }
       end
 
       private
@@ -164,10 +192,6 @@ module Syntropy
         else
           path.gsub(/#{app_root}/, '').gsub(/\.md$/, '')
         end
-      end
-
-      def render_md(env, atts, md)
-        
       end
     end
   end

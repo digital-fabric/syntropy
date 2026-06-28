@@ -13,6 +13,14 @@ module Syntropy
     class ServerConnection
       attr_reader :fd, :response_headers, :logger
 
+      # Initializes a server connection.
+      #
+      # @param machine [UringMachine] machine instance
+      # @param fd [Integer] file descriptor
+      # @param env [Hash] app environment
+      # @param io_mode [Symbol] IO mode
+      # @param app [Proc, Syntropy::App] server app
+      # @return [void]
       def initialize(machine, fd, env, io_mode: :socket, &app)
         @machine = machine
         @fd = fd
@@ -26,6 +34,9 @@ module Syntropy
         @response_cookies = nil
       end
 
+      # Runs the connection.
+      #
+      # @return [void]
       def run
         loop do
           persist = serve_request
@@ -99,6 +110,10 @@ module Syntropy
         @logger&.error(message: "#{message}, closing connection", error: err)
       end
 
+      # Reads the request body.
+      #
+      # @param req [Syntropy::Request] request
+      # @return [String, nil] request body
       def get_body(req)
         headers = req.headers
         return nil if headers[':body-done-reading']
@@ -108,6 +123,10 @@ module Syntropy
         body
       end
 
+      # Reads a request body chunk.
+      #
+      # @param req [Syntropy::Request] request
+      # @return [String, nil] request body chunk
       def get_body_chunk(req)
         headers = req.headers
         return nil if headers[':body-done-reading']
@@ -117,6 +136,9 @@ module Syntropy
         chunk
       end
 
+      # Returns true if the request is done
+      #
+      # @return [bool] whether the request is complete
       def complete?(req)
         req.headers[':body-done-reading']
       end
@@ -135,6 +157,11 @@ module Syntropy
 
       DELETE_COOKIE = "; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Max-Age=0; HttpOnly"
 
+      # Adds a Set-Cookie header to the response headers.
+      #
+      # @param key [String] cookie name
+      # @param value [String] cookie value
+      # @return [void]
       def set_cookie(key, value)
         (@response_cookies ||= {})[key] = value || DELETE_COOKIE
       end
@@ -210,6 +237,13 @@ module Syntropy
         @done = true
       end
 
+      # Responds by rendering a static file.
+      #
+      # @param req [Syntropy::Request] request
+      # @param path [String] file path
+      # @param env [Hash] app environment
+      # @param cache_headers [Hash] cache headers
+      # @return [void]
       def respond_with_static_file(req, path, env, cache_headers)
         fd = @machine.open(path, UM::O_RDONLY)
         env ||= {}
@@ -240,6 +274,9 @@ module Syntropy
         end
       end
 
+      # Closes the connection.
+      #
+      # @return [void]
       def close
         return if @closed
 
@@ -248,6 +285,9 @@ module Syntropy
         @machine.close_async(@fd)
       end
 
+      # Yields the uhnderlying connection IO and fd to the given block.
+      #
+      # @return [void]
       def with_stream
         yield @io, @fd
       end
@@ -260,6 +300,9 @@ module Syntropy
       MAX_HEADER_LINE_LEN = 1 << 10 # 1KB
       MAX_CHUNK_SIZE_LEN = 16
 
+      # Returns true if the connection should be persisted.
+      #
+      # @param headers [Hash] request headers
       def persist_connection?(headers)
         connection = headers['connection']&.downcase
         return connection != 'close'
@@ -285,14 +328,23 @@ module Syntropy
         lines
       end
 
+      # Formats a response status line.
+      #
+      # @param body [String] response body
+      # @param status [Integer] HTTP status code
+      # @return [String] rendered status line
       def format_status_line(body, status)
         if !body
           empty_status_line(status)
         else
-          with_body_status_line(status, body)
+          with_body_status_line(body, status)
         end
       end
 
+      # Returns the status line for an empty response.
+      #
+      # @param status [Integer] HTTP status code
+      # @return [String] rendered status line
       def empty_status_line(status)
         if status == 204
           +"HTTP/1.1 #{status}\r\n"
@@ -301,10 +353,21 @@ module Syntropy
         end
       end
 
-      def with_body_status_line(status, body)
+      # Returns a status line for responses with body.
+      #
+      # @param body [String] response body
+      # @param status [Integer] HTTP status code
+      # @return [String] rendered status line
+      def with_body_status_line(body, status)
         +"HTTP/1.1 #{status}\r\nTransfer-Encoding: chunked\r\n"
       end
 
+      # Renders headers into a lines array.
+      #
+      # @param lines [Array<String>] array of header lines
+      # @param key [String] header name
+      # @param value [String, Array<String>] header value(s)
+      # @return [void]
       def collect_header_lines(lines, key, value)
         if value.is_a?(Array)
           value.inject(lines) { |_, item| lines << "#{key}: #{item}\r\n" }
@@ -313,6 +376,9 @@ module Syntropy
         end
       end
 
+      # Adds Set-Cookie headers to the response headers.
+      #
+      # @return [void]
       def add_set_cookie_headers
         @response_headers ||= {}
         sc = (@response_headers['Set-Cookie'] ||= [])

@@ -7,10 +7,16 @@ module Syntropy
   module HTTP
     # HTTP Client class.
     class Client
+      # Initializes an HTTP client.
       def initialize(machine)
         @machine = machine
       end
 
+      # Performs a GET request.
+      #
+      # @param url [String] URL
+      # @param headers [Hash] request headers
+      # @return [Array] array containing response headers and body
       def get(url, **headers, &)
         uri = URI.parse(url)
         headers = headers.merge(
@@ -22,7 +28,11 @@ module Syntropy
 
       private
 
-      # @param uri [URI]
+      # Performs an HTTP request, returning the response headers and body.
+      #
+      # @param uri [URI] request URI
+      # @param headers [Hash] request headers
+      # @return [Array] array containing response headers and body
       def req(uri, **headers)
         connection = make_connection(uri.scheme, uri.host, uri.port)
         response_headers = connection.req(**headers)
@@ -33,6 +43,12 @@ module Syntropy
         end
       end
 
+      # Creates an HTTP connection.
+      #
+      # @param _scheme [String] connection scheme
+      # @param host [String] host
+      # @param port [Integer] port
+      # @return [Syntropy::HTTP::ClientConnection]
       def make_connection(_scheme, host, port)
         ip = (host =~ /^\d+\.\d+\.\d+\.\d+$/) ? host : @machine.resolve(host)[0]
 

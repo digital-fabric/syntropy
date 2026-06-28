@@ -11,6 +11,10 @@ module Syntropy
   module ResponseMethods
     WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
+    # Upgrades a request to  the WebSocket protocol.
+    #
+    # @param custom_headers [Hash, nil] additional response headers
+    # @return [void]
     def upgrade_to_websocket(custom_headers = nil)
       key = "#{headers['sec-websocket-key']}#{WEBSOCKET_GUID}"
       upgrade_headers = {
@@ -22,21 +26,42 @@ module Syntropy
       adapter.websocket_connection(self)
     end
 
+    # Responds with a redirect to the given URL. If a relative path is provided
+    # as the URL, the absolute URL path will be calculated relative to the
+    # current request's path.
+    #
+    # @param url [String] redirect URL
+    # @param status [Integer] HTTP status code
+    # @return [void]
     def redirect(url, status = HTTP::FOUND)
       url = File.expand_path(File.join(path, url)) if url =~ /^\./
       respond(nil, ':status' => status, 'Location' => url)
     end
 
+    # Redirects to the same URL, except with HTTPS.
+    #
+    # @param status [Integer] HTTP status code
+    # @return [void]
     def redirect_to_https(status = HTTP::MOVED_PERMANENTLY)
       secure_uri = "https://#{host}#{uri}"
       redirect(secure_uri, status)
     end
 
+    # Redirect to the same path and query, on a different host.
+    #
+    # @param new_host [String] new host name
+    # @param status [Integer] HTTP status code
+    # @return [void]
     def redirect_to_host(new_host, status = HTTP::FOUND)
       secure_uri = "//#{new_host}#{uri}"
       redirect(secure_uri, status)
     end
 
+    # Serves a static file as a response, with cache headers.
+    #
+    # @param path [String] file path
+    # @param opts [Hash] options
+    # @return [void]
     def serve_file(path, opts = {})
       full_path = file_full_path(path, opts)
       stat = File.stat(full_path)
@@ -59,6 +84,12 @@ module Syntropy
       respond(nil, ':status' => HTTP::NOT_FOUND)
     end
 
+    # Validates a static file cache against the request cache headers. Returns
+    # true if cache headers are valid.
+    #
+    # @param etag [String] ETag
+    # @param last_modified [String] last-modified value
+    # @return [bool] are cache headers valid
     def validate_static_file_cache(etag, last_modified)
       if (none_match = headers['if-none-match'])
         return true if none_match == etag
@@ -70,6 +101,11 @@ module Syntropy
       false
     end
 
+    # Returns a fully qualified file path based on the given options.
+    #
+    # @param path [String] file path
+    # @param opts [Hash] options hash
+    # @return [String] qualified file path
     def file_full_path(path, opts)
       if (base_path = opts[:base_path])
         File.join(opts[:base_path], path)
@@ -78,10 +114,13 @@ module Syntropy
       end
     end
 
-    def serve_io(io, opts)
-      respond(io.read, opts[:headers] || {})
-    end
-
+    # Renders a static file response.
+    #
+    # @param path [String] file path
+    # @param etag [String] ETag
+    # @param last_modified [String] last-modified value
+    # @param opts [Hash] options
+    # @return [void]
     def respond_with_static_file(path, etag, last_modified, opts)
       cache_headers = (etag || last_modified) ? {
         'etag' => etag,
@@ -91,14 +130,29 @@ module Syntropy
       adapter.respond_with_static_file(self, path, opts, cache_headers)
     end
 
+    # Set additional response headers.
+    #
+    # @param headers [Hash] response headers
+    # @return [void]
     def set_response_headers(headers)
       adapter.set_response_headers(headers)
     end
 
-    def set_cookie(k, v)
-      adapter.set_cookie(k, v)
+    # Sets a response cookie.
+    #
+    # @param key [String] cookie name
+    # @param value [String] cookie value
+    # @return [void]
+    def set_cookie(key, value)
+      adapter.set_cookie(key, value)
     end
 
+    # Upgrades the connection to the given protocol, yielding the connection to
+    # the given block.
+    #
+    # @param protocol [String] upgraded protocol
+    # @param custom_headers [Hash, nil] additional response headers
+    # @return [void]
     def upgrade(protocol, custom_headers = nil, &block)
       upgrade_headers = {
         ':status' => HTTP::SWITCHING_PROTOCOLS,
@@ -169,6 +223,11 @@ module Syntropy
       end
     end
 
+    # Renders an HTML repsonse with HTML content type.
+    #
+    # @param html [String] HTML response body
+    # @param headers [Hash] additional response headers
+    # @return [void]
     def respond_html(html, **headers)
       respond(
         html,
@@ -177,6 +236,11 @@ module Syntropy
       )
     end
 
+    # Renders a JSON repsonse with JSON content type.
+    #
+    # @param obj [any] obj to render into JSON
+    # @param headers [Hash] additional response headers
+    # @return [void]
     def respond_json(obj, **headers)
       respond(
         JSON.dump(obj),
@@ -185,6 +249,11 @@ module Syntropy
       )
     end
 
+    # Renders a nicely-formatted JSON repsonse with JSON content type.
+    #
+    # @param obj [any] obj to render into JSON
+    # @param headers [Hash] additional response headers
+    # @return [void]
     def json_pretty_response(obj, **headers)
       respond(
         JSON.pretty_generate(obj),

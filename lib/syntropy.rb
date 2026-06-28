@@ -72,6 +72,12 @@ module Syntropy
       end
     end
 
+    # Loads the app config module based on the environment's config root and
+    # mode: (test, dev, production). The module's exported value is assigned to
+    # env[:config].
+    #
+    # @param env [Hash] app environment
+    # @return [void]
     def load_config(env)
       return if !env[:config_root]
 

@@ -187,6 +187,10 @@ module Syntropy
       @loading.delete(ref)
     end
 
+    # Returns a file's content.
+    #
+    # @param fn [String] filename
+    # @return [String] file content
     def read_file(fn)
       @machine.open(fn, UM::O_RDONLY) { |fd|
         buf = +''
@@ -222,6 +226,8 @@ module Syntropy
       end
     end
 
+    # Handles a syntax error encountered while loading a module by generating a
+    # new exception with a backtrace including the syntax error location.
     def handle_syntax_error(fn, e)
       $stderr.puts("\n#{e.message}") if !Syntropy.test_mode
       m = e.message.match(/^(.+): syntax/)

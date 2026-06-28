@@ -4,41 +4,28 @@ require 'syntropy/http/server_connection'
 
 module Syntropy
   module HTTP
+    # HTTP::Server implements an HTTP server.
     class Server
       PENDING_REQUESTS_GRACE_PERIOD = 0.1
       PENDING_REQUESTS_TIMEOUT_PERIOD = 5
 
-      def self.syntropy_app(_machine, env)
-        if env[:app_location]
-          env[:logger]&.info(message: 'Loading web app', location: env[:app_location])
-          require env[:app_location]
-
-          env.merge!(Syntropy.config)
-        end
-        env[:app]
-      end
-
-      def self.static_app(env); end
-
+      # Initializes a server instance.
+      #
+      # @param machine [UringMachine] machine instance
+      # @param env [Hash] app environment
+      # @param app [Proc, Syntropy::App] app instance
+      # @return [void]
       def initialize(machine, env, &app)
         @machine = machine
         @env = env
-        @app = app || app_from_env
+        @app = app
         @server_fds = []
         @accept_fibers = []
       end
 
-      def app_from_env
-        case @env[:app_type]
-        when nil, :syntropy
-          Server.syntropy_app(@machine, @env)
-        when :static
-          Server.static_app(@env)
-        else
-          raise "Invalid app type #{@env[:app_type].inspect}"
-        end
-      end
-
+      # Runs the server.
+      #
+      # @return [void]
       def run
         setup
         @machine.await(@accept_fibers)
@@ -46,12 +33,18 @@ module Syntropy
         graceful_shutdown
       end
 
+      # Stops the server with graceful shutdown.
+      #
+      # @return [void]
       def stop!
         graceful_shutdown
       end
 
       private
 
+      # Sets up the server.
+      #
+      # @return [void]
       def setup
         bind_info = get_bind_entries
         bind_info.each do |(host, port)|
@@ -67,6 +60,9 @@ module Syntropy
         @connection_fibers = Set.new
       end
 
+      # Returns bind entries from the app environment.
+      #
+      # @return [Array<Array>] array containing host/port tuples
       def get_bind_entries
         bind = @env[:bind]
         case bind
@@ -80,11 +76,20 @@ module Syntropy
         end
       end
 
+      # Parses a bind string into a host/port tuple.
+      #
+      # @param bind_string [String] bind string
+      # @return [Array<String, Integer>] array containing host and port
       def bind_info(bind_string)
         parts = bind_string.split(':')
         [parts[0], parts[1].to_i]
       end
 
+      # Sets up a TCP socket listening on the given host and port.
+      #
+      # @param host [String] host
+      # @param port [Integer] port
+      # @return [Integer] socket fd
       def setup_server_socket(host, port)
         fd = @machine.socket(UM::AF_INET, UM::SOCK_STREAM, 0, 0)
         @machine.setsockopt(fd, UM::SOL_SOCKET, UM::SO_REUSEADDR, true)
@@ -94,6 +99,10 @@ module Syntropy
         fd
       end
 
+      # Setup server extensions. This is used for adding additional headers to
+      # the response, namely the Server the Date headers.
+      #
+      # @return [void]
       def setup_server_extensions
         extensions = @env[:server_extensions]
         return if !extensions
@@ -109,6 +118,10 @@ module Syntropy
         end
       end
 
+      # Updates server headers.
+      #
+      # @param server_name [String] server name
+      # @return [void]
       def update_server_headers(server_name)
         @env[:server_date] = Time.now
         if server_name
@@ -118,12 +131,20 @@ module Syntropy
         end
       end
 
+      # Accepts incoming connections, spinning up a fiber for connection.
+      #
+      # @param listen_fd [Integer] listening socket fd
+      # @return [void]
       def accept_incoming(listen_fd)
         @machine.accept_each(listen_fd) { start_connection(it) }
       rescue UM::Terminate
         @machine.shutdown(listen_fd, UM::SHUT_RD)
       end
 
+      # Starts handling a connection on a separate fiber.
+      #
+      # @param fd [Integer] socket fd
+      # @return [void]
       def start_connection(fd)
         conn = ServerConnection.new(@machine, fd, @env, &@app)
         f = @machine.spin(conn) do
@@ -134,17 +155,27 @@ module Syntropy
         @connection_fibers << f
       end
 
+      # Closes all listening socket fd's.
+      #
+      # @return [void]
       def close_all_server_fds
         @server_fds.each { @machine.close_async(it) }
       end
 
       STOP = UM::Terminate.new
 
+      # Stops all fibers listening for incoming connections.
+      #
+      # @return [void]
       def stop_accept_fibers
         @accept_fibers.each { @machine.schedule(it, STOP) if !it.done? }
         @machine.await(@accept_fibers)
       end
 
+      # Performs a graceful shutdown by stopping listening, then waiting for
+      # connection fibers to stop with a timeout of 5 seconds.
+      #
+      # @return [void]
       def graceful_shutdown
         @env[:logger]&.info(message: 'Shutting down gracefully...')
 

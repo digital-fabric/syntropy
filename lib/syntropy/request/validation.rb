@@ -18,6 +18,12 @@ module Syntropy
       raise Syntropy::Error.method_not_allowed
     end
 
+    # Validates the request's content-type against the given accepted content
+    # types. If the content type does not match the given accepted list, raises
+    # an error.
+    #
+    # @param accepted [Array<String>] array of accepted content types
+    # @return [String] accepted content type
     def validate_content_type(*accepted)
       ct = content_type
       return ct if accepted.include?(ct)

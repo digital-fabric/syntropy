@@ -4,6 +4,7 @@ require 'syntropy/errors'
 
 module Syntropy
   module HTTP
+    # HTTP protocol extensions for UringMachine::IO
     module ProtocolMethods
       RE_REQUEST_LINE = /^(get|head|options|trace|put|delete|post|patch|connect)\s+([^\s]+)\s+HTTP\/([019\.]{1,3})/i
       RE_RESPONSE_LINE = /^HTTP\/1\.1\s+(\d{3})(\s+.+)?$/i
@@ -14,7 +15,9 @@ module Syntropy
       MAX_HEADER_LINE_LEN = 1 << 13 # 8KB
       MAX_CHUNK_SIZE_LEN = 16
 
-      # @return [Hash] headers
+      # Reads HTTP request headers.
+      #
+      # @return [Hash] request headers
       def http_read_request_headers
         line = read_line(MAX_REQUEST_LINE_LEN)
         return nil if !line
@@ -43,6 +46,9 @@ module Syntropy
         headers
       end
 
+      # Reads HTTP response headers.
+      #
+      # @return [Hash] response headers
       def http_read_response_headers
         line = read_line(MAX_RESPONSE_LINE_LEN)
         return nil if !line
@@ -73,6 +79,10 @@ module Syntropy
         headers
       end
 
+      # Reads an HTTP request/response body.
+      #
+      # @param headers [Hash] request/response headers
+      # @return [String] body
       def http_read_body(headers)
         content_length = headers['content-length']
         if content_length
@@ -95,6 +105,10 @@ module Syntropy
         nil
       end
 
+      # Skips an HTTP reuqest/response body.
+      #
+      # @param headers [Hash] request/response headers
+      # @return [void]
       def http_skip_body(headers)
         content_length = headers['content-length']
         if content_length
@@ -109,10 +123,12 @@ module Syntropy
           while http_skip_cte_chunk
           end
         end
-
-        nil
       end
 
+      # Reads an HTTP body chunk. If no chunks remain to be read, returns nil.
+      #
+      # @param headers [Hash] request/response headers
+      # @return [String, nil] body chunk
       def http_read_body_chunk(headers)
         content_length = headers['content-length']
         if content_length
@@ -129,6 +145,10 @@ module Syntropy
         nil
       end
 
+      # Writes HTTP request headers.
+      #
+      # @param headers [Hash] request headers
+      # @return [void]
       def http_write_request_headers(headers)
         method = headers[':method'] || (raise BadRequestError)
         path = headers[':path'] || (raise BadRequestError)
@@ -149,6 +169,11 @@ module Syntropy
 
       private
 
+      # Read a chunk (in chunked transfer encoding) into the given buffer. If no
+      # buffer is given, returns the chunk, otherwise returns the buffer.
+      #
+      # @param buffer [String, nil] buffer
+      # @return [String] buffer or chunk
       def http_read_cte_chunk(buffer)
         chunk_size_str = read_line(MAX_CHUNK_SIZE_LEN)
         return nil if !chunk_size_str
@@ -165,6 +190,9 @@ module Syntropy
         buffer ? (buffer << chunk) : chunk
       end
 
+      # Skips a chunk (in chunked transfer encoding).
+      #
+      # @return [void]
       def http_skip_cte_chunk
         chunk_size_str = read_line(MAX_CHUNK_SIZE_LEN)
         return if !chunk_size_str
@@ -172,7 +200,7 @@ module Syntropy
         chunk_size = chunk_size_str.to_i(16)
         if chunk_size == 0
           read_line(0)
-          return nil
+          return
         end
 
         chunk = skip(chunk_size)

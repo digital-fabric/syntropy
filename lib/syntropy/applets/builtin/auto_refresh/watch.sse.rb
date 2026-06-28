@@ -9,11 +9,15 @@
 # residing by default at `/.syntropy/auto_refresh/watch.js`.
 
 # Returns a hash holding references to queues for ongoing `watch.sse` requests.
+#
+# @return [Hash] hash of watchers
 def watchers
   @watchers ||= {}
 end
 
 # Signals a file change by pushing to all watcher queues.
+#
+# @return [void]
 def signal!
   watchers.each_key { @machine.push(it, true) }
 end
@@ -21,6 +25,9 @@ end
 # Handles incoming requests to the `watch.sse` route. Adds a queue to the list
 # of watchers, and waits for the queue to be signalled. In the absence of file
 # change, a timeout occurs after one minute, and the request is terminated.
+#
+# @param req [Syntropy::Request] request
+# @return [void]
 def call(req)
   queue = UM::Queue.new
   watchers[queue] = true
