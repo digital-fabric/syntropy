@@ -44,6 +44,10 @@ module Syntropy
         end
       rescue UM::Terminate
         # server is terminated, do nothing
+      rescue SystemCallError
+        @logger&.error(
+          message:  'IO Error, closing...'
+        )
       rescue StandardError => e
         @logger&.error(
           message:  'Uncaught error while running connection',

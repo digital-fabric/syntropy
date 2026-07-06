@@ -102,6 +102,7 @@ module Syntropy
     # @param req [Syntropy::Request] HTTP request
     # @return [void]
     def call(req)
+      # before = GC.stat(:total_allocated_objects)
       path = req.path
       route = @router_proc.(path, req.route_params)
       if !route
@@ -126,6 +127,9 @@ module Syntropy
       end
       error_handler = get_error_handler(route)
       error_handler.(req, e)
+    # ensure
+    #   after = GC.stat(:total_allocated_objects)
+    #   @logger&.debug(message: "Allocated: #{after - before}")
     end
 
     # Returns the route entry for the given path. If compute_proc is true,
