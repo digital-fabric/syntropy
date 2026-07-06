@@ -17,6 +17,14 @@ module Syntropy
       @opts = opts
     end
 
+    # Logs an DEBUG entry.
+    #
+    # @param o [Hash] log entry
+    # @return [void]
+    def debug(o)
+      call(:DEBUG, o)
+    end
+
     # Logs an INFO entry.
     #
     # @param o [Hash] log entry
