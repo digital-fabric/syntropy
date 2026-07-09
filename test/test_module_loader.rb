@@ -16,8 +16,11 @@ class ModuleLoaderTest < Minitest::Test
     assert_equal 42, mod.bar
 
     assert_raises(Syntropy::Error) { @loader.load('_lib/missing-module') }
-    assert_raises(Syntropy::Error) { @loader.load('_lib/missing-export') }
 
+    mod = @loader.load('_lib/missing-export')
+    assert_kind_of Syntropy::ModuleContext, mod
+    assert_equal :bar, mod.call    
+    
     mod = @loader.load('_lib/callable')
     assert_kind_of Syntropy::ModuleContext, mod
     assert_equal 'barbarbar', mod.call(3)

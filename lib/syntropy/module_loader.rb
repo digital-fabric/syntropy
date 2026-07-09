@@ -170,7 +170,7 @@ module Syntropy
       mod = Syntropy::ModuleContext.new(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
       export_value = transform_module_export_value(
-        mod.__export_value__, fn, raise_on_missing_export:
+        mod, fn, raise_on_missing_export:
       )
       @env[:logger]&.info(message: "Loaded module at #{fn}")
 
@@ -210,19 +210,19 @@ module Syntropy
       (clean == '') ? '/' : clean
     end
 
-    # Transforms the given export value. If the value is nil, an exception is
-    # raised.
+    # Transforms the given module's export value. If the value is nil, an
+    # exception is raised.
     #
-    # @param export_value [any] module's export value
+    # @param mod [Syntropy::ModuleContext] module context
     # @return [any] transformed value
-    def transform_module_export_value(export_value, fn, raise_on_missing_export:)
-      case export_value
+    def transform_module_export_value(mod, fn, raise_on_missing_export:)
+      case (value = mod.__export_value__)
       when nil
-        raise Syntropy::Error, "No export found in #{fn}" if raise_on_missing_export
+        mod
       when String
-        ->(req) { req.respond(export_value) }
+        ->(req) { req.respond(value) }
       else
-        export_value
+        value
       end
     end
 

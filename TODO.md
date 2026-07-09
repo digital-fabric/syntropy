@@ -1,13 +1,41 @@
 ## Immediate
 
-- [ ] If a module doesn't have an explicit export, it exports itself
-  - [ ] No error for a module without an export
+- [ ] Nicer logging in development mode:
+
+```
+sharon@nf1:~/tmp/capatest2$ npx serve dist
+
+   ┌───────────────────────────────────────────┐
+   │                                           │
+   │   Serving!                                │
+   │                                           │
+   │   - Local:    http://localhost:3000       │
+   │   - Network:  http://192.168.0.106:3000   │
+   │                                           │
+   │   Copied local address to clipboard!      │
+   │                                           │
+   └───────────────────────────────────────────┘
+
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 42 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-edfizW3i.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-PVjztr5e.css
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 12 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-Sh0ICmPV-D227nRX-.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-C4t5ymfq-4gquBJ2r.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 6 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-D6Ynv7Xh-CRAF8up3.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 4 ms
+^C
+ INFO  Gracefully shutting down. Please wait...
+```
 
 - [ ] Ability to load modules from builtin applet
+  - [ ] Can we mount them on the app's module loader?
 
   Why we need that? The use case is making use of a default pub/sub instance  
-
-- [ ] Can we mount them on the app's module loader?
 
 - [ ] Pub/sub
   - [ ] Ruby side
@@ -18,151 +46,7 @@
 - [ ] An alternative to the pub/sub design - add streaming responses to the
   JSON/jS API (using SSE).
 
-  ```ruby
-  export ->(req)
-  ```
 
-## Model layer based on prepared queries
-
-Usage:
-
-```ruby
-# application code:
-post_id = Posts.insert(title:, content:)
-Posts.add_tags(post_id:, tags: %w{foo bar})
-
-# /_lib/models/posts.rb
-class Posts < Syntropy::Store
-  queries[:create] = 
-    args(:title, :content)
-    .validate(:title, String, /.{3,}/, message: "Post title must be at least 3 characters long")
-    .validate(:content, String, /.+/, message: "Post content must not be empty")
-    .query_single_value <<~SQL
-      insert into posts (title, content)
-      values (:title, :content)
-      returning id
-    SQL
-
-  # Or, if we had something a bit more sophisticated:
-  queries[:create] = ->(title:, content:) {
-    validate(title, String, /.{3,}/, message: "Post title must be at least 3 characters long")
-    validate(:content, String, /.+/, message: "Post content must not be empty")
-    query_single_value(<<~SQL)
-      insert into posts (title, content)
-      values (:title, :content)
-      returning id
-    SQL
-  }
-
-  # This is *compiled* into:
-  query[:create] = ->(title: content:) {
-    validate(title, String, /.{3,}/, message: "Post title must be at least 3 characters long")
-    validate(:content, String, /.+/, message: "Post content must not be empty")
-    @__create__ ||= prepare_splat <<~SQL
-      insert into posts (title, content)
-      values (:title, :content)
-      returning id
-    SQL
-    run_query_single_row(@__create__, title:, content:)
-    # with_db { it[@__create__].bind(title:, content:).next }
-  }
-
-
-  # Now something with a transform
-  queries[:all_posts_with_tags] = ->() {
-    t = transform {
-      id: integer.identity, title: text, content: text, tags: [{
-        id: integer.identity, name: text
-      }]
-    }
-    query(t, <<~SQL)
-      select posts.id, posts.title, posts.content, tags.id, tags.name
-      from posts
-      left join posts_tags on posts.id = posts_tags.post_id
-      left join tags on tags.id = posts_tags.tag_id
-    SQL
-  }
-
-  # Compiled into:
-  queries[:all_posts_with_tags] = ->() {
-    @__all_posts_with_tags_t__ ||= transform {
-      id: integer.identity, title: text, content: text, tags: [{
-        id: integer.identity, name: text
-      }]
-    }
-    @__all_posts_with_tags__ ||= prepare @__all_posts_with_tags_t__, <<~SQL
-      select posts.id, posts.title, posts.content, tags.id, tags.name
-      from posts
-      left join posts_tags on posts.id = posts_tags.post_id
-      left join tags on tags.id = posts_tags.tag_id
-    SQL
-    run_query(@__all_posts_with_tags__)
-    # with_db { it[@__create__].bind(title:, content:).to_a }
-  }
-
-  # Eventually, we might have some DSL for expressing SQL:
-  queries[:all_posts_with_tags] = ->() {
-    t = transform {
-      id: integer.identity, title: text, content: text, tags: [{
-        id: integer.identity, name: text
-      }]
-    }
-    query(t) {
-      select posts.id, posts.title, posts.content, tags.id, tags.name
-      from posts
-      left_join posts_tags, on: posts.id == posts_tags.post_id
-      left_join tags,       on: tags.id == posts_tags.tag_id
-    }
-  }
-
-  queries[:create] = ->(title:, content:) {
-    validate(title, String, /.{3,}/, message: "Post title must be at least 3 characters long")
-    validate(:content, String, /.+/, message: "Post content must not be empty")
-    query_single_value {
-      insert_into posts(title, content)
-      values :title, :content
-      returning id
-    }
-  }
-end
-```
-
-But maybe we don't need all that magic. How about just normal methods:
-
-```ruby
-# _lib/models/posts.rb
-Storage = import '/_lib/storage'
-CONN_POOL = Storage.connection_pool
-
-# @return [Integer] post id
-def create(title:, content:)
-  validate_post_data(title:, content:)
-  @__create__ ||= Storage.prepare_splat <<~SQL
-    insert into posts (title, content)
-    values (:title, :content)
-    returning id
-  SQL
-  @__create__.get_single_row(CONN_POOL, title:, content:)
-end
-
-POSTS_TAGS_TRANSFORM = Extralite::Transform.new {
-  {
-    id: integer.identity, title: text, content: text, tags: [{
-      id: integer.identity, name: text
-    }]
-  }
-}
-
-def all_with_tags
-  @__all_posts_with_tags__ ||= Storage.prepare @__all_posts_with_tags_t__, <<~SQL
-    select posts.id, posts.title, posts.content, tags.id, tags.name
-    from posts
-    left join posts_tags on posts.id = posts_tags.post_id
-    left join tags on tags.id = posts_tags.tag_id
-  SQL
-  run_query(@__all_posts_with_tags__)
-
-```
 
 ## Collections
 
