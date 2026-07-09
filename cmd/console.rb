@@ -72,8 +72,6 @@ env[:logger] = env[:logger] && Syntropy::Logger.new(env[:machine], **env)
 @app = Syntropy::App.load(env)
 @env = env
 @machine = env[:machine]
-@connection_pool = @app.connection_pool if @app.respond_to?(:connection_pool)
-@schema = @app.schema if @app.respond_to?(:schema)
 @module_loader = @app.module_loader
 
 require 'uringmachine/fiber_scheduler'
