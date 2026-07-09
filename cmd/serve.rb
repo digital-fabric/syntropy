@@ -107,7 +107,7 @@ if env[:mode] == 'development'
     @env = env
     @machine = env[:machine]
     @module_loader = @app.module_loader
-    
+
     loop do
       puts "Enter command: (c + Enter to open console, q + Enter to quit)"
       command = $stdin.gets.chomp

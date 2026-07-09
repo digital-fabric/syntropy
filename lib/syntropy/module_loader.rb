@@ -262,7 +262,7 @@ module Syntropy
     # @param env [Hash] environment hash
     # @param code [String] module source code
     # @param fn [String] module filename
-    # @param extensions [Array<Module>, Module] 
+    # @param extensions [Array<Module>, Module]
     # @return [void]
     def initialize(env, code, fn, extensions)
       @env = env

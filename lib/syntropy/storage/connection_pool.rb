@@ -48,7 +48,7 @@ module Syntropy
       # the query.
       #
       # @param sql [String] SQL query
-      # @return [Array<Hash>] result rows 
+      # @return [Array<Hash>] result rows
       def query(sql, *, **, &)
         with_db { it.query(sql, *, **, &) }
       end

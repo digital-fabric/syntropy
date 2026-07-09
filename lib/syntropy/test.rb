@@ -19,7 +19,7 @@ module Syntropy
       def global_env
         @@global_env
       end
-    
+
       # Gets/sets app environment for tests
       attr_accessor :env
     end

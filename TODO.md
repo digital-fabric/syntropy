@@ -2,6 +2,8 @@
 
 - [ ] Nicer logging in development mode:
 
+Nice terminal formatting with colors:
+
 ```
 sharon@nf1:~/tmp/capatest2$ npx serve dist
 
@@ -88,21 +90,18 @@ sharon@nf1:~/tmp/capatest2$ npx serve dist
 - [ ] Website
 - [v] Frontend part of JSON API
 - [v] Auto-refresh page when file changes
-- [ ] SQLite database capabilities
-  - [ ] Stores
-    - [ ] KV store (with TTL)
 - [v] Examples
   - [v] Reactive app - counter or some other simple app showing interaction with
     server
-  - [ ] blog
+  - [v] blog
 
 ## Testing facilities
 
 - What do we need to test?
-  - Routes
-  - Route responses
-  - Changes to state / DB
-  - Rendered HTML - presence of certain markup / elements / text
+  - [v] Routes
+  - [v] Route responses
+  - [v] Changes to state / DB
+  - [ ] Rendered HTML - presence of certain markup / elements / text
 
 ## Support for applets
 
@@ -138,138 +137,7 @@ class Syntropy::Admin < Syntropy::App
 end
 ```
 
-## Response: cookies and headers
-
-We need a way to inject cookies into the response. This probably should be done
-in the TP2 code:
-
-```ruby
-@@default_set_cookie_attr = 'HttpOnly'
-def self.default_set_cookie_attr=(v)
-  @@default_set_cookie_attr = v
-end
-
-def set_cookie(key, value, attr = @@default_set_cookie_attr)
-  @buffered_headers ||= +''
-  @buffered_headers << format(
-    "Set-Cookie: %<key>s=%<value>s; %<attr>s\n",
-    key:, value:, attr:
-  )
-end
-
-def set_headers(headers)
-  @buffered_headers ||= +''
-  @buffered_headers << format_headers(headers)
-end
-
-...
-
-req.set_cookie('at', 'foobar', 'SameSite=none; Secure; HttpOnly')
-```
-
-## Middleware
-
-Some standard middleware:
-
-- request rewriter
-- logger
-- auth
-- selector + terminator
-
-```Ruby
-# For the chainable DSL shown below, we need to create a custom class:
-class Syntropy::Middleware::Selector
-  def initialize(select_proc, terminator_proc = nil)
-    @select_proc = select_proc
-    @terminator_proc = terminator_proc
-  end
-
-  def to_proc
-    ->(req, proc) {
-      @select_proc.(req) ? @terminator_proc.(req) : proc(req)
-    }
-  end
-
-  def terminate(&proc)
-    @terminator_proc = proc
-  end
-end
-```
-
-```Ruby
-# a _site.rb file can be used to wrap a whole app
-# site/_site.rb
-
-# this means we route according to the host header, with each
-export Syntropy.route_by_host
-
-# we can also rewrite requests:
-rewriter = Syntropy
-  .select { it.host =~ /^tolkora\.(org|com)$/ }
-  .terminate { it.redirect_permanent('https://tolkora.net') }
-
-# This is actuall a pretty interesting DSL design:
-# a chain of operations that compose functions. So, we can select a
-export rewriter.wrap(default_app)
-
-# composing
-export rewriter.wrap(Syntropy.some_custom_app.wrap(app))
-
-# or maybe
-export rewriter << some_other_middleware << app
-```
-
-## CLI tool for setting up a site repo:
-
-```bash
-# clone a newly created repo
-~/repo$ git clone https://github.com/foo/bar
-...
-~/repo$ syntropy setup bar
-
-(syntropy banner)
-
-Setting up Syntropy project in /home/sharon/repo/bar:
-
-bar/
-  bin/
-    start
-    stop
-    restart
-    console
-    server
-  docker-compose.yml
-  Dockerfile
-  Gemfile
-  proxy/
-  README.md
-  site/
-    _layout/
-      default.rb
-    _lib/
-    about.md
-    articles/
-      long-form.md
-    assets/
-      js/
-      css/
-        style.css
-      img/
-        syntropy.png
-    index.rb
-```
-
-Some of the files might need templating, but we can maybe do without, or at
-least make it as generic as possible.
-
-`syntropy setup` steps:
-
-1. Verify existence of target directory
-2. Copy files from Syntropy template to target directory
-3. Do chmod +x for bin/*
-4. Do bundle install in the target directory
-5. Show some information with regard to how to get started working with the
-   repo
+## Some more CLI commands
 
 `syntropy provision` steps:
 

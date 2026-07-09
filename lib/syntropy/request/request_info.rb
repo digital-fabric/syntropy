@@ -234,7 +234,7 @@ module Syntropy
     # @return [String]
     def rel(rel_path)
       File.expand_path(File.join(path, rel_path))
-    end 
+    end
 
     private
 

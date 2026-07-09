@@ -26,7 +26,7 @@ module Syntropy
       end
 
       BUILTIN_APPLET_app_root = File.expand_path(File.join(__dir__, 'applets/builtin'))
-  
+
       # Creates a builtin applet with the given environment hash. By default the
       # builtin applet is mounted at /.syntropy.
       #

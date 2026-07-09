@@ -60,7 +60,7 @@ class MarkdownControllerTest < Minitest::Test
     @controller = nil
     @test_harness = Syntropy::TestHarness.new(->(req) { @controller.(req) })
   end
-  
+
   def test_markdown_renderer_no_layout
     md = <<~MD
       foo *bar*
