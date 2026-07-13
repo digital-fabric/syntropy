@@ -48,8 +48,6 @@ sharon@nf1:~/tmp/capatest2$ npx serve dist
 - [ ] An alternative to the pub/sub design - add streaming responses to the
   JSON/jS API (using SSE).
 
-
-
 ## Collections
 
 - [ ] Collection - treat directories and files as collections of data.

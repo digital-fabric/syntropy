@@ -15,7 +15,7 @@ export function buildExchangeBody(prompt) {
 }
 
 export async function query(ctx) {
-  const api_key = "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";
+  const api_key = window.OPEN_ROUTER_API_KEY;
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
     {
