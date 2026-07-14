@@ -28,4 +28,28 @@ module Syntropy
   end
 
   Extralite::Database.include(DatabaseExtensions)
+
+  class Storage
+    attr_reader :connection_pool, :schema
+    
+    def initialize(machine, module_loader, config)
+      @machine = machine
+      @module_loader = module_loader
+      @config = config
+
+      raise Syntropy::Error, 'Missing storage config' if !config
+      raise Syntropy::Error, 'Missing storage config' if !config[:path]
+
+      @connection_pool ||= ConnectionPool.new(
+        @machine,
+        config[:path],
+        config[:concurrency] || 4
+      )
+
+      @schema = Schema.new(
+        module_loader: @module_loader,
+        schema_root: @config[:schema_root] || '_schema'
+      )
+    end
+  end
 end
