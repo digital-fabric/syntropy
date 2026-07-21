@@ -86,7 +86,7 @@ module Syntropy
         logger: nil,
         machine: UM.new(size: 8)
       )
-      loader = ModuleLoader.new(loader_env)
+      loader = ModuleLoader.new(loader_env, extensions: ControllerExtensions)
       if (config = loader.load(env[:mode], raise_on_missing_export: false))
         env[:config] = config
       end

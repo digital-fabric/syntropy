@@ -9,7 +9,7 @@ class KVStoreTest < Minitest::Test
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
     FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
   end
 
   def teardown
@@ -18,7 +18,7 @@ class KVStoreTest < Minitest::Test
 
   def test_connection_pool_prepare
     pq = Syntropy::Storage.prepare('select ? as a, 42 as b')
-    assert_kind_of Syntropy::Storage::PreparedQuery, pq
+    assert_kind_of Syntropy::PreparedQuery, pq
     assert_equal 'select ? as a, 42 as b', pq.sql
     assert_equal :prepare, pq.mode
 
@@ -28,7 +28,7 @@ class KVStoreTest < Minitest::Test
 
   def test_connection_pool_prepare_splat
     pq = Syntropy::Storage.prepare_splat('select ?')
-    assert_kind_of Syntropy::Storage::PreparedQuery, pq
+    assert_kind_of Syntropy::PreparedQuery, pq
     assert_equal 'select ?', pq.sql
     assert_equal :prepare_splat, pq.mode
 
@@ -37,7 +37,7 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_kv_store_apply_schema
-    assert_respond_to Syntropy::Storage::KVStore, :apply_schema
+    assert_respond_to Syntropy::KVStore, :apply_schema
 
     assert_raises(Extralite::SQLError) { @cp.query('select * from kv') }
     Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')

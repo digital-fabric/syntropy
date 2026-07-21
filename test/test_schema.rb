@@ -7,7 +7,7 @@ class SchemaTest < Minitest::Test
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
     FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
   end
 
   def teardown
@@ -15,7 +15,7 @@ class SchemaTest < Minitest::Test
   end
 
   def test_db_schema_initial
-    schema = Syntropy::Storage::Schema.new do
+    schema = Syntropy::Schema.new do
       initial do |db|
         db.execute <<~SQL
           create table posts (
@@ -35,7 +35,7 @@ class SchemaTest < Minitest::Test
   end
 
   def test_db_schema_version_blocks
-    schema = Syntropy::Storage::Schema.new do
+    schema = Syntropy::Schema.new do
       initial do |db|
         db.execute <<~SQL
           create table posts (
@@ -80,7 +80,7 @@ class SchemaTest < Minitest::Test
       machine:  @machine,
       app_root: File.join(__dir__, 'fixtures/schema')
     })
-    schema = Syntropy::Storage::Schema.new(module_loader:, schema_root: '/')
+    schema = Syntropy::Schema.new(module_loader:, schema_root: '/')
 
     assert_nil schema.current_version(@cp)
     schema.apply(@cp)

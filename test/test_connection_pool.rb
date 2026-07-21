@@ -6,7 +6,7 @@ class ConnectionPoolTest < Minitest::Test
   def setup
     @machine = UM.new
     @fn = "/tmp/#{rand(100000)}.db"
-    @cp = Syntropy::Storage::ConnectionPool.new(@machine, @fn, 4)
+    @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
 
     FileUtils.rm(@fn) rescue nil
     @standalone_db = Extralite::Database.new(@fn)
