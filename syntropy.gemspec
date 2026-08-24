@@ -21,9 +21,9 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 3.4'
   s.executables = ['syntropy']
 
-  s.add_dependency 'extralite',     '~>2.14'
+  s.add_dependency 'extralite',     '~>3.0.1'
   s.add_dependency 'papercraft',    '~>3.2.2'
-  s.add_dependency 'uringmachine',  '~>1.0.2'
+  s.add_dependency 'uringmachine',  '~>1.0.4'
 
   s.add_dependency 'json'
   s.add_dependency 'base64'
@@ -31,6 +31,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'irb'
   s.add_dependency 'minitest'
 
-  s.add_development_dependency 'rake',      '~>13.3.1'
+  s.add_development_dependency 'rake'
   s.add_development_dependency 'solargraph'
 end
