@@ -1,3 +1,7 @@
+# 0.40.0 2026-08-24
+
+- Update UringMachine
+
 # 0.39.0 2026-06-21
 
 - Add support for embedded Papercraft snippets in Markdown files
