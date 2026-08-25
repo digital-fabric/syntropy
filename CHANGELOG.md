@@ -1,3 +1,7 @@
+# 0.41.0 2026-08-25
+
+- Don't log ECONNRESET errors
+
 # 0.40.0 2026-08-24
 
 - Update UringMachine
