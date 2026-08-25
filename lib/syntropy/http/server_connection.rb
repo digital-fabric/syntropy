@@ -91,9 +91,10 @@ module Syntropy
       # @return [void]
       def handle_error(request, err)
         case err
+        when Errno::ECONNRESET
+          # ignore
         when SystemCallError
-          log_error(err, 'I/O error')
-          false
+          log_error(err, 'Syscall error')
         when ProtocolError
           log_error(err, err.message)
           respond(request, err.message, ':status' => err.http_status)
