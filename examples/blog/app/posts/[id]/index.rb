@@ -23,7 +23,7 @@ def post(req)
   raise BadRequestError, "Failed to update post" if updated != 1
 
   req.flash[:notice] = 'Post was successfully updated.'
-  req.redirect "/posts/#{id}", Syntropy::HTTP::SEE_OTHER
+  req.redirect "/posts/#{id}", HTTP::SEE_OTHER
 end
 
 def delete(req)
@@ -33,7 +33,7 @@ def delete(req)
   raise BadRequestError, 'Failed to delete post' if deleted != 1
 
   req.flash[:notice] = 'Post was successfully destroyed.'
-  req.redirect '..', Syntropy::HTTP::SEE_OTHER
+  req.redirect '..', HTTP::SEE_OTHER
 end
 
 @template = @layout.apply { |post:, req:, **props|

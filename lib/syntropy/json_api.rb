@@ -25,11 +25,6 @@ module Syntropy
         ':status'       => status,
         'Content-Type'  => 'application/json'
       )
-    rescue => e
-      puts '*' * 40
-      p e
-      p e.backtrace.join
-      puts
     end
 
     private
@@ -39,20 +34,16 @@ module Syntropy
     # @param req [Syntropy::Request]
     def __invoke__(req)
       q = req.validate_param(:q, String).to_sym
-      response = case req.method
+      case req.method
       when 'get'
-        __invoke_get__(q, req)
+        response = __invoke_get__(q, req)
       when 'post'
-        __invoke_post__(q, req)
+        response = __invoke_post__(q, req)
       else
         raise Syntropy::Error.method_not_allowed
       end
       [{ status: 'OK', response: response }, HTTP::OK]
     rescue StandardError => e
-      if !e.is_a?(Syntropy::Error)
-        p e
-        p e.backtrace
-      end
       __error_response__(e)
     end
 

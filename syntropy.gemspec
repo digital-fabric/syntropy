@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 3.4'
   s.executables = ['syntropy']
 
-  s.add_dependency 'extralite',     '~>3.0.1'
+  s.add_dependency 'extralite',     '~>3.1.0'
   s.add_dependency 'papercraft',    '~>3.2.2'
   s.add_dependency 'uringmachine',  '~>1.0.4'
 

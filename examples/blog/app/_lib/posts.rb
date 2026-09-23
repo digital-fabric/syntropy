@@ -1,9 +1,13 @@
 Storage = import '/_lib/storage'
 
-class PostStore < Syntropy::Storage::Store
+class PostStore
+  def initialize(cp)
+    @cp = cp
+  end
+  
   # @return [Integer] post id
   def create(title, body)
-    query_single_value <<~SQL, title:, body:
+    @cp.query_single_value <<~SQL, title:, body:
       insert into posts (title, body)
       values (:title, :body)
       returning id;
@@ -12,7 +16,7 @@ class PostStore < Syntropy::Storage::Store
 
   # @return [void]
   def update(id, title, body)
-    execute <<~SQL, id:, title:, body:
+    @cp.execute <<~SQL, id:, title:, body:
       update posts
       set title = :title, body = :body
       where id = :id
@@ -21,7 +25,7 @@ class PostStore < Syntropy::Storage::Store
 
   # @return [void]
   def delete(id)
-    execute <<~SQL, id:
+    @cp.execute <<~SQL, id:
       delete from posts
       where id = :id
     SQL
@@ -29,7 +33,7 @@ class PostStore < Syntropy::Storage::Store
 
   # return [Hash]
   def get(id)
-    query_single_row <<~SQL, id:
+    @cp.query_single_row <<~SQL, id:
       select id, title, body
       from posts
       where id = :id
@@ -38,7 +42,7 @@ class PostStore < Syntropy::Storage::Store
 
   # return [Array<Hash>]
   def get_all
-    query <<~SQL
+    @cp.query <<~SQL
       select id, title, body
       from posts
       order by id desc

@@ -1,5 +1,5 @@
 export({
   storage: {
-    path: ENV['DATABASE_PATH'] || Syntropy.tmp_path('test-db')
+    path: ENV['DATABASE_PATH'] || tmp_path('test-db')
   }
 })
