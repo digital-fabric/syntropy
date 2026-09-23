@@ -46,19 +46,33 @@ module Syntropy
     # Performs the given query by acquiring a database connection and running
     # the query.
     #
-    # @param sql [String] SQL query
     # @return [Array<Hash>] result rows
-    def query(sql, *, **, &)
-      with_db { it.query(sql, *, **, &) }
+    def query(*, **, &)
+      with_db { it.query(*, **, &) }
+    end
+
+    # Performs the given query by acquiring a database connection and running
+    # the query.
+    #
+    # @return [<Hash>, nil] result row
+    def query_single_row(*, **)
+      with_db { it.query_single(*, **) }
+    end
+
+    # Performs the given query by acquiring a database connection and running
+    # the query.
+    #
+    # @return [any] result value
+    def query_single_value(*, **)
+      with_db { it.query_single_splat(*, **) }
     end
 
     # Executes the given query by acquiring a database connection and running
     # the query.
     #
-    # @param sql [String] SQL query
     # @return [Integer] number of changed rows
-    def execute(sql, *, **)
-      with_db { it.execute(sql, *, **) }
+    def execute(*, **)
+      with_db { it.execute(*, **) }
     end
 
     # Closes the connection pool by removing all connections.
