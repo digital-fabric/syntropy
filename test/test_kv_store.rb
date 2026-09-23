@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
-require 'syntropy/storage/kv_store'
 
 class KVStoreTest < Minitest::Test
   def setup
-    skip
     @machine = UM.new
-    @fn = "/tmp/#{rand(100000)}.db"
+    @fn = "/tmp/#{SecureRandom.hex(8)}.db"
     FileUtils.rm(@fn) rescue nil
     @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
   end
@@ -16,37 +14,14 @@ class KVStoreTest < Minitest::Test
     @cp&.close
   end
 
-  def test_connection_pool_prepare
-    pq = Syntropy::Storage.prepare('select ? as a, 42 as b')
-    assert_kind_of Syntropy::PreparedQuery, pq
-    assert_equal 'select ? as a, 42 as b', pq.sql
-    assert_equal :prepare, pq.mode
-
-    assert_kind_of Extralite::Query, @cp.with_db { it[pq] }
-    assert_equal [{ a: 'foo', b: 42 }], @cp.with_db { it[pq].bind('foo').to_a }
-  end
-
-  def test_connection_pool_prepare_splat
-    pq = Syntropy::Storage.prepare_splat('select ?')
-    assert_kind_of Syntropy::PreparedQuery, pq
-    assert_equal 'select ?', pq.sql
-    assert_equal :prepare_splat, pq.mode
-
-    assert_kind_of Extralite::Query, @cp.with_db { it[pq] }
-    assert_equal ['foo'], @cp.with_db { it[pq].bind('foo').to_a }
-  end
-
   def test_kv_store_apply_schema
-    assert_respond_to Syntropy::KVStore, :apply_schema
-
     assert_raises(Extralite::SQLError) { @cp.query('select * from kv') }
-    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
+    Syntropy::KVStore.new(@cp, 'kv')
     assert_equal [], @cp.query('select * from kv')
   end
 
   def test_kv_store_get_set
-    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
-    kv_store = Syntropy::Storage::KVStore.new(@cp, 'kv')
+    kv_store = Syntropy::KVStore.new(@cp, 'kv')
 
     @cp.with_db do |db|
       assert_nil kv_store.get(db, 'foo')
@@ -64,8 +39,7 @@ class KVStoreTest < Minitest::Test
   end
 
   def test_kv_store_setex_sweep
-    Syntropy::Storage::KVStore.apply_schema(@cp, 'kv')
-    kv_store = Syntropy::Storage::KVStore.new(@cp, 'kv')
+    kv_store = Syntropy::KVStore.new(@cp, 'kv')
 
     @cp.with_db do |db|
       kv_store.set(db, 'foo', '123')

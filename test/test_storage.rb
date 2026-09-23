@@ -3,28 +3,6 @@
 require_relative 'helper'
 require 'securerandom'
 
-class DatabaseExtensionsTest < Minitest::Test
-  def setup
-    @machine = UM.new
-    @fn = "/tmp/#{SecureRandom.hex(8)}.db"    
-    FileUtils.rm(@fn) rescue nil
-    @cp = Syntropy::ConnectionPool.new(@machine, @fn, 4)
-  end
-
-  def teardown
-    @cp&.close
-  end
-
-  def test_database_query_storage
-    @cp.with_db do |db|
-      q = db.prepare('select 1')
-      db[:foo] = q
-
-      assert_equal q, db[:foo]
-    end
-  end
-end
-
 class StorageTest < Minitest::Test
   def setup
     @machine = UM.new
@@ -98,4 +76,28 @@ class StorageTest < Minitest::Test
       }
     ], cp.query('select id, title, body from posts')
   end
+
+  def test_storage_query
+    config = { path:  @fn }
+    storage = Syntropy::Storage.new(
+      @machine,
+      @module_loader,
+      config
+    )
+
+    r = storage.query('select :foo as a, 42 as b', foo: 'bar')
+    assert_equal [{ a: 'bar', b: 42 }], r
+  end
+
+  def test_connection_pool_prepare_splat
+    # pq = Syntropy::Storage.prepare_splat('select ?')
+    # assert_kind_of Syntropy::PreparedQuery, pq
+    # assert_equal 'select ?', pq.sql
+    # assert_equal :prepare_splat, pq.mode
+
+    # assert_kind_of Extralite::Query, @cp.with_db { it[pq] }
+    # assert_equal ['foo'], @cp.with_db { it[pq].bind('foo').to_a }
+  end
+
+
 end

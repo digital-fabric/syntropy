@@ -7,7 +7,7 @@ module Syntropy
       @module_loader = module_loader
       @schema_root = schema_root
       load_schema_from_modules if @module_loader
-      run_schema_block(&) if block_given?
+      run_schema_dsl(&) if block_given?
     end
 
     def apply(connection_pool)
@@ -29,11 +29,16 @@ module Syntropy
       end
     end
 
-    class SchemaBlockRunner
-      def initialize(migrations, &)
+    class SchemaDSLRunner
+      def initialize(migrations)
         @migrations = migrations
+      end
+
+      def run(&)
         instance_eval(&)
       end
+
+      private
 
       def initial(&block)
         @migrations['0000'] = block
@@ -44,8 +49,8 @@ module Syntropy
       end
     end
 
-    def run_schema_block(&)
-      SchemaBlockRunner.new(@migrations, &)
+    def run_schema_dsl(&)
+      SchemaDSLRunner.new(@migrations).run(&)
     end
 
     def execute_migrations(connection_pool)
