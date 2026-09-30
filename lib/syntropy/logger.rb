@@ -80,49 +80,40 @@ module Syntropy
     # @param o [Hash] raw entry
     # @return [Hash] log entry
     def make_entry(level, o)
-      if o[:request]
-        make_request_entry(level, o)
-      elsif o[:error]
-        make_error_entry(level, o)
-      else
-        make_hash_entry(level, o)
-      end
-    end
-
-    # Makes an error log entry.
-    #
-    # @param level [Symbol] log level
-    # @param o [Hash] input entry
-    # @return [Hash] output entry
-    def make_error_entry(level, o)
-      err = o[:error]
       t = Time.now
-      {
-        level:  level.to_s,
-        ts:     t.to_i,
-        ts_s:   t.iso8601
-      }.merge(o).merge(
-        error: "#{err.class}: #{err.message}",
-        backtrace: err.backtrace
-      )
-    end
-
-    # Makes a request log entry.
-    #
-    # @param level [Symbol] log level
-    # @param o [Hash] input entry
-    # @return [Hash] output entry
-    def make_request_entry(level, o)
-      request = o[:request]
-      request_headers = request.headers
-      response_headers = o[:response_headers]
-      elapsed = monotonic_clock - request.start_stamp
-      t = Time.now
-      {
+      entry = o.merge(
         level:        level.to_s,
         ts:           t.to_i,
         ts_s:         t.iso8601,
-        message:      o[:message] || 'HTTP request done',
+        message:      o[:message]
+      )
+
+      entry.merge!(error_info(error)) if (error = o.delete(:error))
+      entry.merge!(request_info(request)) if (request = o.delete(:request))
+
+      entry
+    end
+
+    # Extracts error info from given error object
+    #
+    # @param error [Exception] exception
+    # @return [Hash] error info
+    def error_info(error)
+      {
+        error: "#{error.class}: #{error.message}",
+        backtrace: error.backtrace
+      }
+    end
+
+    # Extracts request info from given request object
+    #
+    # @param request [Syntropy::Request] request
+    # @return [Hash] request info
+    def request_info(request)
+      request_headers = request.headers
+      response_headers = request.response_headers
+      elapsed = monotonic_clock - request.start_stamp
+      {
         client_ip:    request.forwarded_for || '?',
         http_method:  request_headers[':method'].upcase,
         user_agent:   request_headers['user-agent'],
@@ -130,20 +121,6 @@ module Syntropy
         status:       response_headers[':status'] || '200',
         elapsed:      elapsed
       }
-    end
-
-    # Makes a request log entry.
-    #
-    # @param level [Symbol] log level
-    # @param o [Hash] input entry
-    # @return [Hash] output entry
-    def make_hash_entry(level, hash)
-      t = Time.now
-      {
-        level:  level.to_s,
-        ts:     t.to_i,
-        ts_s:   t.iso8601
-      }.merge(hash)
     end
 
     # Returns the monotonic clock.
