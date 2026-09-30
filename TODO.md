@@ -320,3 +320,161 @@ end
   2.5. If docker compose services are running, restart
   2.6. Otherwise, start services
   2.7. Verify service is running correctly
+
+## Syntropy Flow - Live Templates
+
+The idea is to have something that works like LiveView, but without WebSocket.
+Instead, we'll use SSE in conjunction with a controller URL that provides both
+updates (through SSE), and receives user interaction from the browser with POST
+requests.
+
+The compiler needs to be able to compile:
+
+- The HTML
+- The initial update tree (statics + dynamics)
+- Updated dynamic values
+
+Supposing that the HTML and the initial update tree are rendered at once. Let's
+say we have the following template:
+
+```ruby
+->(name:) {
+  html {
+    head { title "My live page" }
+    body {
+      p "Hello, #{name}!"
+    }
+  }
+}
+```
+
+Which normally compiles to:
+
+```ruby
+->(__buffer__, name:) {
+  __buffer__
+    .<<("<!DOCTYPE html><html><head><title>My live page</title></head><body><p>")
+    .<<(ERB::Escape.html_escape(("Hello, #{name}!")))
+    .<<("</p></body></html>")
+  __buffer__
+}
+```
+
+A live template would look something like:
+
+```ruby
+# __flow_url__ is the URL used for the SSE connection, it includes an id for the
+# specific connection.
+initial = ->(__flow_url__, name:) {
+  __html__ = +''
+  __static__ = []; __dynamic__ = {}; __dynamic_counter__ = 0;
+  
+  __html__
+    .<<(
+      s = "<!DOCTYPE html><html><head><title>My live page</title></head><body><p>"
+      __static__ << s
+      s
+    )
+    .<<(
+      s = ERB::Escape.html_escape(("Hello, #{name}!"))
+      __dynamic__[__dynamic_counter__] = s
+      __dynamic_counter__ += 1
+      s
+    )
+    .<<(
+      s = "</p></body><script src=\"#{__flow_url__}\"></script></html>"
+      __static__ << s
+      s
+    )
+  {
+    html: __html__,
+    update_tree = {
+      s: __static__,
+      d: __dynamic__
+    }
+  }
+}
+```
+
+The controller would look something like:
+
+```ruby
+@template = import '/views/hello_world'
+
+export flow_controller do
+  def setup
+    assigns[:name] = 'world'
+    assigns[:counter] ||= 1
+    @updater = @machine.spin {
+      @machine.periodically(3) {
+        assigns[:name] = "world (#{assignes[:counter] += 1})"
+      }
+    }
+  end
+
+  def teardown
+    @machine.cancel(@updater)
+  end
+end
+```
+
+The flow_controller can handle four kinds of requests:
+
+- `GET /hello` - This is the initial render, where it will:
+  - generate a unique flow id which will be embedded in a flow url (see below)
+  - render `initial` compiled template, and store the update tree in a short
+    term hash (which is evacuated periodically for failed connections)
+  - respond with the HTML
+- `GET /hello?flow=setup` - The JS payload to start the SSE connection
+  - boilerplate code for setting up the SSE connection
+  - include inline the initial update tree containing static and dynamic parts
+- `GET /hello?sse&fid=xxxx` - the SSE long-running connection, on which
+  updates are sent. The flow id identifies the flow session, which permits
+  reconnection in case of comm error. On connection, the controller will emit an
+  initial update with the update tree (see below).
+
+- `POST /hello?fid=xxxx` - for responding to user interaction.
+
+Whenever a value in `assigns` changes, the *update* template is rerendered.
+Here's how the compiled update template looks:
+
+```ruby
+initial = ->(name:) {
+  __dynamic__ = {}; __dynamic_counter__ = 0;
+  
+  s = ERB::Escape.html_escape(("Hello, #{name}!"))
+  __dynamic__[__dynamic_counter__] = s
+  __dynamic_counter__ += 1
+
+  __dynamic__
+}
+```
+
+So, the initial update for this template will look something like the following:
+
+```json
+{
+  s: [
+    "<!DOCTYPE html><html><head><title>My live page</title></head><body><p>",
+    "</p></body><script src=\"/hello?sse&fid=12345678\"></script></html>"
+  ],
+  d: {
+    0: "world"
+  }
+}
+```
+
+Subsequent updates will look like:
+
+```json
+{
+  d: {
+    0: "world (10:27:32)"
+  }
+}
+```
+
+On the client side, each time an update is received on the SSE connection, it
+includes the dynamic values. Those are diffed against the previous values, the
+entire page HTML is zipped from the static and dynamic parts, and then morphdom
+is used to patch the DOM with the relevant changes.
