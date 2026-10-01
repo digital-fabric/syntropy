@@ -1,10 +1,85 @@
-## Immediate
-
-- Logging of errors - when normal (non-internal errors), the log record should include request info
-
 ## Logging
 
+- Make it possible to use different logger implementations, or maybe chain
+  multiple logger implementations, such that we could emit for example both to
+  STDOUT and to a database.
 - Add optional SQLite-log store (+optional log viewing in Admin interface)
+
+## Nicer logging in development mode:
+
+Nice terminal formatting with colors:
+
+```
+sharon@nf1:~/tmp/capatest2$ npx serve dist
+
+   ┌───────────────────────────────────────────┐
+   │                                           │
+   │   Serving!                                │
+   │                                           │
+   │   - Local:    http://localhost:3000       │
+   │   - Network:  http://192.168.0.106:3000   │
+   │                                           │
+   │   Copied local address to clipboard!      │
+   │                                           │
+   └───────────────────────────────────────────┘
+
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 42 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-edfizW3i.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-PVjztr5e.css
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 12 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-Sh0ICmPV-D227nRX-.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-C4t5ymfq-4gquBJ2r.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 6 ms
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-D6Ynv7Xh-CRAF8up3.js
+ HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 4 ms
+^C
+ INFO  Gracefully shutting down. Please wait...
+```
+
+```
+sharon@nf1 ~/ $ be syntropy serve
+
+   ooo
+  ooooo
+   ooo vvv       Syntropy - a web framework for Ruby
+    o vvvvv      --------------------------------------
+    |  vvv o    https://github.com/digital-fabric/syntropy
+   :|:::|::|:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+2026-06-07 08:04:23 <== GET /
+2026-06-07 08:04:23 ==> 200 (42ms)
+2026-06-07 08:04:23 <== GET /assets/index-edfizW3i.js
+2026-06-07 08:04:23 <== GET /assets/index-PVjztr5e.css
+2026-06-07 08:04:23 ==> 200 (3ms)
+2026-06-07 08:04:23 ==> 200 (12ms)
+
+```
+
+Verbose output (`-v`):
+
+```
+2026-06-07 08:04:23 <== GET /
+  Host: localhost:3000
+  User-Agent: ...
+  Cookie: ...
+  Accept: ...
+2026-06-07 08:04:23 ==> 200 (42ms)
+  Server: syntropy
+  Transfer-Encoding: chunked
+  ...
+2026-06-07 08:04:23 <== GET /assets/index-edfizW3i.js
+  ...
+2026-06-07 08:04:23 <== GET /assets/index-PVjztr5e.css
+  ...
+2026-06-07 08:04:23 ==> 200 (3ms)
+  ...
+2026-06-07 08:04:23 ==> 200 (12ms)
+  ...
+```
 
 ## Background jobs
 
@@ -83,81 +158,6 @@
   )
   ```
 
-## Nicer logging in development mode:
-
-Nice terminal formatting with colors:
-
-```
-sharon@nf1:~/tmp/capatest2$ npx serve dist
-
-   ┌───────────────────────────────────────────┐
-   │                                           │
-   │   Serving!                                │
-   │                                           │
-   │   - Local:    http://localhost:3000       │
-   │   - Network:  http://192.168.0.106:3000   │
-   │                                           │
-   │   Copied local address to clipboard!      │
-   │                                           │
-   └───────────────────────────────────────────┘
-
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 42 ms
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-edfizW3i.js
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/index-PVjztr5e.css
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 12 ms
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-Sh0ICmPV-D227nRX-.js
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 3 ms
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-C4t5ymfq-4gquBJ2r.js
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 6 ms
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 GET /assets/p-D6Ynv7Xh-CRAF8up3.js
- HTTP  7/6/2026 8:04:23 PM 127.0.0.1 Returned 200 in 4 ms
-^C
- INFO  Gracefully shutting down. Please wait...
-```
-
-```
-sharon@nf1 ~/ $ be syntropy serve
-
-   ooo
-  ooooo
-   ooo vvv       Syntropy - a web framework for Ruby
-    o vvvvv      --------------------------------------
-    |  vvv o    https://github.com/digital-fabric/syntropy
-   :|:::|::|:
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-2026-06-07 08:04:23 <== GET /
-2026-06-07 08:04:23 ==> 200 (42ms)
-2026-06-07 08:04:23 <== GET /assets/index-edfizW3i.js
-2026-06-07 08:04:23 <== GET /assets/index-PVjztr5e.css
-2026-06-07 08:04:23 ==> 200 (3ms)
-2026-06-07 08:04:23 ==> 200 (12ms)
-
-```
-
-Verbose output (`-v`):
-
-```
-2026-06-07 08:04:23 <== GET /
-  Host: localhost:3000
-  User-Agent: ...
-  Cookie: ...
-  Accept: ...
-2026-06-07 08:04:23 ==> 200 (42ms)
-  Server: syntropy
-  Transfer-Encoding: chunked
-  ...
-2026-06-07 08:04:23 <== GET /assets/index-edfizW3i.js
-  ...
-2026-06-07 08:04:23 <== GET /assets/index-PVjztr5e.css
-  ...
-2026-06-07 08:04:23 ==> 200 (3ms)
-  ...
-2026-06-07 08:04:23 ==> 200 (12ms)
-  ...
-```
 
 # Pub/sub
 

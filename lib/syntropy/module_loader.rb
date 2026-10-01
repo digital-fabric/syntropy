@@ -165,7 +165,7 @@ module Syntropy
     def do_load_module(ref, fn, raise_on_missing_export:)
       @loading << ref
       @fn_map[fn] = ref
-      code = read_file(fn)
+      code = @machine.file_read(fn)
       env = @env.merge(module_loader: self, ref: clean_ref(ref))
       mod = Syntropy::ModuleContext.new(env, code, fn, @extensions)
       add_dependencies(ref, mod.__dependencies__)
@@ -185,18 +185,6 @@ module Syntropy
       e.is_a?(SyntaxError) ? handle_syntax_error(fn, e) : (raise e)
     ensure
       @loading.delete(ref)
-    end
-
-    # Returns a file's content.
-    #
-    # @param fn [String] filename
-    # @return [String] file content
-    def read_file(fn)
-      @machine.open(fn, UM::O_RDONLY) { |fd|
-        buf = +''
-        res = @machine.read(fd, buf, 1 << 20)
-        buf
-      }
     end
 
     # Cleans up a module reference specifier, turning /index into /

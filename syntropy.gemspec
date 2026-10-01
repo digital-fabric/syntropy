@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'extralite',     '~>3.1.0'
   s.add_dependency 'papercraft',    '~>3.2.2'
-  s.add_dependency 'uringmachine',  '~>1.0.4'
+  s.add_dependency 'uringmachine',  '~>1.0.6'
 
   s.add_dependency 'json'
   s.add_dependency 'base64'
