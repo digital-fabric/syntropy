@@ -137,7 +137,7 @@ module Syntropy
       # @return [Array<atts, md>] Array containing attributes and clean markdown
       def parse_md(atts, md)
         md = parse_content(atts, md)
-        [atts, md]
+        [atts, md.chomp]
       end
 
       # Creates a Markdown file contoroller for the given environment,

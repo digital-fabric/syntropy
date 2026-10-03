@@ -1,3 +1,92 @@
+## Extralite doc site
+
+- Similar to Papercraft site
+- Replace `collection_module!` with something more flexible, just add watching
+  for directories:
+
+  ```ruby
+  # proposed API:
+  invalidate_on_file_change('_pages/**/*')
+
+  # implementation
+  def invalidate_on_file_change(pattern)
+    @module_loader.invalidate_on_file_change(pattern, @ref)
+  end
+
+  class ModuleLoader
+    def invalidate_on_file_change(pattern, mod_ref)
+      @invalidation_patterns ||= Hash.new { |h, k| h[k] = [] }
+      @invalidation_patterns[pattern] << mod_ref
+    end
+
+    def invalidate(ref)
+      ...
+      invalidated_refs = Set.new
+      @invalidation_patterns.each { |pat, ref|
+        invalidated_refs << ref if File.fnmatch(pat, ref)
+      }
+      invalidated_refs.each { invalidate(ref) }
+    end
+  end
+  ```
+
+- Implement collection with code from papercraft.noteflakes.com
+- Further take ideas from discussion below
+- Implement auto light/dark CSS theme
+- Write docs
+
+## Collections - some new thoughts
+
+What's the desired API?
+
+```ruby
+@articles = collection(
+  root: '/_articles',
+  url_base: @ref
+)
+
+export ->(req) {
+  article = @articles.find(req.path)
+  raise Syntropy::Error.not_found
+
+  respond_html(@template.render(article))
+}
+
+## show list of articles:
+->(req) {
+  list = @articles.list('*')
+  respond_html(@template.render(list))
+}
+```
+
+How are collection items represented?
+
+```ruby
+item = {
+  fn:, rel_path:, url:, type:, ...
+}
+
+# where type is one of
+types = [ :markdown, :json]
+
+# a markdown item
+item = {
+  fn:, rel_path:, url:, type:, attributes:, body:
+}
+
+# a JSON item
+item = {
+  fn:, rel_path:, url:, type:, value:
+}
+```
+
+
+  # there should also be methods for creating, updating and deleting of
+  # articles/items.
+  
+```
+
+
 ## Logging
 
 - Make it possible to use different logger implementations, or maybe chain
@@ -235,7 +324,10 @@ four files, this is not something trivial.
   API:
 
   ```ruby
-  Articles = @app.collection('_articles/*.md')
+  Articles = @app.collection(
+    location: '_articles/*.md',
+    url_base: @ref
+  )
   article = Articles.last_by(&:date)
 
   article.title #=>
@@ -248,6 +340,7 @@ four files, this is not something trivial.
   # articles/items.
   ...
   ```
+
 
 ## Missing for a first public release
 

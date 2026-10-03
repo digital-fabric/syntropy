@@ -17,6 +17,7 @@ require 'syntropy/papercraft_extensions'
 require 'syntropy/routing_tree'
 require 'syntropy/json_api'
 require 'syntropy/side_run'
+require 'syntropy/collection'
 require 'syntropy/version'
 
 # Syntropy is a web framework for building web apps in Ruby. Syntropy uses
