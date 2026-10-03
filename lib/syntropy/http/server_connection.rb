@@ -219,16 +219,16 @@ module Syntropy
       # @param done [boolean] whether the response is completed
       # @return [void]
       def send_chunk(request, chunk, done: false)
-        data = +''
-        data << "#{chunk.bytesize.to_s(16)}\r\n#{chunk}\r\n" if chunk
-        data << EMPTY_CHUNK if done
-        return if data.empty?
+        return if @done
 
-        @machine.send(@fd, data, data.bytesize, SEND_FLAGS)
-        return if @done || !done
-
-        @logger&.info(request: request, response_headers: @response_headers)
-        @done = true
+        len = chunk.is_a?(IO::Buffer) ? chunk.size : chunk.bytesize
+        if !done
+          @io.write(len.to_s(16),"\r\n", chunk, "\r\n")
+        else
+          @io.write(len.to_s(16),"\r\n", chunk, "\r\n0\r\n\r\n")
+          @logger&.info(request: request, response_headers: @response_headers)
+          @done = true
+        end
       end
 
       # Finishes the response to the current request. If no headers were sent,
@@ -258,25 +258,12 @@ module Syntropy
           env[:headers] = cache_headers
         end
 
-        maxlen = env[:max_len] || 65_536
-        buf = String.new(capacity: maxlen)
-        headers_sent = nil
-        loop do
-          res = @machine.read(fd, buf, maxlen, 0)
-          if res < maxlen && !headers_sent
-            return respond(req, buf, env[:headers])
-          elsif res == 0
-            return finish(req)
-          end
-
-          if !headers_sent
-            send_headers(req, env[:headers])
-            headers_sent = true
-          end
-          done = res < maxlen
-          send_chunk(req, buf, done: done)
-          return if done
-        end
+        io = @machine.io(fd, :file)
+        send_headers(req, env[:headers])
+        io.read_each { send_chunk(req, it) }
+        finish(req)
+      ensure
+        @machine.close_async(fd) if fd
       end
 
       # Closes the connection.

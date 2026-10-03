@@ -463,7 +463,7 @@ class HTTPServerConnectionTest < Minitest::Test
       response << data
       count += 1
       @machine.snooze
-      break if data[-7..-1] == "\r\n0\r\n\r\n"
+      break if data[-5..-1] == "0\r\n\r\n"
     end
 
     chunks = "#{chunk_size.to_s(16)}\r\n#{'*' * chunk_size}\r\n" * chunk_count
@@ -478,7 +478,7 @@ class HTTPServerConnectionTest < Minitest::Test
     IO.write(fn, 'foobar')
 
     @hook = ->(req) do
-      req.respond_with_static_file(fn, nil, nil, nil)
+      req.respond_with_static_file(fn, nil, nil, {})
     rescue StandardError => e
       p e
       p e.backtrace
@@ -499,9 +499,9 @@ class HTTPServerConnectionTest < Minitest::Test
       response << data
       count += 1
       @machine.snooze
-      break if data[-7..-1] == "\r\n0\r\n\r\n"
+      break if data[-5..-1] == "0\r\n\r\n"
     end
-
+    
     content = IO.read(fn)
     file_size = content.bytesize
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n#{file_size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"
@@ -514,7 +514,7 @@ class HTTPServerConnectionTest < Minitest::Test
     IO.write(fn, 'foobar')
 
     @hook = ->(req) do
-      req.respond_with_static_file(fn, nil, nil, { max_len: 3 })
+      req.respond_with_static_file(fn, nil, nil, {})
       req.adapter.close
     end
 
@@ -530,7 +530,7 @@ class HTTPServerConnectionTest < Minitest::Test
       @machine.snooze
     end
 
-    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nfoo\r\n3\r\nbar\r\n0\r\n\r\n"
+    expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n6\r\nfoobar\r\n0\r\n\r\n"
     assert_equal expected, response
   end
 
