@@ -1,29 +1,3 @@
-## Collections with nested directories
-
-- In the case of a docs site, this is about sections.
-- We want the section itself to have metadata, for example in `index.md`,
-  `index.yml`,
-
-Let's imagine the API:
-
-```ruby
-@docs = collection('_pages/**', url_base: '/docs')
-
-# for a usage like in papercraft docs (sections + pages)
-all_docs = @articles.list('**')
-
-# but we can also envision:
-root = @articles.tree
-
-# in a view template
-root[:items].each { |category|
-  h3 category[:title]
-  section {
-    category[:items].each { h4 a it[:title], href: it[:href] }
-  }
-}
-```
-
 ## Extralite doc site
 
 - Similar to Papercraft site
@@ -31,7 +5,6 @@ root[:items].each { |category|
 - Further take ideas from discussion below
 - Implement auto light/dark CSS theme
 - Write docs
-
 
 ## Logging
 

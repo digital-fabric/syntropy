@@ -1,3 +1,13 @@
+# 0.42.0 2026-10-04
+
+- Add `Syntropy::Collection`
+  - Support for nested collections
+  - Support for invalidation on collection file change
+- Improve static file serving
+- Read modules using `UM#file_read`
+- Refactor log entry computation
+- Refactor and simplify storage layer
+
 # 0.41.0 2026-08-25
 
 - Don't log ECONNRESET errors
