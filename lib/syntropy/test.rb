@@ -235,7 +235,7 @@ module Syntropy
     # @return [any] parsed JSON object
     def response_json
       raise if response_content_type != 'application/json'
-      JSON.parse(response_body)
+      JSON.parse(response_body, symbolize_names: true)
     end
 
     # Returns the response content MIME type.

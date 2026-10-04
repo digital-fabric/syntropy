@@ -2,7 +2,7 @@
 
 require_relative 'helper'
 
-class AppTest < Minitest::Test
+class CollectionTest < Minitest::Test
   COLLECTION_ROOT = File.join(__dir__, 'fixtures/collection/basic/_articles')
 
   def setup
@@ -76,5 +76,43 @@ class AppTest < Minitest::Test
       },
       body: 'Foo foo foo.'
     }, item)
+  end
+end
+
+class CollectionAppTest < Syntropy::Test
+  self.env = {
+    app_root: File.join(__dir__, 'fixtures/collection/basic'),
+    mount_path: '/blog'
+  }
+
+  def test_collection_app_controller
+    req = get('/blog/2026-06-30-bar')
+    assert_equal HTTP::NOT_FOUND, req.response_status
+    
+    req = get('/blog/2026-06-30-foo')
+    assert_equal HTTP::OK, req.response_status
+    o = req.response_json
+    assert_equal({
+      fn:         File.join(env[:app_root], '_articles/2026-06-30-foo.md'),
+      ref:        '2026-06-30-foo',
+      url:        '/blog/2026-06-30-foo',
+      type:       'markdown',
+      attributes: {
+        date:     '2026-06-30',
+        title:    'FooFoo',
+        category: ['a', 'b'],
+        author:   'Bar Baz'
+      },
+      body: 'Foo foo foo.'
+    }, o)
+
+    req = get('/blog')
+    assert_equal HTTP::OK, req.response_status
+    o = req.response_json
+    assert_equal([
+      '2026-06-30-foo',
+      '2026-07-13-bar',
+      '2026-08-07-baz',
+    ], o)
   end
 end

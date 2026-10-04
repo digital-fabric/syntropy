@@ -258,6 +258,9 @@ module Syntropy
       @module_loader = env[:module_loader]
       @app = env[:app]
       @ref = env[:ref]
+      @url = env[:mount_path] && (@ref == '/' ? env[:mount_path] : File.join(env[:mount_path], @ref))
+      @fn  = fn
+
       @logger = env[:logger]
       @__dependencies__ = []
       singleton_class.const_set(:MODULE, self)

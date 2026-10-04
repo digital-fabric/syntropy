@@ -17,7 +17,7 @@ class MarkdownParseTest < Minitest::Test
 
     assert_equal h, atts
     assert_equal({ foo: 'bar' }, atts)
-    assert_equal "foo *bar*\n", md2
+    assert_equal "foo *bar*", md2
   end
 
   def test_markdown_parse_file
@@ -38,13 +38,13 @@ class MarkdownParseTest < Minitest::Test
     atts, md = Syntropy::Markdown.parse_file(path, env)
     assert_equal "/tmp/test/#{name}", atts[:url]
     assert_equal 'baz', atts[:bar]
-    assert_equal "bar *baz*\n", md
+    assert_equal "bar *baz*", md
 
     env = { app_root: '/tmp' }
     atts, md = Syntropy::Markdown.parse_file(path, env)
     assert_equal "/test/#{name}", atts[:url]
     assert_equal 'baz', atts[:bar]
-    assert_equal "bar *baz*\n", md
+    assert_equal "bar *baz*", md
   end
 end
 

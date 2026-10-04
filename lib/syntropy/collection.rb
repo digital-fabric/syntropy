@@ -3,9 +3,16 @@
 require 'syntropy/markdown'
 
 module Syntropy
+  # A collection represents a collection of data entities represented in files.
   class Collection
     attr_reader :root, :url_base
 
+    # Initializes a collection.
+    #
+    # @param machine [UringMachine]
+    # @param root [String] collection root
+    # @param url_base [String] URL base
+    # @return [void]
     def initialize(machine:, root:, url_base:)
       @machine = machine
       @root = File.expand_path(root)
@@ -15,16 +22,26 @@ module Syntropy
       calc_collection_tree
     end
 
+    # Returns a list of items in the collection.
+    #
+    # @return [Array] items
     def list
       @items.values
     end
 
+    # Returns the item corresponding to the given URL.
+    #
+    # @param url [String] URL
+    # @return [Hash] item
     def get(url)
       @items[url]
     end
 
     private
 
+    # Calculates the collection tree.
+    #
+    # @return [void]
     def calc_collection_tree
       queue = UM::Queue.new
       Dir[File.join(@root, '**')].each do |fn|
@@ -54,28 +71,41 @@ module Syntropy
       @machine.join(fibers)
     end
 
+    # Converts a filename to a ref.
+    #
+    # @param fn [String]
+    # @return [String] ref
     def fn_to_ref(fn)
       @ref_regexp ||= /^#{@root}\/(.+)\.(?:md|json)$/
       fn.match(@ref_regexp)[1]
     end
 
+    # Loads the given item.
+    #
+    # @param item [Hash]
+    # @return [void]
     def load_item(item)
       basename = File.basename(item[:fn])
-      data = @machine.file_read(item[:fn])
       case File.extname(basename)
       when '.md'
-        load_item_markdown(item, data)
+        load_item_markdown(item)
       when '.json'
-        load_item_json(item, data)
+        load_item_json(item)
       end
     end
 
-    def load_item_markdown(item, data)
+    # @param item [Hash]
+    # @return [void]
+    def load_item_markdown(item)
       attributes, body = Markdown.parse_file(item[:fn], {})
       item.merge!(attributes:, body:)
     end
 
+    # @param item [Hash]
+    # @return [void]
     def load_item_json(item)
+      data = @machine.file_read(item[:fn])
+      JSON.parse(data, symbolize_names: true)
     end
   end
 end

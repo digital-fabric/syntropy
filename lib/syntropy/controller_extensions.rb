@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'syntropy/collection'
 
 module Syntropy
   # Utilities for use in modules
@@ -112,6 +113,16 @@ module Syntropy
       raise Syntropy::Error.method_not_allowed if !respond_to?(sym)
 
       send(sym, req)
+    end
+
+    # Opens a collection with the given arguments.
+    #
+    # @param rel_root [String] relative collection root
+    # @param url_base [String] URL base
+    # @return [Syntropy::Collection] collection
+    def collection(rel_root, url_base:)
+      path = normalize_import_ref(rel_root)
+      Collection.new(machine: @machine, root: File.join(@env[:app_root], path), url_base:)
     end
   end
 end
