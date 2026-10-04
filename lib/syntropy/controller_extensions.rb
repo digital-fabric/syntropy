@@ -121,6 +121,7 @@ module Syntropy
     # @param url_base [String] URL base
     # @return [Syntropy::Collection] collection
     def collection(rel_root, url_base:)
+      invalidate_on_file_change(File.join(rel_root, '**'))
       path = normalize_import_ref(rel_root)
       Collection.new(machine: @machine, root: File.join(@env[:app_root], path), url_base:)
     end

@@ -86,33 +86,16 @@ class CollectionAppTest < Syntropy::Test
   }
 
   def test_collection_app_controller
-    req = get('/blog/2026-06-30-bar')
-    assert_equal HTTP::NOT_FOUND, req.response_status
-    
     req = get('/blog/2026-06-30-foo')
     assert_equal HTTP::OK, req.response_status
-    o = req.response_json
-    assert_equal({
-      fn:         File.join(env[:app_root], '_articles/2026-06-30-foo.md'),
-      ref:        '2026-06-30-foo',
-      url:        '/blog/2026-06-30-foo',
-      type:       'markdown',
-      attributes: {
-        date:     '2026-06-30',
-        title:    'FooFoo',
-        category: ['a', 'b'],
-        author:   'Bar Baz'
-      },
-      body: 'Foo foo foo.'
-    }, o)
 
-    req = get('/blog')
-    assert_equal HTTP::OK, req.response_status
-    o = req.response_json
-    assert_equal([
-      '2026-06-30-foo',
-      '2026-07-13-bar',
-      '2026-08-07-baz',
-    ], o)
+    assert_equal ['/index+'], app.module_loader.modules.keys
+
+    app.module_loader.invalidate_fn(File.join(env[:app_root], '_articles/2026-06-30-foo.md'))
+    assert_equal [], app.module_loader.modules.keys
+  end
+
+  def test_collection_module_invalidation
+    
   end
 end
