@@ -123,6 +123,11 @@ module Syntropy
     # @param ref [String] module reference
     # @return [void]
     def invalidate_ref(ref)
+      if ref == '/'
+        invalidate_ref('/index')
+        invalidate_ref('/index+')
+      end
+
       entry = @modules.delete(ref)
       return if !entry
 
