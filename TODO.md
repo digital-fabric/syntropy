@@ -1,38 +1,32 @@
+## Collections with nested directories
+
+- In the case of a docs site, this is about sections.
+- We want the section itself to have metadata, for example in `index.md`,
+  `index.yml`,
+
+Let's imagine the API:
+
+```ruby
+@docs = collection('_pages/**', url_base: '/docs')
+
+# for a usage like in papercraft docs (sections + pages)
+all_docs = @articles.list('**')
+
+# but we can also envision:
+root = @articles.tree
+
+# in a view template
+root[:items].each { |category|
+  h3 category[:title]
+  section {
+    category[:items].each { h4 a it[:title], href: it[:href] }
+  }
+}
+```
+
 ## Extralite doc site
 
 - Similar to Papercraft site
-- Replace `collection_module!` with something more flexible, just add watching
-  for directories:
-
-  ```ruby
-  # proposed API:
-  invalidate_on_file_change('_pages/**/*')
-
-  # or maybe:
-  add_dependency('_pages/**')
-
-  # implementation
-  def invalidate_on_file_change(pattern)
-    @module_loader.invalidate_on_file_change(pattern, @ref)
-  end
-
-  class ModuleLoader
-    def invalidate_on_file_change(pattern, mod_ref)
-      @invalidation_patterns ||= Hash.new { |h, k| h[k] = [] }
-      @invalidation_patterns[pattern] << mod_ref
-    end
-
-    def invalidate(ref)
-      ...
-      invalidated_refs = Set.new
-      @invalidation_patterns.each { |pat, ref|
-        invalidated_refs << ref if File.fnmatch(pat, ref)
-      }
-      invalidated_refs.each { invalidate(ref) }
-    end
-  end
-  ```
-
 - Implement collection with code from papercraft.noteflakes.com
 - Further take ideas from discussion below
 - Implement auto light/dark CSS theme

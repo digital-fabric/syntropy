@@ -7,7 +7,7 @@ require 'syntropy/markdown'
 module Syntropy
   # A collection represents a collection of data entities represented in files.
   class Collection
-    attr_reader :root, :url_base
+    attr_reader :root, :root_dir, :url_base
 
     # Initializes a collection.
     #
@@ -17,9 +17,11 @@ module Syntropy
     # @return [void]
     def initialize(machine:, root:, url_base:)
       @machine = machine
-      @root = File.expand_path(root)
+      @root_dir = File.expand_path(root)
       @url_base = url_base
-      @items = {}
+      @list = {} # list of non-directory items
+      @root = make_tree_root
+      @dirs = { @root_dir => @root } # mapping directory paths to tree items
 
       calc_collection_tree
     end
@@ -28,7 +30,7 @@ module Syntropy
     #
     # @return [Array] items
     def list
-      @items.values
+      @list.values
     end
 
     # Returns the item corresponding to the given URL.
@@ -36,27 +38,56 @@ module Syntropy
     # @param url [String] URL
     # @return [Hash] item
     def get(url)
-      @items[url]
+      @list[url]
     end
 
     private
+
+    def make_tree_root
+      {
+        fn: find_directory_data_file(@root_dir),
+        ref: '',
+        url: url_base,
+        type: :directory,
+        items: []
+      }
+    end
 
     # Calculates the collection tree.
     #
     # @return [void]
     def calc_collection_tree
       queue = UM::Queue.new
-      Dir[File.join(@root, '**')].each do |fn|
+      Dir[File.join(@root_dir, '**/*')].each do |fn|
+        next if File.basename(fn) =~ /^_/
+
         ref = fn_to_ref(fn)
         url = File.join(@url_base, ref)
-        item = {
-          fn:,
-          ref:,
-          url:,
-          type: :markdown
-        }
-        @items[url] = item
-        @machine.push(queue, item)
+        parent_fn = File.expand_path(File.join(fn, '..'))
+        parent = @dirs[parent_fn]
+        raise Error, "Parent not found: #{parent_fn}" if !parent
+
+        if File.directory?(fn)
+          dir = {
+            fn: find_directory_data_file(fn),
+            ref:,
+            url:,
+            type: :directory,
+            items: []
+          }
+          @dirs[fn] = dir
+          parent[:items] << dir
+          @machine.push(queue, dir) if dir[:fn]
+        else
+          item = {
+            fn:,
+            ref:,
+            url:
+          }
+          @list[url] = item
+          parent[:items] << item
+          @machine.push(queue, item)
+        end
       end
       4.times { @machine.push(queue, :stop) }
 
@@ -71,6 +102,11 @@ module Syntropy
         }
       }
       @machine.join(fibers)
+
+      add_prev_next_links
+    end
+
+    def scan_files(path, queue)
     end
 
     # Converts a filename to a ref.
@@ -78,8 +114,29 @@ module Syntropy
     # @param fn [String]
     # @return [String] ref
     def fn_to_ref(fn)
-      @ref_regexp ||= /^#{@root}\/(.+)\.(?:md|json)$/
-      fn.match(@ref_regexp)[1]
+      @ref_rel_regexp ||= /^#{@root_dir}\/(.+)/
+      rel = fn.match(@ref_rel_regexp)[1]
+
+      (m = rel.match(/^(.+)\.(md|json|yml|yaml)$/)) ? m[1] : rel
+    end
+
+    # Returns the data file for the given directory.
+    #
+    # @param dir [String]
+    # @return [String, nil] directory data file
+    def find_directory_data_file(dir)
+      (
+        detect_file(File.join(dir, '_index.yml')) ||
+        detect_file(File.join(dir, '_index.json'))
+      )
+    end
+
+    # Detects if the given file exists.
+    #
+    # @param fn [String]
+    # @return [String, nil] filename if exists, nil otherwise
+    def detect_file(fn)
+      File.file?(fn) ? fn : nil
     end
 
     # Loads the given item.
@@ -90,10 +147,13 @@ module Syntropy
       basename = File.basename(item[:fn])
       case (ext = File.extname(basename))
       when '.md'
+        item[:type] ||= :markdown
         load_item_markdown(item)
       when '.json'
+        item[:type] ||= :json
         load_item_json(item)
       when '.yml', '.yaml'
+        item[:type] ||= :yaml
         load_item_yaml(item)
       else
         raise Syntropy::Error, "Unkown file type #{ext}"
@@ -130,6 +190,17 @@ module Syntropy
     def load_item_yaml(item)
       data = @machine.file_read(item[:fn])
       item[:data] = YAML.safe_load(data, **YAML_OPTS)
+    end
+
+    def add_prev_next_links
+      last = nil
+      @list.each_value { |item|
+        if last
+          item[:prev] = last
+          last[:next] = item
+        end
+        last = item
+      }
     end
   end
 end
