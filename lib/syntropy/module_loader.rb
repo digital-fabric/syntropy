@@ -38,6 +38,7 @@ module Syntropy
       @loading = Set.new
       @lock = UM::Mutex.new
       @lock_holder = nil
+      @invalidation_patterns = Hash.new { |h, k| h[k] = [] }
     end
 
     # Loads a module (if not already loaded) and returns its export value.
@@ -80,12 +81,27 @@ module Syntropy
         ref = @fn_map[fn]
         invalidate_ref(ref) if ref
         invalidate_collection_modules
+        invalidate_by_pattern(fn)
       end
+    end
+
+    # Adds an invalidation pattern. When a ref has been invalidated (using
+    # #invalidate_fn), the loader will check for matches against any
+    # invalidation patterns, and will invalidate any corresponding refs. This
+    # mechanism allows hot reload for collections.
+    #
+    # @param ref [String] module ref
+    # @param pattern [String] pattern normalized to app root
+    # @return [void]
+    def invalidate_on_file_change(ref, pattern)
+      # pattern should be absolute in order to match against fn
+      pattern = File.join(@app_root, pattern)
+      @invalidation_patterns[pattern] << ref
     end
 
     private
 
-    # Synchronizes access to the module loader state
+    # Synchronizes access to the module loader state.
     #
     # @return [any] block return value
     def lock
@@ -123,6 +139,19 @@ module Syntropy
         refs << ref if entry[:module].collection_module?
       end
       refs.each { invalidate_ref(it) }
+    end
+
+    # Iterates through invalidation patterns and for each match invalidates the
+    # corresponding refs.
+    #
+    # @param fn [String] filename
+    # @return [void]
+    def invalidate_by_pattern(fn)
+      invalidated = Set.new
+      @invalidation_patterns.each do |pat, refs|
+        refs.each { invalidated << it } if File.fnmatch(pat, fn)
+      end
+      invalidated.each { invalidate_ref(it) }
     end
 
     # Registers reverse dependencies for the given module reference.
@@ -258,7 +287,9 @@ module Syntropy
       @module_loader = env[:module_loader]
       @app = env[:app]
       @ref = env[:ref]
-      @url = env[:mount_path] && (@ref == '/' ? env[:mount_path] : File.join(env[:mount_path], @ref))
+
+      mp = env[:mount_path]
+      @url = mp && (@ref == '/' ? mp : File.join(mp, @ref))
       @fn  = fn
 
       @logger = env[:logger]
@@ -309,6 +340,18 @@ module Syntropy
     def collection_module!
       @collection_module_p = true
       self
+    end
+
+    # Causes the module to be invalidated (reloaded) when a change is detected
+    # in any file that matches the given pattern. The pattern is relative to the
+    # current module's ref. The pattern normally includes a wildcard:
+    #
+    #     invalidate_on_file_change('_articles/*')
+    #
+    # @param pattern [String] pattern in relative path
+    # @return [void]
+    def invalidate_on_file_change(pattern)
+      @module_loader.invalidate_on_file_change(@ref, normalize_import_ref(pattern))
     end
 
     # Normalize an import reference, turning a relative path into an absolute one.

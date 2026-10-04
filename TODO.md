@@ -8,6 +8,9 @@
   # proposed API:
   invalidate_on_file_change('_pages/**/*')
 
+  # or maybe:
+  add_dependency('_pages/**')
+
   # implementation
   def invalidate_on_file_change(pattern)
     @module_loader.invalidate_on_file_change(pattern, @ref)
@@ -34,57 +37,6 @@
 - Further take ideas from discussion below
 - Implement auto light/dark CSS theme
 - Write docs
-
-## Collections - some new thoughts
-
-What's the desired API?
-
-```ruby
-@articles = collection(
-  root: '/_articles',
-  url_base: @ref
-)
-
-export ->(req) {
-  article = @articles.find(req.path)
-  raise Syntropy::Error.not_found
-
-  respond_html(@template.render(article))
-}
-
-## show list of articles:
-->(req) {
-  list = @articles.list('*')
-  respond_html(@template.render(list))
-}
-```
-
-How are collection items represented?
-
-```ruby
-item = {
-  fn:, rel_path:, url:, type:, ...
-}
-
-# where type is one of
-types = [ :markdown, :json]
-
-# a markdown item
-item = {
-  fn:, rel_path:, url:, type:, attributes:, body:
-}
-
-# a JSON item
-item = {
-  fn:, rel_path:, url:, type:, value:
-}
-```
-
-
-  # there should also be methods for creating, updating and deleting of
-  # articles/items.
-  
-```
 
 
 ## Logging
@@ -307,40 +259,6 @@ But in fact they don't make much sense separately, except maybe for the model.
 So we follow Rail's example and implement a code generator. This is especially
 useful for working with controllers. Since the controller code is spread over
 four files, this is not something trivial.
-
-## Collections
-
-- [ ] Collection - treat directories and files as collections of data.
-
-  Kind of similar to the routing tree, but instead of routes it just takes a
-  bunch of files and turns it into a dataset. Each directory is a "table" and is
-  composed of zero or more files that form rows in the table. Supported file
-  formats:
-
-  - foo.md - markdown with optional front matter
-  - foo.json - JSON record
-  - foo.yml - YAML record
-
-  API:
-
-  ```ruby
-  Articles = @app.collection(
-    location: '_articles/*.md',
-    url_base: @ref
-  )
-  article = Articles.last_by(&:date)
-
-  article.title #=>
-  article.date #=>
-  article.layout #=>
-  article.render_proc #=> (load layout, apply article)
-  article.render #=> (render to HTML)
-
-  # there should also be methods for creating, updating and deleting of
-  # articles/items.
-  ...
-  ```
-
 
 ## Missing for a first public release
 

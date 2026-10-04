@@ -74,6 +74,20 @@ class ModuleLoaderTest < Minitest::Test
     assert_equal [], @loader.modules.keys
   end
 
+  def test_invalidate_on_file_change
+    _mod = @loader.load('_lib/dep_invalidate')
+    assert_equal ['/_lib/self', '/_lib/dep_invalidate'], @loader.modules.keys
+
+    @loader.invalidate_fn(File.join(@loader.app_root, '_lib/circular/a'))
+    assert_equal ['/_lib/self'], @loader.modules.keys
+
+    _mod = @loader.load('_lib/dep_invalidate')
+    assert_equal ['/_lib/self', '/_lib/dep_invalidate'], @loader.modules.keys
+
+    @loader.invalidate_fn(File.join(@loader.app_root, '_lib/circular/x/y/z'))
+    assert_equal ['/_lib/self'], @loader.modules.keys
+  end
+
   def test_index_module_env
     mod = @loader.load('mod/bar/index+')
     assert_equal '/mod/bar', mod.env[:ref]
@@ -90,6 +104,7 @@ class ModuleLoaderTest < Minitest::Test
     assert_equal [
       '_lib/callable',
       '_lib/dep',
+      '_lib/dep_invalidate',
       '_lib/env',
       '_lib/klass',
       '_lib/missing-export',
