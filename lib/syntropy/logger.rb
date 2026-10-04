@@ -88,8 +88,11 @@ module Syntropy
         message:      o[:message]
       )
 
-      entry.merge!(error_info(error)) if (error = o.delete(:error))
-      entry.merge!(request_info(request)) if (request = o.delete(:request))
+      error = entry.delete(:error)
+      entry.merge!(error_info(error)) if error
+
+      request = entry.delete(:request)
+      entry.merge!(request_info(request)) if request
 
       entry
     end
