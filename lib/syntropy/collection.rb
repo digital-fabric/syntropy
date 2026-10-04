@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'yaml'
+require 'json'
 require 'syntropy/markdown'
 
 module Syntropy
@@ -86,14 +88,20 @@ module Syntropy
     # @return [void]
     def load_item(item)
       basename = File.basename(item[:fn])
-      case File.extname(basename)
+      case (ext = File.extname(basename))
       when '.md'
         load_item_markdown(item)
       when '.json'
         load_item_json(item)
+      when '.yml', '.yaml'
+        load_item_yaml(item)
+      else
+        raise Syntropy::Error, "Unkown file type #{ext}"
       end
     end
 
+    # Loads ands parses the file for the given markdown item.
+    #
     # @param item [Hash]
     # @return [void]
     def load_item_markdown(item)
@@ -101,11 +109,27 @@ module Syntropy
       item.merge!(attributes:, body:)
     end
 
+    # Loads ands parses the file for the given JSON item.
+    #
     # @param item [Hash]
     # @return [void]
     def load_item_json(item)
       data = @machine.file_read(item[:fn])
-      JSON.parse(data, symbolize_names: true)
+      item[:data] = JSON.parse(data, symbolize_names: true)
+    end
+
+    YAML_OPTS = {
+      permitted_classes: [Date],
+      symbolize_names: true
+    }.freeze
+
+    # Loads ands parses the file for the given YAML item.
+    #
+    # @param item [Hash]
+    # @return [void]
+    def load_item_yaml(item)
+      data = @machine.file_read(item[:fn])
+      item[:data] = YAML.safe_load(data, **YAML_OPTS)
     end
   end
 end
