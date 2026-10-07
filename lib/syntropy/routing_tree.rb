@@ -422,6 +422,8 @@ module Syntropy
       @static_map.freeze
       @dynamic_map.freeze
       code = generate_routing_tree_code
+      # puts '*' * 40
+      # puts code
       eval(code, binding, '(router)', 1)
     end
 
@@ -677,6 +679,7 @@ module Syntropy
     end
 
     DEBUG = !!ENV['DEBUG']
+    RETURN_NIL_RE = /\sreturn nil\z/
 
     # Emits the given code into the given buffer, with a line break at the end.
     # If the `DEBUG` environment variable is set, adds a source location comment
@@ -686,6 +689,7 @@ module Syntropy
     # @param code [String] code
     # @return [void]
     def emit_code_line(buffer, code)
+      return if buffer =~ RETURN_NIL_RE && code =~ RETURN_NIL_RE
       if DEBUG
         loc = (m = caller[0].match(/^([^\:]+\:\d+)/)) && m[1]
         buffer << "#{code} # #{loc}\n"
