@@ -1,3 +1,8 @@
+# 0.43.0 2026-10-07
+
+- Fix logging
+- Update Extralite
+
 # 0.42.0 2026-10-04
 
 - Add `Syntropy::Collection`
