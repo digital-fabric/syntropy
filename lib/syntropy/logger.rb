@@ -114,14 +114,14 @@ module Syntropy
     # @return [Hash] request info
     def request_info(request)
       request_headers = request.headers
-      response_headers = request.response_headers
+      # response_headers = request.response_headers
       elapsed = monotonic_clock - request.start_stamp
       {
         client_ip:    request.forwarded_for || '?',
         http_method:  request_headers[':method'].upcase,
         user_agent:   request_headers['user-agent'],
         uri:          full_uri(request_headers),
-        status:       response_headers[':status'] || '200',
+        # status:       response_headers[':status'] || '200',
         elapsed:      elapsed
       }
     end
