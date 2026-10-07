@@ -100,9 +100,18 @@ module Syntropy
 
     # Returns the request path.
     #
-    # @return [String]
+    # @return [String] path
     def path
       @path ||= uri.path
+    end
+
+    # Returns the relative path for the route. The relative path will be non-nil
+    # only for a sub path of a wildcard route. For example, for a route at
+    # /api+, rel_path returns nil for /api, and "foo/bar" for /api/foo/bar.
+    #
+    # @return [String, nil] relative path or nil
+    def rel_path
+      @route_params[:__rel_path__]
     end
 
     # Returns the request (unparsed) query string.

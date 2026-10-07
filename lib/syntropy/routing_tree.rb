@@ -630,11 +630,15 @@ module Syntropy
           next if child_entry[:static]
 
           emit_code_line(buffer, "#{ws}when #{k.inspect}")
-          if_clause = child_entry[:handle_subtree] ? '' : " if !segments[#{segment_idx + 1}]"
 
-          child_path = child_entry[:path]
-          route_value = "@dynamic_map[#{child_path.inspect}]"
-          emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
+          route_value = "@dynamic_map[#{child_entry[:path].inspect}]"
+          if child_entry[:handle_subtree]
+            emit_code_line(buffer, "#{ws}  params[:__rel_path__] = (rest = segments[#{segment_idx + 1}..-1]).empty? ? nil : rest.join('/')")
+            emit_code_line(buffer, "#{ws}  return #{route_value}")
+          else
+            if_clause = " if !segments[#{segment_idx + 1}]"
+            emit_code_line(buffer, "#{ws}  return #{route_value}#{if_clause}")
+          end
           when_count += 1
 
         elsif has_children
@@ -654,19 +658,20 @@ module Syntropy
         end
       end
 
-      # parametric route
       if param_entry
+        # parametric route
         if when_count == 0
           emit_code_line(buffer, "#{ws}when s")
         else
           emit_code_line(buffer, "#{ws}else")
         end
 
-        emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].inspect}] = s")
+        emit_code_line(buffer, "#{ws}  params[#{param_entry[:param].to_sym.inspect}] = s")
         visit_routing_tree_entry(buffer:, entry: param_entry, indent: indent + 1, segment_idx: segment_idx + 1)
-      # wildcard route
       elsif entry[:handle_subtree]
+        # wildcard route
         emit_code_line(buffer, "#{ws}else")
+        emit_code_line(buffer, "#{ws}  params[:__rel_path__] = segments[#{segment_idx}..-1].join('/')")
         emit_code_line(buffer, "#{ws}  return @dynamic_map[#{entry[:path].inspect}]")
       end
     end

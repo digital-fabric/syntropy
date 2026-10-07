@@ -4,7 +4,7 @@
 export dispatch_by_http_method
 
 def get(req)
-  id = req.route_params['id'].to_i
+  id = req.route_params[:id].to_i
   post = @posts.get(id)
   raise Syntropy::Error.not_found if !post
 
@@ -15,7 +15,7 @@ def post(req)
   data = req.get_form_data
   return delete(req) if data['method'] == 'delete'
 
-  id = req.route_params['id'].to_i
+  id = req.route_params[:id].to_i
   title = req.validate(data['title'], String, /.+/)
   body = req.validate(data['body'], String, /.+/)
 
@@ -27,7 +27,7 @@ def post(req)
 end
 
 def delete(req)
-  id = req.route_params['id'].to_i
+  id = req.route_params[:id].to_i
 
   deleted = @posts.delete(id)
   raise BadRequestError, 'Failed to delete post' if deleted != 1

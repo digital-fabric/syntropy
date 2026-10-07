@@ -4,7 +4,7 @@
 export dispatch_by_http_method
 
 def get(req)
-  id = req.route_params['id'].to_i
+  id = req.route_params[:id].to_i
   post = @posts.get(id)
   raise Syntropy::Error.not_found if !post
 

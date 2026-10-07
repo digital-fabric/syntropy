@@ -28,8 +28,8 @@ class RoutingTreeTest < Minitest::Test
       '_error.rb': '',
       '_hook.rb': '',
       'about.md': '',
-      'index.rb': '',
       'api+.rb': '',
+      'index.rb': '',
       'assets': {
         'img': {
           'foo.jpg': ''
@@ -219,7 +219,7 @@ class RoutingTreeTest < Minitest::Test
 
     params = {}
     route = router.('/docs/df/papercraft/issues/14', params)
-    assert_equal ({ 'org' => 'df', 'repo' => 'papercraft', 'id' => '14'}), params
+    assert_equal ({ org: 'df', repo: 'papercraft', id: '14'}), params
     refute_nil route
     assert_equal '/docs/[org]/[repo]/issues/[id]', route[:path]
 
@@ -255,28 +255,28 @@ class RoutingTreeTest < Minitest::Test
 
     route = router.('/docs/foo', params = {})
     assert_equal File.join(@rt.app_root, '[org]/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
+    assert_equal 'foo', params[:org]
 
     route = router.('/docs/foo/bar', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
-    assert_equal 'bar', params['repo']
+    assert_equal 'foo', params[:org]
+    assert_equal 'bar', params[:repo]
 
     route = router.('/docs/bar/baz/commits', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
-    assert_equal 'bar', params['org']
-    assert_equal 'baz', params['repo']
+    assert_equal 'bar', params[:org]
+    assert_equal 'baz', params[:repo]
 
     route = router.('/docs/foo/bar/issues', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
-    assert_equal 'bar', params['repo']
+    assert_equal 'foo', params[:org]
+    assert_equal 'bar', params[:repo]
 
     route = router.('/docs/bar/baz/issues/14', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
-    assert_equal 'bar', params['org']
-    assert_equal 'baz', params['repo']
-    assert_equal '14', params['id']
+    assert_equal 'bar', params[:org]
+    assert_equal 'baz', params[:repo]
+    assert_equal '14', params[:id]
 
     route = router.('/docs/foo/bar/issues/14/blah', {})
     assert_nil route
@@ -298,7 +298,7 @@ class RoutingTreeTest < Minitest::Test
 
     route = router.('/docs/posts/foo', params = {})
     assert_equal File.join(@rt.app_root, 'posts/[id].rb'), route[:target][:fn]
-    assert_equal 'foo', params['id']
+    assert_equal 'foo', params[:id]
   end
 
   def test_routing_root_mounted
@@ -311,7 +311,7 @@ class RoutingTreeTest < Minitest::Test
     params = {}
     route = router.('/df/papercraft/issues/14', params)
     refute_nil route
-    assert_equal ({ 'org' => 'df', 'repo' => 'papercraft', 'id' => '14'}), params
+    assert_equal ({ org: 'df', repo: 'papercraft', id: '14'}), params
     assert_equal '/[org]/[repo]/issues/[id]', route[:path]
 
     route = router.('/assets', {})
@@ -337,28 +337,28 @@ class RoutingTreeTest < Minitest::Test
 
     route = router.('/foo', params = {})
     assert_equal File.join(@rt.app_root, '[org]/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
+    assert_equal 'foo', params[:org]
 
     route = router.('/foo/bar', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
-    assert_equal 'bar', params['repo']
+    assert_equal 'foo', params[:org]
+    assert_equal 'bar', params[:repo]
 
     route = router.('/bar/baz/commits', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/commits/index.rb'), route[:target][:fn]
-    assert_equal 'bar', params['org']
-    assert_equal 'baz', params['repo']
+    assert_equal 'bar', params[:org]
+    assert_equal 'baz', params[:repo]
 
     route = router.('/foo/bar/issues', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/issues/index.rb'), route[:target][:fn]
-    assert_equal 'foo', params['org']
-    assert_equal 'bar', params['repo']
+    assert_equal 'foo', params[:org]
+    assert_equal 'bar', params[:repo]
 
     route = router.('/bar/baz/issues/14', params = {})
     assert_equal File.join(@rt.app_root, '[org]/[repo]/issues/[id]/index.rb'), route[:target][:fn]
-    assert_equal 'bar', params['org']
-    assert_equal 'baz', params['repo']
-    assert_equal '14', params['id']
+    assert_equal 'bar', params[:org]
+    assert_equal 'baz', params[:repo]
+    assert_equal '14', params[:id]
 
     route = router.('/foo/bar/issues/14/blah', {})
     assert_nil route
@@ -380,7 +380,7 @@ class RoutingTreeTest < Minitest::Test
 
     route = router.('/posts/foo', params = {})
     assert_equal File.join(@rt.app_root, 'posts/[id].rb'), route[:target][:fn]
-    assert_equal 'foo', params['id']
+    assert_equal 'foo', params[:id]
   end
 
   def test_mount_applet
@@ -581,5 +581,60 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
 
     route = router.('/docs/bars/about', {})
     assert_nil route
+  end
+
+  def test_route_params
+    file_tree = {
+      'posts': {
+        '[id].rb': '',
+      },
+      'api+.rb': '',
+      'api2': {
+        'index+.rb': ''
+      },
+      'api3': {
+        '[id]': {
+          'index+.rb': ''
+        }
+      }
+    }
+
+    @app_root = "/tmp/#{__FILE__.gsub('/', '-')}-#{SecureRandom.hex}"
+    make_tmp_file_tree(@app_root, file_tree)
+    @rt = Syntropy::RoutingTree.new(app_root: @app_root, mount_path: '/')
+    router = @rt.router_proc
+
+    params = {}
+    r = router.('/posts/13', params)
+    p 
+    assert_equal '13', params[:id]
+
+    params = {}
+    rr = []
+    rr << router.('/api/foo/bar', params)
+    assert_equal 'foo/bar', params[:__rel_path__]
+    params = {}
+    rr << router.('/api', params)
+    assert_nil params[:__rel_path__]
+    assert_equal 1, rr.uniq.size
+
+    params = {}
+    rr = []
+    rr << router.('/api2/baz', params)
+    assert_equal 'baz', params[:__rel_path__]
+    params = {}
+    rr << router.('/api2', params)
+    assert_nil params[:__rel_path__]
+    assert_equal 1, rr.uniq.size
+    
+    params = {}
+    rr = []
+    rr << router.('/api3/baz/buzz', params)
+    assert_equal 'baz', params[:id]
+    assert_equal 'buzz', params[:__rel_path__]
+    params = {}
+    rr << router.('/api3', params)
+    assert_nil params[:__rel_path__]
+    assert_equal 1, rr.uniq.size
   end
 end

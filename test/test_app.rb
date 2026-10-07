@@ -410,3 +410,32 @@ class AppDependenciesTest < Minitest::Test
     assert_equal HTTP::OK, req.response_status
   end
 end
+
+class AppRouteParamsTest < Syntropy::Test
+  self.env = {
+    app_root: File.join(__dir__, 'fixtures/app'),
+    mount_path: '/test'
+  }
+
+  def test_app_route_params
+    req = get('/test/params/abc')
+    assert_equal 'abc', req.route_params[:foo]
+  end
+
+  def test_app_route_params_rel_path
+    req = get('/test/mod/bar')
+    assert_nil req.route_params[:__rel_path__]
+    assert_nil req.rel_path
+    assert_nil req.response_json[:rel_path]
+
+    req = get('/test/mod/bar/foo')
+    assert_equal 'foo', req.route_params[:__rel_path__]
+    assert_equal 'foo', req.rel_path
+    assert_equal 'foo', req.response_json[:rel_path]
+
+    req = get('/test/mod/bar/foo/baz')
+    assert_equal 'foo/baz', req.route_params[:__rel_path__]
+    assert_equal 'foo/baz', req.rel_path
+    assert_equal 'foo/baz', req.response_json[:rel_path]
+  end
+end
