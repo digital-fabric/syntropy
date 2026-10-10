@@ -43,6 +43,8 @@ module Syntropy
     # @return [Syntropy::Error]
     def self.teapot(msg = 'I\'m a teapot') = new(msg, HTTP::TEAPOT)
 
+    def self.bad_request(msg = 'Bad request') = new(msg, HTTP::BAD_REQUEST)
+
     # Initializes a Syntropy error with the given HTTP status and message.
     #
     # @param http_status [Integer, String] HTTP status
