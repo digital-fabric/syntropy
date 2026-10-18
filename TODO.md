@@ -1,62 +1,29 @@
 ## Immediate
 
-- Check routing tree code generation:
+- Datastar-specific APIs:
 
-```ruby
-->(path, params) {
-  entry = @static_map[path]; return entry if entry
-  segments = path.split("/")
-  return nil if (segments[1] != "by_host_dir")
-  return nil
-  return nil
-}
-```
+  ```ruby
+  req.respond_sse {
+    req.send_datastar_event(patch_signals: { _states: { '/time' => Time.now.to_i } })
+  }
 
-Why the repeating nils? Is this code correct at all? Is there any way to avoid
-repeating nils? The `return nil if (segments...` line - how come there's no
-`@dynamic_map[...]` call afterwards?
+  # and also without a block (for non-streaming datastar events)
+  req.respond_sse(
+    'datastar-patch-signals' => 'signals { _states: { '/time': #{Time.now.to_i} } }'
+  )
 
-- For parametric and wildcard routes, we want to pass the relative path to the
-  controller. When can do this using the params argument:
+  # more sugar:
+  req.respond_datastar(
+    patch_signals: { _states: { '/time' => Time.now.to_i } }
+  )
+  ```
 
-```ruby
-->(path, params) {
-  entry = @static_map[path]; return entry if entry
-  segments = path.split("/")
-  return nil if (segments[1] != "syntropy")
-  case (s = segments[2])
-  when "api"
-    params[:__path_segments__] = segments
-    params[:__path_segment_idx__] = 3
-    return @dynamic_map["/syntropy/api+"]
-  when "mod"
-    case (s = segments[3])
-    when "bar"
-      params[:__path_segments__] = segments
-      params[:__path_segment_idx__] = 4
-      return @dynamic_map["/syntropy/mod/bar"]
-    end
-  when "params"
-    case (s = segments[3])
-    when s
-      params["foo"] = s
-      case (s = segments[4])
-      when nil
-        return @dynamic_map["/syntropy/params/[foo]"]
-      end
-    end
-  end
-  return nil
-}
-```
-
-This could be later abstracted as `Request#rel_path`:
-
-```ruby
-def rel_path
-  route_params[:__rel_path__]
-end
-```
+- gitshabbos
+  - main (README) page `/[repo]`
+  - commits page       `/[repo]/commits`
+  - file page          `/[repo]/tree/**`
+  - raw page           `/[repo]/raw/**`
+  - git protocol       `/[repo]/git/**`
 
 ## Extralite doc site
 
