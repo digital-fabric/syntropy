@@ -11,7 +11,7 @@ module Syntropy
     # accepted using either fixed length (Content-Length header) or chunked
     # transfer encoding.
     class ServerConnection
-      attr_reader :fd, :response_headers, :logger
+      attr_reader :fd, :io, :response_headers, :logger
 
       # Initializes a server connection.
       #

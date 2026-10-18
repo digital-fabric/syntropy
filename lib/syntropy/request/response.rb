@@ -254,7 +254,7 @@ module Syntropy
     # @param obj [any] obj to render into JSON
     # @param headers [Hash] additional response headers
     # @return [void]
-    def json_pretty_response(obj, **headers)
+    def respond_json_pretty(obj, **headers)
       respond(
         JSON.pretty_generate(obj),
         'Content-Type' => 'application/json; charset=utf-8',

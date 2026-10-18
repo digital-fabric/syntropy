@@ -62,7 +62,7 @@ def error_response_raw(req, error)
     message: error.message,
     backtrace: error.backtrace
   }
-  req.json_pretty_response(response, ':status' => status)
+  req.respond_json_pretty(response, ':status' => status)
 end
 
 export ->(req, error) {
