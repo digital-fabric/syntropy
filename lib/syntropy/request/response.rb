@@ -261,5 +261,26 @@ module Syntropy
         **headers
       )
     end
+
+    def respond_sse(*events)
+      send_headers('Content-Type' => 'text/event-stream')
+      send_event(*events) if !events.empty?
+      yield if block_given?
+    rescue SystemCallError => e
+      # swallow system call error, but let server connection know we're done
+      headers['connection'] = 'close'
+    ensure
+      finish if !e
+    end
+
+    def send_event(*events)
+      events.each {
+        if it.is_a?(Hash)
+          it.each { |k, v| send_chunk("event: #{k}\ndata: #{v}\n\n") }
+        else
+          send_chunk("data: #{it}\n\n")
+        end
+      }
+    end
   end
 end

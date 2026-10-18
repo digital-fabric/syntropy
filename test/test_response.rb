@@ -121,3 +121,96 @@ class UpgradeTest < Minitest::Test
     ], r.adapter.calls
   end
 end
+
+class SSETest < Minitest::Test
+  def test_respond_sse_block_empty
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse {}
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_block
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse {
+      r.send_event('foo')
+      r.send_event('bar', 'baz')
+      r.send_event('foo' => 'bar')
+      r.send_event(
+        { 'bar' => 'baz' },
+        { 'baz' => 'foo' },
+      )
+    }
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "data: foo\n\n", { done: false }],
+      [:send_chunk, r, "data: bar\n\n", { done: false }],
+      [:send_chunk, r, "data: baz\n\n", { done: false }],
+      [:send_chunk, r, "event: foo\ndata: bar\n\n", { done: false }],
+      [:send_chunk, r, "event: bar\ndata: baz\n\n", { done: false }],
+      [:send_chunk, r, "event: baz\ndata: foo\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_no_block_no_events
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse()
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_no_block_single_arg
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse('foo')
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "data: foo\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_no_block_multi_args
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse('foo', 'bar')
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "data: foo\n\n", { done: false }],
+      [:send_chunk, r, "data: bar\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_no_block_single_hash
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse('foo' => 'bar')
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "event: foo\ndata: bar\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_respond_sse_no_block_multi_hashes
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse({ 'foo' => 'bar' }, { 'bar' => 'baz', 'baz' => 'foo' })
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "event: foo\ndata: bar\n\n", { done: false }],
+      [:send_chunk, r, "event: bar\ndata: baz\n\n", { done: false }],
+      [:send_chunk, r, "event: baz\ndata: foo\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+end
