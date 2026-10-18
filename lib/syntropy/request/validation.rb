@@ -13,7 +13,8 @@ module Syntropy
     # @param accepted [Array<String>] list of accepted HTTP methods
     # @return [String] request's HTTP method
     def validate_http_method(*accepted)
-      return method if accepted.include?(method)
+      m = http_method
+      return m if accepted.include?(m)
 
       raise Syntropy::Error.method_not_allowed
     end

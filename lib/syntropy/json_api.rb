@@ -34,7 +34,7 @@ module Syntropy
     # @param req [Syntropy::Request]
     def __invoke__(req)
       q = req.validate_param(:q, String).to_sym
-      case req.method
+      case req.http_method
       when 'get'
         response = __invoke_get__(q, req)
       when 'post'

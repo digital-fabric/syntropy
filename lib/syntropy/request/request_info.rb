@@ -44,7 +44,7 @@ module Syntropy
     # Returns the HTTP method in lower case.
     #
     # @return [String]
-    def method
+    def http_method
       @method ||= @headers[':method'].downcase
     end
 

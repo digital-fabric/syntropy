@@ -1,7 +1,7 @@
 AuthStore = import '../_lib/auth_store'
 
 export ->(req) {
-  case req.method
+  case req.http_method
   when 'get'
     render_consent_form(req)
   when 'post'

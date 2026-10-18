@@ -26,7 +26,7 @@ module Syntropy
       # @return [Proc] controller proc
       def to_proc
         ->(req) {
-          case req.method
+          case req.http_method
           when 'head'
             req.respond_html(nil)
           when 'get'

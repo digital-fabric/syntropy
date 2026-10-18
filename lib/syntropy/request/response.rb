@@ -181,7 +181,7 @@ module Syntropy
     # @param map [Hash] hash mapping HTTP methods to responses
     # @return [void]
     def respond_by_http_method(map)
-      value = map[self.method]
+      value = map[http_method]
       raise Syntropy::Error.method_not_allowed if !value
 
       value = value.() if value.is_a?(Proc)
@@ -196,7 +196,7 @@ module Syntropy
     # @param headers [Hash] response headers
     # @return [void]
     def respond_on_get(body, headers = {})
-      case self.method
+      case http_method
       when 'head'
         respond(nil, headers)
       when 'get'
@@ -213,7 +213,7 @@ module Syntropy
     # @param headers [Hash] response headers
     # @return [void]
     def respond_on_post(body, headers = {})
-      case self.method
+      case http_method
       when 'head'
         respond(nil, headers)
       when 'post'

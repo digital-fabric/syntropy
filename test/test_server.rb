@@ -86,7 +86,7 @@ class ServerTest < Minitest::Test
 
   def test_pipelined_requests
     @app = ->(req) {
-      req.respond("method: #{req.method}")
+      req.respond("method: #{req.http_method}")
     }
 
     write_http_request "GET /foo HTTP/1.1\r\nServer: foo.com\r\n\r\nPUT /bar HTTP/1.1\r\n\r\n"
@@ -124,7 +124,7 @@ class ServerTest < Minitest::Test
     @app = ->(req) {
       @reqs << req
       @bodies << req.read
-      req.respond("method: #{req.method}")
+      req.respond("method: #{req.http_method}")
     }
 
     msg = <<~HTTP.crlf_lines
@@ -174,7 +174,7 @@ class ServerTest < Minitest::Test
     @app = ->(req) do
       @reqs << req
       @bodies << (b = req.read)
-      req.respond("method: #{req.method}")
+      req.respond("method: #{req.http_method}")
     rescue StandardError => e
       p e
       p e.backtrace

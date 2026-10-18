@@ -120,7 +120,7 @@ module Syntropy
       if Error.log_error?(e)
         @logger&.error(
           message: "Error while serving request: #{e.message}",
-          method: req.method,
+          method: req.http_method,
           path: path,
           error: e
         )
@@ -244,7 +244,7 @@ module Syntropy
       headers = { 'Content-Type' => MimeTypes[File.extname(fn)] }
 
       ->(req) {
-        case req.method
+        case req.http_method
         when 'head'
           req.respond(nil, headers)
         when 'get'
@@ -454,7 +454,7 @@ module Syntropy
       status = Syntropy::Error.http_status(err)
 
       msg = err.message
-      msg = nil if msg.empty? || (req.method == 'head')
+      msg = nil if msg.empty? || (req.http_method == 'head')
       req.respond(msg, ':status' => status) rescue nil
     }
 
@@ -463,7 +463,7 @@ module Syntropy
       raise if status == HTTP::INTERNAL_SERVER_ERROR
 
       msg = err.message
-      msg = nil if msg.empty? || (req.method == 'head')
+      msg = nil if msg.empty? || (req.http_method == 'head')
       req.respond(msg, ':status' => status) rescue nil
     }
 

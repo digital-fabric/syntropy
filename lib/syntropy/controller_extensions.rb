@@ -109,7 +109,7 @@ module Syntropy
     # the request's HTTP method. If no method is found, raises a
     # method_not_allowed error.
     def route_by_http_method(req)
-      sym = req.method.to_sym
+      sym = req.http_method.to_sym
       raise Syntropy::Error.method_not_allowed if !respond_to?(sym)
 
       send(sym, req)
