@@ -1,4 +1,5 @@
 require 'syntropy/mime_types'
+require 'open3'
 
 class GitRepository
   attr_reader :path, :name, :description, :commits
@@ -25,6 +26,33 @@ class GitRepository
 
   def list
     @files.values
+  end
+
+  def advertise_refs
+    `git upload-pack --stateless-rpc --advertise-refs #{@path}`
+  end
+
+  def rpc(machine, service, input, &block)
+    Open3.popen3('git', service, '--stateless-rpc', @path) do |i, o, e, w|
+      puts '*' * 40
+      p 1
+      machine.write(i.fileno, input)
+      p 2
+      machine.close(i.fileno)
+      p 3
+      # io_out = machine.io(o.fileno, :file)
+      p 4
+      buf = +''
+      loop {
+        len = machine.read(o.fileno, buf, 1 << 30)
+        break if len == 0
+        block.(buf)
+      }
+      # io.read_each(&block)
+      p 5
+      w.join
+      p 6
+    end
   end
 
   private
@@ -60,7 +88,7 @@ class GitRepository
   end
 
   def get_commits
-    `git log --date=short --pretty=format:'%h  %ad  %an  %s'`.lines
+    `git log -C #{@path} --date=short --pretty=format:'%h  %ad  %an  %s'`.lines
   end
 end
 
