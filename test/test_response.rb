@@ -213,4 +213,26 @@ class SSETest < Minitest::Test
       [:finish, r]
     ], r.adapter.calls
   end
+
+  def test_send_event_multi_data
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse(['foo', 'bar', 'baz'])
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "data: foo\ndata: bar\ndata: baz\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+
+  def test_send_event_multi_data_hash
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse('patch' => ['foo', 'bar', 'baz'])
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "event: patch\ndata: foo\ndata: bar\ndata: baz\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
 end

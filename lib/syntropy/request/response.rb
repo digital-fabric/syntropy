@@ -274,11 +274,22 @@ module Syntropy
     end
 
     def send_event(*events)
-      events.each {
-        if it.is_a?(Hash)
-          it.each { |k, v| send_chunk("event: #{k}\ndata: #{v}\n\n") }
+      events.each { |e|
+        case e
+        when Hash
+          e.each { |k, v|
+            if v.is_a?(Array)
+              v = v.map { |i| "data: #{i}\n" }.join
+              send_chunk("event: #{k}\n#{v}\n")
+            else
+              send_chunk("event: #{k}\ndata: #{v}\n\n")
+            end
+          }
+        when Array
+          e = e.map { |i| "data: #{i}\n" }.join
+          send_chunk("#{e}\n")
         else
-          send_chunk("data: #{it}\n\n")
+          send_chunk("data: #{e}\n\n")
         end
       }
     end
