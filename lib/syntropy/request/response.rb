@@ -262,6 +262,12 @@ module Syntropy
       )
     end
 
+    # Renders the headers for an SSE (text/event-stream) response. If any events
+    # are given, they're rendered into the event stream. If a block is given, it
+    # is evaluated.
+    #
+    # @param events [Array<any>] events to render
+    # @return [void]
     def respond_sse(*events)
       send_headers('Content-Type' => 'text/event-stream')
       send_event(*events) if !events.empty?
@@ -273,6 +279,10 @@ module Syntropy
       finish if !e
     end
 
+    # Sends one or more SSE events.
+    #
+    # @param events [Array<Hash, Array, String>] events
+    # @return [void]
     def send_event(*events)
       events.each { |e|
         case e
