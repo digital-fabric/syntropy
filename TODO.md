@@ -125,6 +125,39 @@ Verbose output (`-v`):
 - CLI command `syntropy background`
 - Run automatically when running `syntropy serve` in dev mode
 
+```sql
+create table jobs (
+  id blob primary key not null,
+  due_stamp integer,
+  interval integer,
+  retry_count integer not null,
+  state integer not null, -- pending/running/done
+  payload jsonb not null
+) strict;
+
+create index idx_jobs_pending on jobs (state) where state = 1;
+
+create table job_receipts (
+  id integer primary key autoincrement,
+  stamp integer not null,
+  job_id blob not null,
+  retry_count integer not null,
+  payload jsonb not null,
+  result jsonb not null
+) strict;
+
+create index idx_job_receipts_stamp on job_receipts (stamp);
+create index idx_job_receipts_job_id on job_receipts (job_id);
+```
+
+Create a UUID (not really conforming to UUID v4 RFC 4122, just 16 random bytes):
+
+```ruby
+require 'securerandom'
+
+uuid = SecureRandom.random_bytes(16)
+```
+
 ## Admin Dashboard
 
 - Server state / stats

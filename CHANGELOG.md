@@ -1,3 +1,12 @@
+# 0.44.0 2026-11-05
+
+- Rename `Request#json_pretty_response` to `Request#respond_json_pretty`
+- Rename `Request#method` to `Request#http_method`
+- Add `Request#respond_sse` and `Request#send_event` methods
+- Add `Error.bad_request` helper method
+- Prevent multiple redundant `return nil` statements at end of router proc code
+- Implement `Request#rel_path` for wildcard routes
+
 # 0.43.0 2026-10-07
 
 - Fix logging
