@@ -13,6 +13,15 @@ module Syntropy
     class ServerConnection
       attr_reader :fd, :io, :response_headers, :logger
 
+      @@connection_count = 0
+
+      # Returns the number of current connections
+      #
+      # @return [Integer]
+      def self.count
+        @@connection_count
+      end
+
       # Initializes a server connection.
       #
       # @param machine [UringMachine] machine instance
@@ -38,6 +47,7 @@ module Syntropy
       #
       # @return [void]
       def run
+        @@connection_count += 1
         loop do
           persist = serve_request
           break if !persist
@@ -54,6 +64,7 @@ module Syntropy
           error:    e
         )
       ensure
+        @@connection_count -= 1
         @io.clear
         @machine.close_async(@fd)
       end
