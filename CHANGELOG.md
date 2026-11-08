@@ -1,3 +1,7 @@
+# 0.45.0 2026-11-08
+
+- Add `ServerConnection.count` method
+
 # 0.44.0 2026-11-05
 
 - Rename `Request#json_pretty_response` to `Request#respond_json_pretty`
