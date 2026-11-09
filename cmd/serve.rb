@@ -51,6 +51,10 @@ parser = OptionParser.new do |o|
     env[:server_extensions] = nil
   end
 
+  o.on('-H', '--hot-reload', 'Hot-reload changed files') do
+    env[:watch_files] = true
+  end
+
   o.on('-s', '--silent', 'Silent mode') do
     env[:banner] = nil
     env[:logger] = nil
@@ -79,7 +83,7 @@ end
 
 Syntropy.dev_mode = env[:mode] == 'development'
 Syntropy.load_config(env)
-env[:watch_files] = Syntropy.dev_mode
+env[:watch_files] ||= Syntropy.dev_mode
 
 if !File.directory?(env[:app_root])
   puts "#{File.expand_path(env[:app_root])} Not a directory"
