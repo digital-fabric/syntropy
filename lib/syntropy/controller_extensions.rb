@@ -91,9 +91,13 @@ module Syntropy
     def setup_mapped_sites(map, site_map)
       app_root = @app ? @app.app_root : @env[:app_root]
       map.each do |name, ref|
-        ref = File.join(File.dirname(@ref), ref) if ref !~ /^\//
-        site_root = File.join(app_root, ref)
-        site_map[name] = make_app(site_root)
+        if (app = site_map[ref])
+          site_map[name] = app
+        else
+          ref = File.join(File.dirname(@ref), ref) if ref !~ /^\//
+          site_root = File.join(app_root, ref)
+          site_map[name] = make_app(site_root)
+        end
       end
     end
 
