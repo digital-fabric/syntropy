@@ -1,3 +1,8 @@
+# 0.46.0 2026-11-09
+
+- Add `--hot-reload`/`-H` option to `syntropy serve` for hot reloading in production mode
+- Fix `dispatch_by_host` to not create multiple instances of same app
+
 # 0.45.0 2026-11-08
 
 - Add `ServerConnection.count` method
