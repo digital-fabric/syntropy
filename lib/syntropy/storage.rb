@@ -8,7 +8,7 @@ require 'syntropy/kv_store'
 module Syntropy
   class Storage
     attr_reader :connection_pool, :schema
-    
+
     def initialize(machine, module_loader, config)
       @machine = machine
       @module_loader = module_loader

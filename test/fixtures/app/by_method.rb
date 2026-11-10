@@ -7,3 +7,7 @@ end
 def post(req)
   req.respond('bar')
 end
+
+def put(req)
+  req.respond_html('baz')
+end
