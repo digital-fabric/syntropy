@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require_relative '../lib/syntropy'
+require_relative './_common'
 require 'optparse'
 require 'fileutils'
 
 env = {
-  app_root:             File.join(FileUtils.pwd, 'app'),
-  config_root:          File.join(FileUtils.pwd, 'config'),
   mode:                 ENV['SYNTROPY_MODE'] || 'development',
+  banner:               Syntropy::Command::BANNER,
   mount_path:           '/',
   builtin_applet_path:  '/.syntropy',
   logger:               true,
@@ -17,20 +17,11 @@ env = {
   }
 }
 
-parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy serve [options]'
-
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
-    env[:app_root] = path
-  end
+Syntropy::Command.parse_argv(env) do |o|
+  o.banner = 'Usage: syntropy serve [OPTIONS] [ROOT]'
 
   o.on('-b', '--bind ADDRESS', String, 'Bind address (default: 0.0.0.0:1234)') do
-    env[:bind] ||= []
-    env[:bind] << it
-  end
-
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
-    env[:config_root] = path
+    (env[:bind] ||= []) << it
   end
 
   o.on('-h', '--help', 'Show this help message') do
@@ -56,8 +47,7 @@ parser = OptionParser.new do |o|
   end
 
   o.on('-s', '--silent', 'Silent mode') do
-    env[:banner] = nil
-    env[:logger] = nil
+    env[:banner] = env[:logger] = nil
   end
 
   o.on('-v', '--version', 'Show version') do
@@ -67,66 +57,14 @@ parser = OptionParser.new do |o|
   end
 end
 
-RubyVM::YJIT.enable rescue nil
+Syntropy::Command.bootstrap(env)
+root = File.expand_path(ARGV.shift || '.')
+app = Syntropy::App.load(root, env)
 
-begin
-  parser.parse!
-rescue OptionParser::InvalidOption
-  puts parser
-  exit
-rescue StandardError => e
-  p e
-  puts e.message
-  puts e.backtrace.join("\n")
-  exit
+if env[:banner]
+  puts env[:banner]
+  env[:banner] = false
 end
 
-Syntropy.dev_mode = env[:mode] == 'development'
-Syntropy.load_config(env)
-env[:watch_files] ||= Syntropy.dev_mode
-
-if !File.directory?(env[:app_root])
-  puts "#{File.expand_path(env[:app_root])} Not a directory"
-  exit
-end
-
-puts env[:banner] if env[:banner]
-env[:banner] = false
-
-# We set Syntropy.machine so we can reference it from anywhere
-env[:machine] = Syntropy.machine = UM.new
-env[:logger] = env[:logger] && Syntropy::Logger.new(env[:machine], **env)
-
-require 'uringmachine/fiber_scheduler'
-Fiber.set_scheduler(UM::FiberScheduler.new(env[:machine]))
-
-require 'syntropy/dev_mode' if Syntropy.dev_mode
-
-app = Syntropy::App.load(env)
-
-if env[:mode] == 'development'
-  @main_fiber = Fiber.current
-  env[:machine].spin do
-    @app = app
-    @env = env
-    @machine = env[:machine]
-    @module_loader = @app.module_loader
-
-    loop do
-      puts "Enter command: (c + Enter to open console, q + Enter to quit)"
-      command = $stdin.gets.chomp
-      case command
-      when 'c'
-        t = Thread.new {
-          require 'irb'
-          IRB.start
-        }
-        t.join
-      when 'q'
-        @machine.schedule(@main_fiber, UM::Terminate.new)
-      end
-    end
-  end
-end
-
+Syntropy::Command.setup_dev_mode(env) if env[:mode] == 'development'
 Syntropy.run(env) { app.call(it) }

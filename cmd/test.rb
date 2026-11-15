@@ -1,28 +1,19 @@
 # frozen_string_literal: true
 
+require_relative './_common'
 require 'fileutils'
 require 'optparse'
 
 pwd = FileUtils.pwd
 env = {
-  app_root:             File.join(FileUtils.pwd, 'app'),
-  config_root:          File.join(FileUtils.pwd, 'config'),
-  test_root:             File.join(pwd, 'test'),
   mode:                 'test',
   mount_path:           '/'
 }
 MINITEST_ARGV = []
 
-parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy test [options]'
-
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
-    env[:app_root] = path
-  end
-
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
-    env[:config_root] = path
-  end
+argv_copy = ARGV.dup
+Syntropy::Command.parse_argv(env) do |o|
+  o.banner = 'Usage: syntropy test [OPTIONS] [ROOT]'
 
   o.on('-h', '--help', 'Show this help message') do
     puts o
@@ -65,26 +56,14 @@ parser = OptionParser.new do |o|
   end
 end
 
-argv_copy = ARGV.dup
-begin
-  parser.parse!
-rescue OptionParser::InvalidOption
-  puts parser
-  exit
-rescue StandardError => e
-  p e
-  puts e.message
-  puts e.backtrace.join("\n")
-  exit
-end
-
 require_relative '../lib/syntropy'
 require_relative '../lib/syntropy/test'
 
-Syntropy.load_config(env)
-
 $stdout.sync = true
 $stderr.sync = true
+
+root = File.expand_path(ARGV.shift || '.')
+env = Syntropy::App.setup_env(root, env)
 
 if env[:test_file]
   require(File.expand_path(env[:test_file]))
@@ -99,6 +78,9 @@ def restart_on_file_change(machine, dir, restart_argv)
   }
   exec('ruby', __FILE__, *restart_argv)
 end
+
+puts "Syntropy version #{Syntropy::VERSION}"
+puts "App root: #{root}"
 
 Syntropy::Test.global_env = env
 Minitest.run MINITEST_ARGV

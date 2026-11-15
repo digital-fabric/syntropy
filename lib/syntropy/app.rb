@@ -17,11 +17,30 @@ module Syntropy
   # application state.
   class App
     class << self
+      def setup_env(root, env)
+        env = env.merge(
+          app_root:     File.join(root, 'app'),
+          config_root:  File.join(root, 'config'),
+          test_root:    File.join(root, 'test'),
+        )
+        if !File.directory?(env[:app_root])
+          raise Syntropy::Error, "Couldn't find app directory #{env[:app_root]}"
+        end
+
+        if env[:mode] == 'test' && !File.directory?(env[:test_root])
+          raise Syntropy::Error, "Couldn't find test directory #{env[:test_root]}"
+        end
+
+        env
+      end
+
       # Creates an app instance based on the given environment hash.
       #
       # @param env [Hash] environment hash
       # @return [Syntropy::App]
-      def load(env)
+      def load(root, env)
+        env = setup_env(root, env)
+        Syntropy.load_config(env) if File.directory?(env[:config_root])
         site_file_app(env) || default_app(env)
       end
 

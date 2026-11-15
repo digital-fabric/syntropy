@@ -1,29 +1,21 @@
 # frozen_string_literal: true
 
 require_relative '../lib/syntropy'
+require_relative './_common'
 require 'optparse'
 require 'fileutils'
 
 env = {
-  app_root:             File.join(FileUtils.pwd, 'app'),
-  config_root:          File.join(FileUtils.pwd, 'config'),
   mode:                 ENV['SYNTROPY_MODE'] || 'development',
+  banner:               Syntropy::Command::BANNER,
   mount_path:           '/',
   builtin_applet_path:  '/.syntropy',
   logger:               true,
   watch_files:          true
 }
 
-parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy console [options]'
-
-  o.on('-a', '--app PATH', 'Set app directory (default: ./app)') do |path|
-    env[:app_root] = path
-  end
-
-  o.on('-c', '--config PATH', 'Set config directory (default: ./config)') do |path|
-    env[:config_root] = path
-  end
+Syntropy::Command.parse_argv(env) do |o|
+  o.banner = 'Usage: syntropy console [OPTIONS] [ROOT]'
 
   o.on('-h', '--help', 'Show this help message') do
     puts o
@@ -40,43 +32,21 @@ parser = OptionParser.new do |o|
   end
 end
 
-RubyVM::YJIT.enable rescue nil
+Syntropy::Command.bootstrap(env)
 
-begin
-  parser.parse!
-rescue OptionParser::InvalidOption
-  puts parser
-  exit
-rescue StandardError => e
-  p e
-  puts e.message
-  puts e.backtrace.join("\n")
-  exit
-end
-
-Syntropy.dev_mode = env[:mode] == 'development'
-Syntropy.load_config(env)
-
-if !File.directory?(env[:app_root])
-  puts "#{File.expand_path(env[:app_root])} Not a directory"
-  exit
-end
-
-puts env[:banner] if env[:banner]
-env[:banner] = false
-
-# We set Syntropy.machine so we can reference it from anywhere
-env[:machine] = Syntropy.machine = UM.new
-env[:logger] = env[:logger] && Syntropy::Logger.new(env[:machine], **env)
-
-@app = Syntropy::App.load(env)
+root = File.expand_path(ARGV.shift || '.')
+@app = Syntropy::App.load(root, env)
 @env = env
 @machine = env[:machine]
 @module_loader = @app.module_loader
 
-require 'uringmachine/fiber_scheduler'
-@scheduler = UM::FiberScheduler.new(@machine)
-Fiber.set_scheduler(@scheduler)
+if env[:banner]
+  puts env[:banner]
+  env[:banner] = false
+end
+
+puts "Syntropy version #{Syntropy::VERSION}"
+puts "App root: #{root}"
 
 def import(ref)
   @module_loader.load(ref)

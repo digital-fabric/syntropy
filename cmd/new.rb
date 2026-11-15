@@ -6,7 +6,7 @@ require 'fileutils'
 opts = {}
 
 parser = OptionParser.new do |o|
-  o.banner = 'Usage: syntropy new NAME [options]'
+  o.banner = 'Usage: syntropy new [OPTIONS] NAME'
 
   o.on('-y', '--yes', 'Confirm all overwrites') do
     opts[:yes] = true
@@ -22,12 +22,7 @@ begin
   parser.parse!
 rescue OptionParser::InvalidOption
   puts parser
-  exit
-rescue StandardError => e
-  p e
-  puts e.message
-  puts e.backtrace.join("\n")
-  exit
+  exit!(1)
 end
 
 path = ARGV.shift
@@ -45,8 +40,4 @@ begin
   `mkdir -p "#{path}"`
   system("cp -rv#{opts[:yes] ? '' : 'i'} #{template_path}/* \"#{path}/\"")
   puts "Your app is ready in #{full_path}"
-rescue => e
-  p e
-  p e.backtrace
-  exit(1)
 end

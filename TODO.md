@@ -1,5 +1,56 @@
 ## Immediate
 
+- [ ] Add a multi-app mode that is automatically detected if in the given root path
+  there's no app directory, but instead multiple directories with nested `app`
+  directories inside. Another heuristic is the presence of a `_domains.rb`
+  module file:
+
+- [ ] In multi-app mode, the `_domains.rb` module exports additional domain
+  mappings:
+
+  ```ruby
+  export(
+    'localhost:1234'                  => 'noteflakes.com',
+    'noteflakes.localhost:1234'       => 'noteflakes.com',
+    'papercraft.localhost:1234'       => 'papercraft.noteflakes.com',
+    'tolkora.localhost:1234'          => 'tolkora.net',
+    'papercraft-talk.localhost:1234'  => 'papercraft-minitalk.noteflakes.com'
+  )
+  ```
+
+- [ ] In multi-app mode, app for each domain is completely separate with its own
+  config, so it has its own `config` and `app` directories. This allows us to
+  run console for a specific domain app.
+
+- [ ] In multi-app mode, the domain mapping is converted into a hash that maps
+  domains to app procs, with invalid domains leading to 400 response.
+
+## Analytics
+
+- Analytics
+
+  - Setup in e.g. `config/production.rb`
+  - Show (for given period: today, last 7 days, last 30 days, last year):
+    - Total page views
+    - Unique visitors (distinct client_hash)
+    - top pages by view count
+    - top referrers
+    - Pages per visitor
+    - 
+
+- Machine/process stats:
+  - load average
+  - Available memory:
+  
+    ```ruby
+    IO.read('/proc/meminfo').lines.each_with_object({}) { |l, h| m = l.chomp.match(/(.+):\s+(\d+)/); h[m[1]] = m[2].to_i }
+    ```
+
+  - process RSS
+
+
+
+
 - Datastar-specific APIs:
 
   ```ruby
@@ -24,7 +75,7 @@
   - file page          `/[repo]/tree/**`
   - raw page           `/[repo]/raw/**`
   - git protocol       `/[repo]/git/**`
-
+p
 ## Extralite doc site
 
 - Similar to Papercraft site
