@@ -35,11 +35,12 @@ module Syntropy
       # @return [Syntropy::App] applet
       def builtin_applet(env, mount_path: '/.syntropy')
         new(
-          machine:    env[:machine],
-          app_root:   BUILTIN_APPLET_app_root,
-          mount_path: mount_path,
-          builtin_applet_path: nil,
-          watch_files: nil
+          machine:              env[:machine],
+          mode:                 env[:mode],
+          app_root:             BUILTIN_APPLET_app_root,
+          mount_path:           mount_path,
+          builtin_applet_path:  nil,
+          watch_files:          nil
         )
       end
 

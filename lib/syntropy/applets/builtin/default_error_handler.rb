@@ -50,7 +50,7 @@ end
 
 def error_response_html(req, error)
   status = Syntropy::Error.http_status(error)
-  backtrace = transform_backtrace(error.backtrace)
+  backtrace = @env[:mode] == 'production' ? nil : transform_backtrace(error.backtrace)
   html = Papercraft.html(ErrorPage, error:, status:, backtrace:)
   req.respond_html(html, ':status' => status)
 end
