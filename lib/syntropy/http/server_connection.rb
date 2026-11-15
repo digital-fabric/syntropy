@@ -249,7 +249,7 @@ module Syntropy
         @machine.send(@fd, EMPTY_CHUNK, EMPTY_CHUNK_LEN, SEND_FLAGS)
         return if @done
 
-        @logger&.info(request, request, response_headers: @response_headers)
+        @logger&.info(request: request, response_headers: @response_headers)
         @done = true
       end
 
