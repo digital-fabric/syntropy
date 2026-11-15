@@ -39,9 +39,13 @@ module Syntropy
       # @param env [Hash] environment hash
       # @return [Syntropy::App]
       def load(root, env)
-        env = setup_env(root, env)
-        Syntropy.load_config(env) if File.directory?(env[:config_root])
-        site_file_app(env) || default_app(env)
+        if is_multisite?(root, env)
+          load_multisite(root, env)
+        else
+          env = setup_env(root, env)
+          Syntropy.load_config(env) if File.directory?(env[:config_root])
+          site_file_app(env) || default_app(env)
+        end
       end
 
       BUILTIN_APPLET_app_root = File.expand_path(File.join(__dir__, 'applets/builtin'))
@@ -64,6 +68,38 @@ module Syntropy
       end
 
       private
+
+      # @param root [String]
+      # @param env [Hash]
+      # @return [bool]
+      def is_multisite?(root, env)
+        return true if File.directory?(File.join(root, 'sites'))
+
+        false
+      end
+
+      def load_multisite(root, env)
+        sites = {}
+        env = env.merge(multisite_app_load: true)
+        Dir[File.join(root, 'sites/*')]
+          .select { File.directory?(it) && File.basename(it) !~ /^_/ }
+          .each { |dir|
+            sites[File.basename(dir)] = load(dir, env)
+          }
+
+        sites_env = { app_root: File.join(root, 'sites'), machine: env[:machine] }
+        module_loader = Syntropy::ModuleLoader.new(sites_env)
+        if (mapping = module_loader.load('_domains', raise_on_missing_export: false))
+          mapping.each { |k, v|
+            sites[k] = sites[v]
+          }
+        end
+        
+        ->(req) do
+          site = sites[req.host]
+          site ? site.call(req) : req.respond(nil, ':status' => HTTP::BAD_REQUEST)
+        end
+      end
 
       # Creates a multi-hostname app if a _site.rb file is detected.
       #
