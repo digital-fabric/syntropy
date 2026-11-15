@@ -1,3 +1,9 @@
+# 0.47.0 2026-11-15
+
+- Rework syntropy commands
+- Don't show backtrace in error page in production mode
+- Fix passing mode to builtin app.
+
 # 0.46.0 2026-11-09
 
 - Add `--hot-reload`/`-H` option to `syntropy serve` for hot reloading in production mode
