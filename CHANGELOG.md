@@ -1,3 +1,8 @@
+# 0.49.0 2026-11-16
+
+- Fix tests
+- Update UringMachine
+
 # 0.48.0 2026-11-16
 
 - console: sleep a little in `#import` to allow module reload
