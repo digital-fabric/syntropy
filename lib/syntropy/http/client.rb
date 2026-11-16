@@ -2,6 +2,7 @@
 
 require 'syntropy/http/client_connection'
 require 'uri'
+require 'openssl'
 
 module Syntropy
   module HTTP
@@ -35,6 +36,8 @@ module Syntropy
       # @return [Array] array containing response headers and body
       def req(uri, **headers)
         connection = make_connection(uri.scheme, uri.host, uri.port)
+        headers = headers.merge('Host' => uri.host) if !headers['Host']
+
         response_headers = connection.req(**headers)
         if block_given?
           yield(response_headers, connection)
@@ -45,15 +48,36 @@ module Syntropy
 
       # Creates an HTTP connection.
       #
-      # @param _scheme [String] connection scheme
+      # @param scheme [String] connection scheme
       # @param host [String] host
       # @param port [Integer] port
       # @return [Syntropy::HTTP::ClientConnection]
-      def make_connection(_scheme, host, port)
+      def make_connection(scheme, host, port)
         ip = (host =~ /^\d+\.\d+\.\d+\.\d+$/) ? host : @machine.resolve(host)[0]
-
         fd = @machine.tcp_connect(ip, port)
-        Syntropy::HTTP::ClientConnection.new(@machine, fd)
+
+        if scheme == 'https'
+          https_client_connection(fd, host)
+        else
+          Syntropy::HTTP::ClientConnection.new(@machine, fd)
+        end
+      end
+
+      # Creates and returns an HTTPS connection for the given fd. Verifies the
+      # host for the SSL connection.
+      #
+      # @param fd [Integer]
+      # @param host [String]
+      # @return [Syntropy::HTTP::ClientConnection]
+      def https_client_connection(fd, host)
+        ssl = OpenSSL::SSL::SSLSocket.new(IO.for_fd(fd), OpenSSL::SSL::SSLContext.new)
+        ssl.hostname = host
+        ssl.sync_close = true
+        ssl.connect
+        ssl.post_connection_check(host)
+        @machine.ssl_set_bio(ssl)
+
+        Syntropy::HTTP::ClientConnection.new(@machine, ssl, io_mode: :ssl)
       end
     end
   end

@@ -49,4 +49,13 @@ class HTTPClientTest < Minitest::Test
     assert_kind_of String, body
     assert_equal 'foo', body
   end
+
+  HTTPS_URL = "https://geocoding-api.open-meteo.com/v1/search?name=Paris&count=4&language=en&format=json"
+
+  def test_get_https
+    headers, body = @client.get(HTTPS_URL, 'Accept' => '*/*')
+    assert_kind_of Hash, headers
+    assert_equal Syntropy::HTTP::OK, headers[':status']
+    assert_equal 'application/json; charset=utf-8', headers['content-type']
+  end
 end
