@@ -1,3 +1,9 @@
+# 0.48.0 2026-11-16
+
+- console: sleep a little in `#import` to allow module reload
+- Add support for HTTPS in HTTP client
+- Fix logging in `Request#finish`
+
 # 0.47.0 2026-11-15
 
 - Rework syntropy commands
