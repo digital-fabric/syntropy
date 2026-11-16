@@ -49,6 +49,7 @@ puts "Syntropy version #{Syntropy::VERSION}"
 puts "App root: #{root}"
 
 def import(ref)
+  @machine.sleep(0.05)
   @module_loader.load(ref)
 end
 
