@@ -5,7 +5,7 @@ require 'securerandom'
 
 class AnalyticsTest < Minitest::Test
   HTTP = Syntropy::HTTP
-  APP_ROOT = File.join(__dir__, 'fixtures/app')
+  ROOT = File.join(__dir__, 'fixtures/base')
 
   def setup
     @machine = UM.new
@@ -16,11 +16,13 @@ class AnalyticsTest < Minitest::Test
     @db = Extralite::Database.new(@fn)
     @analytics = Syntropy::Analytics.new(@cp)
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/test',
-      watch_files: 0.05,
-      machine: @machine
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/test',
+        watch_files: 0.05,
+        machine: @machine
+      }
     )
     @test_harness = Syntropy::TestHarness.new(@app)
   end

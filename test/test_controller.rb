@@ -5,7 +5,7 @@ require 'syntropy/test'
 
 class DispatchByHostTest < Syntropy::Test
   self.env = {
-    app_root: File.join(__dir__, 'fixtures/controllers'),
+    root: File.join(__dir__, 'fixtures/controllers'),
     mount_path: '/'
   }
 

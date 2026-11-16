@@ -10,7 +10,7 @@ class StorageTest < Minitest::Test
 
     @module_loader = Syntropy::ModuleLoader.new({
       machine:  @machine,
-      app_root: File.join(__dir__, 'fixtures/schema')
+      app_root: File.join(__dir__, 'fixtures/schema/_schema')
     })
   end
 

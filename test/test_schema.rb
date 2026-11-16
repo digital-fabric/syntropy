@@ -78,7 +78,7 @@ class SchemaTest < Minitest::Test
   def test_schema_from_module_files
     module_loader = Syntropy::ModuleLoader.new({
       machine:  @machine,
-      app_root: File.join(__dir__, 'fixtures/schema')
+      app_root: File.join(__dir__, 'fixtures/schema/_schema')
     })
     schema = Syntropy::Schema.new(module_loader:, schema_root: '/')
 

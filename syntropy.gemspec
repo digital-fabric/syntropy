@@ -18,12 +18,12 @@ Gem::Specification.new do |s|
   s.rdoc_options  = ['--title', 'Syntropy', '--main', 'README.md']
   s.extra_rdoc_files = ['README.md']
   s.require_paths = ['lib']
-  s.required_ruby_version = '>= 3.4'
+  s.required_ruby_version = '>= 4.0'
   s.executables = ['syntropy']
 
   s.add_dependency 'extralite',     '~>3.1.3'
   s.add_dependency 'papercraft',    '~>3.2.2'
-  s.add_dependency 'uringmachine',  '~>1.0.6'
+  s.add_dependency 'uringmachine',  '~>1.0.7'
 
   s.add_dependency 'json'
   s.add_dependency 'base64'

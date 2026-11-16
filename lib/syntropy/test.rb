@@ -137,8 +137,9 @@ module Syntropy
       Syntropy.load_config(env)
 
       @machine = UM.new
-      @app = Syntropy::App.new(
-        **env.merge(
+      @app = Syntropy::App.load(
+        env[:root],
+        env.merge(
           machine: @machine,
           test_mode: true
         )

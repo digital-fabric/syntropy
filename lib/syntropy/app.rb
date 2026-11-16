@@ -17,16 +17,24 @@ module Syntropy
   # application state.
   class App
     class << self
+      # Sets up the given env hash with the given root directory and adds
+      # entries for the app, config, and test root directories. Verifies the
+      # existence of the app and test (in test mode) directories.
+      #
+      # @param root [String]
+      # @param env [Hash]
+      # @return [Hash] env with directories
       def setup_env(root, env)
         env = env.merge(
+          root:         root,
           app_root:     File.join(root, 'app'),
           config_root:  File.join(root, 'config'),
-          test_root:    File.join(root, 'test'),
+          test_root:    File.join(root, 'test')
         )
+
         if !File.directory?(env[:app_root])
           raise Syntropy::Error, "Couldn't find app directory #{env[:app_root]}"
         end
-
         if env[:mode] == 'test' && !File.directory?(env[:test_root])
           raise Syntropy::Error, "Couldn't find test directory #{env[:test_root]}"
         end
@@ -69,6 +77,8 @@ module Syntropy
 
       private
 
+      # Returns true if the given root contains a sites directory.
+      #
       # @param root [String]
       # @param env [Hash]
       # @return [bool]
@@ -78,6 +88,11 @@ module Syntropy
         false
       end
 
+      # Loads a multi-site app.
+      #
+      # @param root [String]
+      # @param env [Hash]
+      # @return [Proc] multi-site app proc
       def load_multisite(root, env)
         sites = {}
         env = env.merge(multisite_app_load: true)
@@ -94,7 +109,7 @@ module Syntropy
             sites[k] = sites[v]
           }
         end
-        
+
         ->(req) do
           site = sites[req.host]
           site ? site.call(req) : req.respond(nil, ':status' => HTTP::BAD_REQUEST)

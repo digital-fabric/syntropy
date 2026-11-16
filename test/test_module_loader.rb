@@ -5,7 +5,7 @@ require_relative 'helper'
 class ModuleLoaderTest < Minitest::Test
   def setup
     @machine = UM.new
-    @root = File.join(__dir__, 'fixtures/app')
+    @root = File.join(__dir__, 'fixtures/base/app')
     @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env)
   end
@@ -173,7 +173,7 @@ class ModuleExtensionsTest < Minitest::Test
 
   def test_module_extension_single
     @machine = UM.new
-    @root = File.join(__dir__, 'fixtures/app')
+    @root = File.join(__dir__, 'fixtures/base/app')
     @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env, extensions: E1)
 
@@ -184,7 +184,7 @@ class ModuleExtensionsTest < Minitest::Test
 
   def test_module_extension_multi
     @machine = UM.new
-    @root = File.join(__dir__, 'fixtures/app')
+    @root = File.join(__dir__, 'fixtures/base/app')
     @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
     @loader = Syntropy::ModuleLoader.new(@env, extensions: [E2, E3])
 

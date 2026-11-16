@@ -53,7 +53,7 @@ class MarkdownControllerTest < Minitest::Test
 
   def setup
     @machine = UM.new
-    @root = File.join(__dir__, 'fixtures/app')
+    @root = File.join(__dir__, 'fixtures/base/app')
     @env = { app_root: @root, machine: @machine }
     @env[:module_loader] = Syntropy::ModuleLoader.new(@env)
 

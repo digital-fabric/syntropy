@@ -4,20 +4,21 @@ require_relative 'helper'
 
 class AppTest < Minitest::Test
   HTTP = Syntropy::HTTP
-
-  APP_ROOT = File.join(__dir__, 'fixtures/app')
+  ROOT = File.join(__dir__, 'fixtures/base')
 
   def setup
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+    @tmp_fn = File.join(ROOT, 'app/tmp.rb')
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/test',
-      watch_files: 0.05,
-      machine: @machine
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/test',
+        watch_files: 0.05,
+        machine: @machine
+      }
     )
 
     @test_harness = Syntropy::TestHarness.new(@app)
@@ -190,20 +191,21 @@ end
 
 class MiddlewareHooksTest < Minitest::Test
   HTTP = Syntropy::HTTP
-
-  APP_ROOT = File.join(__dir__, 'fixtures/app_hooks')
+  ROOT = File.join(__dir__, 'fixtures/hooks')
 
   def setup
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+    @tmp_fn = File.join(ROOT, 'app/tmp.rb')
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/',
-      watch_files: 0.05,
-      machine: @machine
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/',
+        watch_files: 0.05,
+        machine: @machine
+      }
     )
 
     @test_harness = Syntropy::TestHarness.new(@app)
@@ -230,20 +232,21 @@ end
 
 class ErrorHandlerTest < Minitest::Test
   HTTP = Syntropy::HTTP
-
-  APP_ROOT = File.join(__dir__, 'fixtures/app_errors')
+  ROOT = File.join(__dir__, 'fixtures/errors')
 
   def setup
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+    @tmp_fn = File.join(ROOT, 'app/tmp.rb')
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/',
-      watch_files: 0.05,
-      machine: @machine
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/',
+        watch_files: 0.05,
+        machine: @machine
+      }
     )
 
     @test_harness = Syntropy::TestHarness.new(@app)
@@ -271,14 +274,16 @@ end
 class CustomAppTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'fixtures/app_custom')
+  ROOT = File.join(__dir__, 'fixtures/custom')
 
   def setup
     @machine = UM.new
     @app = Syntropy::App.load(
-      machine: @machine,
-      app_root: APP_ROOT,
-      mount_path: '/'
+      ROOT,
+      {
+        machine: @machine,
+        mount_path: '/'
+      }
     )
     @test_harness = Syntropy::TestHarness.new(@app)
   end
@@ -293,14 +298,16 @@ end
 class MultiSiteAppTest < Minitest::Test
   HTTP = Syntropy::HTTP
 
-  APP_ROOT = File.join(__dir__, 'fixtures/app_multi_site')
+  ROOT = File.join(__dir__, 'fixtures/multi_site')
 
   def setup
     @machine = UM.new
     @app = Syntropy::App.load(
-      machine: @machine,
-      app_root: APP_ROOT,
-      mount_path: '/'
+      ROOT,
+      {
+        machine: @machine,
+        mount_path: '/'
+      }
     )
     @test_harness = Syntropy::TestHarness.new(@app)
   end
@@ -320,20 +327,21 @@ end
 
 class AppAPITest < Minitest::Test
   HTTP = Syntropy::HTTP
-
-  APP_ROOT = File.join(__dir__, 'fixtures/app')
+  ROOT = File.join(__dir__, 'fixtures/base')
 
   def setup
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+    @tmp_fn = File.join(ROOT, 'app/tmp.rb')
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/test',
-      watch_files: 0.05,
-      machine: @machine
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/test',
+        watch_files: 0.05,
+        machine: @machine
+      }
     )
   end
 
@@ -348,44 +356,43 @@ class AppAPITest < Minitest::Test
     assert_nil route[:parent]
     assert_equal '/test', route[:path]
     assert_equal :static, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'index.html'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/index.html'), route[:target][:fn]
 
     route = @app.route('/test/assets/style.css')
     assert_equal '/test/assets', route[:parent][:path]
     assert_equal :static, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'assets/style.css'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/assets/style.css'), route[:target][:fn]
 
     route = @app.route('/test/api')
     assert_equal '/test', route[:parent][:path]
     assert_equal :module, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/api+.rb'), route[:target][:fn]
 
     route = @app.route('/test/api/foo')
     assert_equal '/test', route[:parent][:path]
     assert_equal :module, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'api+.rb'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/api+.rb'), route[:target][:fn]
 
     route = @app.route('/test/bar')
     assert_equal '/test', route[:parent][:path]
     assert_equal :module, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'bar.rb'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/bar.rb'), route[:target][:fn]
 
     route = @app.route('/test/about/raise')
     assert_equal '/test/about', route[:parent][:path]
     assert_equal :module, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'about/raise.rb'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/about/raise.rb'), route[:target][:fn]
 
     route = @app.route('/test/about/foo')
     assert_equal '/test/about', route[:parent][:path]
     assert_equal :markdown, route[:target][:kind]
-    assert_equal File.join(APP_ROOT, 'about/foo.md'), route[:target][:fn]
+    assert_equal File.join(ROOT, 'app/about/foo.md'), route[:target][:fn]
   end
 end
 
 class AppDependenciesTest < Minitest::Test
   HTTP = Syntropy::HTTP
-
-  APP_ROOT = File.join(__dir__, 'fixtures/app')
+  ROOT = File.join(__dir__, 'fixtures/base')
 
   def test_app_dependencies
     foo = { foo: 'foo' }
@@ -394,14 +401,16 @@ class AppDependenciesTest < Minitest::Test
     @machine = UM.new
 
     @tmp_path = '/test/tmp'
-    @tmp_fn = File.join(APP_ROOT, 'tmp.rb')
+    @tmp_fn = File.join(ROOT, 'app/tmp.rb')
 
-    @app = Syntropy::App.new(
-      app_root: APP_ROOT,
-      mount_path: '/test',
-      machine: @machine,
-      foo: foo,
-      bar: bar
+    @app = Syntropy::App.load(
+      ROOT,
+      {
+        mount_path: '/test',
+        machine: @machine,
+        foo: foo,
+        bar: bar
+      }
     )
     @test_harness = Syntropy::TestHarness.new(@app)
 
@@ -413,7 +422,7 @@ end
 
 class AppRouteParamsTest < Syntropy::Test
   self.env = {
-    app_root: File.join(__dir__, 'fixtures/app'),
+    root: File.join(__dir__, 'fixtures/base'),
     mount_path: '/test'
   }
 

@@ -3,7 +3,7 @@
 require_relative 'helper'
 
 class CollectionTest < Minitest::Test
-  COLLECTION_ROOT = File.join(__dir__, 'fixtures/collection/basic/_articles')
+  COLLECTION_ROOT = File.join(__dir__, 'fixtures/collection/basic/app/_articles')
 
   def setup
     @machine = UM.new
@@ -81,7 +81,7 @@ end
 
 class CollectionAppTest < Syntropy::Test
   self.env = {
-    app_root: File.join(__dir__, 'fixtures/collection/basic'),
+    root: File.join(__dir__, 'fixtures/collection/basic'),
     mount_path: '/blog'
   }
 
@@ -91,14 +91,14 @@ class CollectionAppTest < Syntropy::Test
 
     assert_equal ['/index+'], app.module_loader.modules.keys
 
-    app.module_loader.invalidate_fn(File.join(env[:app_root], '_articles/2026-06-30-foo.md'))
+    app.module_loader.invalidate_fn(File.join(env[:root], 'app/_articles/2026-06-30-foo.md'))
     assert_equal [], app.module_loader.modules.keys
   end
 end
 
 class NestedCollectionTest < Syntropy::Test
   self.env = {
-    app_root: File.join(__dir__, 'fixtures/collection/docs'),
+    root: File.join(__dir__, 'fixtures/collection/docs'),
     mount_path: '/docs'
   }
 
@@ -106,7 +106,7 @@ class NestedCollectionTest < Syntropy::Test
     super
     @collection = Syntropy::Collection.new(
       machine:  @machine,
-      root:     File.join(env[:app_root], '_pages'),
+      root:     File.join(env[:root], 'app/_pages'),
       url_base: '/docs'
     )
   end
@@ -134,7 +134,7 @@ class NestedCollectionTest < Syntropy::Test
   end
 
   def test_nested_collection_dirs
-    root_dir = File.join(env[:app_root], '_pages')
+    root_dir = File.join(env[:root], 'app/_pages')
     root = @collection.root
     assert_kind_of Hash, root
 

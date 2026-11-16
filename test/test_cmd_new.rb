@@ -6,9 +6,8 @@ require 'syntropy/test'
 class CmdNewTemplateTest < Syntropy::Test
   def env
     {
+      root: File.join(__dir__, '../cmd/new/template'),
       mode: 'test',
-      app_root: File.join(__dir__, '../cmd/new/template/app'),
-      config_root: File.join(__dir__, '../cmd/new/template/config'),
       mount_path: '/'
     }
   end
