@@ -108,6 +108,8 @@ class ModuleLoaderTest < Minitest::Test
       '_lib/env',
       '_lib/klass',
       '_lib/missing-export',
+      '_lib/private1',
+      '_lib/private2',
       '_lib/self',
     ], list
 
@@ -193,5 +195,22 @@ class ModuleExtensionsTest < Minitest::Test
     assert_equal :bar, mod.e2_bar
     assert_equal true, mod.respond_to?(:e3_baz)
     assert_equal :baz, mod.e3_baz
+  end
+
+  def test_module_private_methods
+    @machine = UM.new
+    @root = File.join(__dir__, 'fixtures/base/app')
+    @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
+    @loader = Syntropy::ModuleLoader.new(@env, extensions: [E2, E3])
+
+    mod = @loader.load('_lib/private1')
+    assert_equal :foo, mod.foo
+    assert_raises(NoMethodError) { mod.bar }
+    assert_equal :baz, mod.baz
+
+    mod = @loader.load('_lib/private2')
+    assert_equal :foo, mod.foo
+    assert_raises(NoMethodError) { mod.bar }
+    assert_raises(NoMethodError) { mod.baz }
   end
 end

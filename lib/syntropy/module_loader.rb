@@ -317,6 +317,14 @@ module Syntropy
 
     private
 
+    def private(sym = nil)
+      sym ? singleton_class.send(:private, sym) : (@__private__ = true)
+    end
+
+    def singleton_method_added(sym)
+      private(sym) if @__private__
+    end
+
     # Exports the given value. This value will be used as the module's
     # entrypoint. It can be any Ruby value, but for a route module would
     # normally be a proc.
