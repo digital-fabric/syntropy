@@ -606,7 +606,7 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
 
     params = {}
     r = router.('/posts/13', params)
-    p 
+    p
     assert_equal '13', params[:id]
 
     params = {}
@@ -626,7 +626,7 @@ class RoutingTreeWildcardIndexTest < Minitest::Test
     rr << router.('/api2', params)
     assert_nil params[:__rel_path__]
     assert_equal 1, rr.uniq.size
-    
+
     params = {}
     rr = []
     rr << router.('/api3/baz/buzz', params)

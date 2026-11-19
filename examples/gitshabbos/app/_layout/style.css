@@ -63,62 +63,62 @@ main {
     font-weight: bold;
     margin-bottom: 0.75em;
   }
-  
+
   h1 {
     font-size: 1.5em;
   }
-  
+
   h2 {
     margin-top: 1em;
     font-size: 1.25em;
   }
-  
+
   h3 {
     font-size: 1.1em;
   }
-  
+
   small {
     font-size: 0.8em;
   }
-  
+
   small.date {
     padding-left: 2em;
     color: #888;
   }
-  
+
   a {
     color: #248;
     font-weight: 600;
   }
-  
+
   a:visited {
     color: #824;
   }
-  
+
   li {
     margin-left: 1em;
     margin-bottom: 0.25em;
   }
-  
+
   ol li {
     margin-left: 2em;
   }
-  
+
   em {
     font-style: italic;
   }
-  
+
   strong {
     font-weight: bold;
   }
-  
+
   p,
   ul,
   ol {
     margin: 0 0 0.75em 0;
     padding: 0;
   }
-  
+
   p code,
   li code {
     color: rgb(66, 146, 41);
@@ -130,24 +130,24 @@ main {
     font-size: 0.9em;
     line-height: 1.25em;
   }
-  
+
   pre {
     padding: 0;
     overflow-x: scroll;
     scrollbar-width: none;
-  
+
     /* border-left: 3px solid #a8b8c8;
     padding-left: 12px; */
   }
-  
+
   pre * {
     line-height: 1em;
   }
-  
+
   pre + p {
     margin-top: 1em;
   }
-  
+
   pre code {
     /* margin: 10px; */
     word-wrap: no;
@@ -180,17 +180,17 @@ file-content {
     font-family: 'Fira Code', Consolas, monospace;
     overflow-x: auto;
   }
-  
+
   code {
     counter-reset: line-number;
     display: block;
   }
-  
+
   .line {
     display: block;
     counter-increment: line-number;
   }
-  
+
   .line::before {
     content: counter(line-number);
     display: inline-block;

@@ -501,7 +501,7 @@ class HTTPServerConnectionTest < Minitest::Test
       @machine.snooze
       break if data[-5..-1] == "0\r\n\r\n"
     end
-    
+
     content = IO.read(fn)
     file_size = content.bytesize
     expected = "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n#{file_size.to_s(16)}\r\n#{content}\r\n0\r\n\r\n"

@@ -11,7 +11,7 @@ export ->(req) {
   puts '*' * 40
   p query: req.query
   p rel_path: req.rel_path
-  
+
   case req.rel_path
   when 'info/refs'
     if req.query['service'] != 'git-upload-pack'
@@ -27,11 +27,11 @@ export ->(req) {
 def generate_info_refs_body(repo_path)
   # Execute the git CLI command in stateless RPC advertisement mode
   stdout_str, status = Open3.capture2('git', 'upload-pack', '--stateless-rpc', '--advertise-refs', repo_path)
-  
+
   return nil unless status.success?
 
   # Smart HTTP header prefix: length (001e) + payload + flush packet (0000)
   header = "001e# service=git-upload-pack\n0000"
-  
+
   header + stdout_str
 end

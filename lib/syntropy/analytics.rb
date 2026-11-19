@@ -10,7 +10,7 @@ module Syntropy
 
     def process_request(req)
       status = req.response_headers[':status']
-      
+
       return if req.http_method != 'get'
       return if status && status != HTTP::OK
       return if req.response_headers['Content-Type'] !~ /^text\/html/

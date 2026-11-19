@@ -11,7 +11,7 @@ export function buildExchangeBody(prompt) {
     ],
     tools: Tools.spec()
   };
-  
+
 }
 
 export async function query(ctx) {

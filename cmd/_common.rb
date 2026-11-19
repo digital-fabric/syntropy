@@ -5,7 +5,7 @@ module Syntropy
     green = "\e[32m"
     clear = "\e[0m"
     yellow = "\e[33m"
-    
+
     BANNER =
       "\n"\
       "  #{green}\n"\
@@ -53,7 +53,7 @@ module Syntropy
         @env = env
         @machine = env[:machine]
         @module_loader = @app.module_loader
-    
+
         loop do
           puts "Enter command: (c + Enter to open console, q + Enter to quit)"
           command = $stdin.gets.chomp

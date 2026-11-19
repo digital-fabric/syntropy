@@ -4,7 +4,7 @@ class PostStore
   def initialize(cp)
     @cp = cp
   end
-  
+
   # @return [Integer] post id
   def create(title, body)
     @cp.query_single_value <<~SQL, title:, body:

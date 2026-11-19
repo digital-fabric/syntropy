@@ -128,7 +128,7 @@ class NestedCollectionTest < Syntropy::Test
 
     assert_equal list[1], list[2][:prev]
     assert_equal list[3], list[2][:next]
-    
+
     assert_equal list[2], list[3][:prev]
     assert_nil            list[3][:next]
   end

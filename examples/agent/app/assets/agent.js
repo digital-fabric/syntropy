@@ -31,7 +31,7 @@ async function processResponse(section, ctx, response, callHandler) {
     UI.addSectionEntryMarkdown(section, first_choice.message.content);
     return false;
   }
-  
+
 }
 
 async function performToolCalls(section, ctx, tool_calls, callHandler) {

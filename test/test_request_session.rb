@@ -70,11 +70,11 @@ class RequestSessionTest < Minitest::Test
 
   def test_session_sid
     session = nil
-    
+
     @app = ->(req) {
       session = req.session
       req.respond(req.session.sid)
-    }    
+    }
 
     write_http_request "GET / HTTP/1.1\r\n\r\n"
     @connection.serve_request
@@ -102,7 +102,7 @@ class RequestSessionTest < Minitest::Test
     refute_nil session
     assert_kind_of String, session.sid
     assert_equal sid, session.sid
-    
+
     response = read_client_side
     sid = session.sid
     data = Base64.strict_encode64(JSON.dump({ 'sid' => sid }))

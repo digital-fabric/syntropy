@@ -101,7 +101,7 @@ class ConnectionPoolTest < Minitest::Test
 
   def test_connection_pool_query_transform_params
     t = ->(r) { r[:z] }
-    
+
     rows = @cp.query(t, 'select * from foo where y <= ?', 5)
     assert_equal [3, 6], rows
 
@@ -130,7 +130,7 @@ class ConnectionPoolTest < Minitest::Test
 
   def test_connection_pool_query_single_row_transform_params
     t = ->(r) { r[:z] }
-    
+
     row = @cp.query_single_row(t, 'select * from foo where x = ?', 1)
     assert_equal(3, row)
 

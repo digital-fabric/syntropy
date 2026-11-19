@@ -14,5 +14,5 @@ template = layout.apply { |repo_list:, **props|
 
 export ->(req) {
   repo_list = repos.transform_values { |r| File.join(@ref, r.name) }
-  req.respond_html(template.render(repo_list:))  
+  req.respond_html(template.render(repo_list:))
 }

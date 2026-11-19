@@ -75,7 +75,7 @@ def get_live_neighbors(board, idx)
     ((col - 1)..(col + 1)).each do |c|
       next if !(r in ROW_COL_RANGE) || !(c in ROW_COL_RANGE)
       next if r == row && c == col
-      
+
       live << board[r * SIZE + c] if board[r * SIZE + c]
     end
   end

@@ -29,7 +29,7 @@ export function spec() {
           "properties": {
             location: {
               "type": "string",
-              "description": "Location"                  
+              "description": "Location"
             }
           },
           required: ["location"]

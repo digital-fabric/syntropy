@@ -17,7 +17,7 @@ template = layout.apply { |md:, files:, **props|
 export ->(req) {
   repo = repos[req.route_params[:repo]]
   raise Error.not_found if !repo
-  
+
   item = repo.get('README.md')
   md = item ? @machine.file_read(item[:fn]).force_encoding('UTF-8') : ''
 

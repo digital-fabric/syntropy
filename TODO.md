@@ -21,12 +21,12 @@
     - top pages by view count
     - top referrers
     - Pages per visitor
-    - 
+    -
 
 - Machine/process stats:
   - load average
   - Available memory:
-  
+
     ```ruby
     IO.read('/proc/meminfo').lines.each_with_object({}) { |l, h| m = l.chomp.match(/(.+):\s+(\d+)/); h[m[1]] = m[2].to_i }
     ```
@@ -212,7 +212,7 @@ uuid = SecureRandom.random_bytes(16)
         },
         actions: {
           list:  ->(s) { s.list() },
-          list: 
+          list:
         }
       }
     }
@@ -251,10 +251,10 @@ uuid = SecureRandom.random_bytes(16)
   def list(req)
     list = Posts.list
   end
-  
+
     actions: {
       list:  ->(s) { s.list() },
-      list: 
+      list:
     }
   )
   ```
@@ -265,7 +265,7 @@ uuid = SecureRandom.random_bytes(16)
 - [ ] Ability to load modules from builtin applet
   - [ ] Can we mount them on the app's module loader?
 
-  Why we need that? The use case is making use of a default pub/sub instance  
+  Why we need that? The use case is making use of a default pub/sub instance
 
 - [ ] Pub/sub
   - [ ] Ruby side
@@ -439,7 +439,7 @@ A live template would look something like:
 initial = ->(__flow_url__, name:) {
   __html__ = +''
   __static__ = []; __dynamic__ = {}; __dynamic_counter__ = 0;
-  
+
   __html__
     .<<(
       s = "<!DOCTYPE html><html><head><title>My live page</title></head><body><p>"
@@ -512,7 +512,7 @@ Here's how the compiled update template looks:
 ```ruby
 initial = ->(name:) {
   __dynamic__ = {}; __dynamic_counter__ = 0;
-  
+
   s = ERB::Escape.html_escape(("Hello, #{name}!"))
   __dynamic__[__dynamic_counter__] = s
   __dynamic_counter__ += 1

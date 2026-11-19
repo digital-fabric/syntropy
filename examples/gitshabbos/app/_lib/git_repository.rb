@@ -3,7 +3,7 @@ require 'open3'
 
 class GitRepository
   attr_reader :path, :name, :description, :commits
-  
+
   def initialize(path, description)
     @path = path
     @rel_re = /^#{path}\//.freeze
@@ -15,12 +15,12 @@ class GitRepository
   def get(rel_path)
     item = @files[rel_path]
     return nil if !item
-    
+
     item[:mime_type] ||= Syntropy::MimeTypes[
       (m = item[:ref].match(/([^\.]+)$/)) && m[1]
     ]
     item[:binary] = binary_file?(item[:fn]) if item[:binary].nil?
-    
+
     item
   end
 

@@ -26,13 +26,13 @@ function setupForm(section, submit_callback) {
   setTimeout(() => {
     section.querySelector("#prompt-text").focus();
   }, 50);
-  
+
 }
 
 export function addSectionEntryMarkdown(section, md) {
   const parser = new MiniGFM({});
   const html = parser.parse(md);
-  
+
   const ele = document.createElement("div");
   ele.innerHTML = html;
   section.appendChild(ele);

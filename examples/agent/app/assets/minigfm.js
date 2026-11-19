@@ -26,7 +26,7 @@ export default class MiniGFM {
                 codeBlocks.push({ lang: lang.trim(), code: code.trim() });
                 return `<!----CODEBLOCK${codeBlocks.length - 1}---->`;
             })
-            // 保持内联代码 
+            // 保持内联代码
             .replace(/([^\\])`([^`]+)`/g, (_, after, code) => {
                 codeInline.push(this.escapeHTML(code));
                 return `${after}<!----CODEINLINE${codeInline.length - 1}---->`;
