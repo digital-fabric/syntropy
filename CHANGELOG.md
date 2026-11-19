@@ -1,3 +1,7 @@
+# 0.52.0 2026-11-19
+
+- Add `Request#send_ds_signal_patch` for Datastar signal patching
+
 # 0.51.0 2026-11-19
 
 - Add support for opt-in Brotli compression
