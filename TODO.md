@@ -1,3 +1,15 @@
+## Serving static files
+
+- Rework how static files are served. Right now, we read and keep static file
+  content in memory. We might want to do this only for small files (< 4KB), and
+  anything beyond, we open the file on each request and stream it with
+  `ServerConnection#respond_with_static_file`.
+
+- Also, we currently do a `statx` on each render of static file and check if
+  mtime has changed. Since we do watch for file changes, we can tell if the file
+  changed or not. So that means that we can drop the check and serve the file
+  immediately.
+
 ## Analytics
 
 - Analytics
@@ -20,9 +32,6 @@
     ```
 
   - process RSS
-
-
-
 
 - Datastar-specific APIs:
 
@@ -48,7 +57,7 @@
   - file page          `/[repo]/tree/**`
   - raw page           `/[repo]/raw/**`
   - git protocol       `/[repo]/git/**`
-p
+
 ## Extralite doc site
 
 - Similar to Papercraft site
