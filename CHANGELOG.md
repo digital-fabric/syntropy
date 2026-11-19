@@ -1,3 +1,7 @@
+# 0.51.0 2026-11-19
+
+- Add support for opt-in Brotli compression
+
 # 0.50.0 2026-11-19
 
 - Add game of life example
