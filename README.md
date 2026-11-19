@@ -61,8 +61,16 @@ examples site inside the Syntropy repository:
 
 ```bash
 $ cd syntropy
-$ bundle exec syntropy -d examples
+$ bundle exec syntropy serve examples/blog
 ```
+
+List of included examples:
+
+- `examples/basic` - basic website
+- `examples/blog` - blog with SQLite database
+- `examples/game_of_life` - multiplayer game of life
+- `examples/github` - GitHub-style parametric routing
+- `examples/gitshabbos` - Git repository viewer site (WIP)
 
 ## Routing
 
