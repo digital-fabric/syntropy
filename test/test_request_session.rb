@@ -68,6 +68,47 @@ class RequestSessionTest < Minitest::Test
     assert_equal "HTTP/1.1 204\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n", response
   end
 
+  def test_session_sid
+    session = nil
+    
+    @app = ->(req) {
+      session = req.session
+      req.respond(req.session.sid)
+    }    
+
+    write_http_request "GET / HTTP/1.1\r\n\r\n"
+    @connection.serve_request
+    refute_nil session
+    assert_kind_of String, session.sid
+
+    response = read_client_side
+    sid = session.sid
+    data = Base64.strict_encode64(JSON.dump({ 'sid' => sid }))
+    assert_equal "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\nSet-Cookie: __syntropy_session__=#{data}; Path=/; HttpOnly\r\n\r\n#{sid.bytesize.to_s(16)}\r\n#{sid}\r\n0\r\n\r\n", response
+
+    setup
+
+    @app = ->(req) do
+      session = req.session
+      req.respond(req.session.sid)
+    rescue => e
+      p e
+      p e.backtrace
+      exit!
+    end
+
+    write_http_request "GET / HTTP/1.1\r\nCookie: __syntropy_session__=#{data}\r\n\r\n"
+    @connection.serve_request
+    refute_nil session
+    assert_kind_of String, session.sid
+    assert_equal sid, session.sid
+    
+    response = read_client_side
+    sid = session.sid
+    data = Base64.strict_encode64(JSON.dump({ 'sid' => sid }))
+    assert_equal "HTTP/1.1 200\r\nTransfer-Encoding: chunked\r\n\r\n#{sid.bytesize.to_s(16)}\r\n#{sid}\r\n0\r\n\r\n", response
+  end
+
   def test_session_kv_multi
     @app = ->(req) {
       req.session['foo'] = 'bar'

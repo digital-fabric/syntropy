@@ -69,6 +69,10 @@ module Syntropy
       @flash ||= Flash.new(self)
     end
 
+    def sid
+      self['sid'] ||= SecureRandom.hex(16)
+    end
+
     private
 
     # Loads session data from the request session cookie.
