@@ -2,6 +2,7 @@
 
 require 'time'
 require 'digest/sha1'
+require 'json'
 
 require_relative '../http/status'
 require_relative '../mime_types'
@@ -310,6 +311,11 @@ module Syntropy
 
     def send_ds_html_patch(html)
       send_chunk("event: datastar-patch-elements\ndata: elements #{html}\n\n")
+    end
+
+    def send_ds_signal_patch(values)
+      json = JSON.dump(values)
+      send_chunk("event: datastar-patch-signals\ndata: signals #{json}\n\n")
     end
   end
 end

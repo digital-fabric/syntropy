@@ -250,4 +250,18 @@ class DatastarSSETest < Minitest::Test
       [:finish, r]
     ], r.adapter.calls
   end
+
+  def test_send_ds_signal_patch
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse {
+      r.send_ds_signal_patch(foo: 42, bar: 'baz')
+    }
+
+    json = JSON.dump({ foo: 42, bar: 'baz' })
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "event: datastar-patch-signals\ndata: signals #{json}\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
 end
