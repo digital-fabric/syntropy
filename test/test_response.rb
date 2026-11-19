@@ -236,3 +236,18 @@ class SSETest < Minitest::Test
     ], r.adapter.calls
   end
 end
+
+class DatastarSSETest < Minitest::Test
+  def test_send_ds_html_patch
+    r = Syntropy::MockAdapter.mock
+    r.respond_sse {
+      r.send_ds_html_patch('<foo></foo>')
+    }
+
+    assert_equal [
+      [:send_headers, r, { 'Content-Type' => 'text/event-stream'}, {empty_response: false}],
+      [:send_chunk, r, "event: datastar-patch-elements\ndata: elements <foo></foo>\n\n", { done: false }],
+      [:finish, r]
+    ], r.adapter.calls
+  end
+end

@@ -303,5 +303,9 @@ module Syntropy
         end
       }
     end
+
+    def send_ds_html_patch(html)
+      send_chunk("event: datastar-patch-elements\ndata: elements #{html}\n\n")
+    end
   end
 end
