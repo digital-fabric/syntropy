@@ -1,3 +1,11 @@
+# 0.50.0 2026-11-19
+
+- Add game of life example
+- Add `Session#sid` for generating and persisting unique session IDs
+- Add `Request#send_ds_html_patch` method for Datastar HTML patching
+- Add support for private methods in modules
+- Use `UM::IO` to read static file content
+
 # 0.49.0 2026-11-16
 
 - Fix tests
