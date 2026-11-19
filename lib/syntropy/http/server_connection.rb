@@ -2,6 +2,7 @@
 
 require 'syntropy/errors'
 require 'syntropy/http/io_extensions'
+require 'brotli'
 
 module Syntropy
   module HTTP
@@ -159,6 +160,29 @@ module Syntropy
         req.headers[':body-done-reading']
       end
 
+      # Enables or disables compression according to the given Accept-Encoding
+      # header value. Currently supports only brotli compression.
+      #
+      # @param accept_encoding [String, nil] Accept-Encoding header value
+      # @return [void]
+      def auto_compress!(accept_encoding)
+        if !accept_encoding
+          @content_encoding = nil
+          @compressor = nil
+          return
+        end
+
+        accept_encoding.split(',').each do
+          case it
+          when /^\s*br(;.+)?$/
+            @content_encoding = :brotli
+            @compressor = Brotli::Compressor.new(quality: 6)
+            (@response_headers ||= {})['Content-Encoding'] = 'br'
+            return
+          end
+        end
+      end
+
       # response API
 
       # Sets response headers before sending any response. This method is used to
@@ -201,6 +225,7 @@ module Syntropy
         formatted_headers = format_headers(headers, body)
         @response_headers = headers
         if body
+          body = compress_chunk(body) if @content_encoding
           chunk_prelude = "#{body.bytesize.to_s(16)}\r\n"
           @machine.sendv(@fd, formatted_headers, chunk_prelude, body, CHUNKED_ENCODING_POSTLUDE)
         else
@@ -217,6 +242,8 @@ module Syntropy
       # @param empty_response [boolean] whether a response body will be sent
       # @return [void]
       def send_headers(request, headers, empty_response: false)
+        add_set_cookie_headers if @response_cookies
+        headers = @response_headers.merge(headers) if @response_headers
         formatted_headers = format_headers(headers, !empty_response)
         @machine.send(@fd, formatted_headers, formatted_headers.bytesize, SEND_FLAGS)
         @response_headers = headers
@@ -232,11 +259,12 @@ module Syntropy
       def send_chunk(request, chunk, done: false)
         return if @done
 
+        chunk = compress_chunk(chunk) if @content_encoding
         len = chunk.is_a?(IO::Buffer) ? chunk.size : chunk.bytesize
         if !done
-          @io.write(len.to_s(16),"\r\n", chunk, "\r\n")
+          @io.write(len.to_s(16), "\r\n", chunk, "\r\n")
         else
-          @io.write(len.to_s(16),"\r\n", chunk, "\r\n0\r\n\r\n")
+          @io.write(len.to_s(16), "\r\n", chunk, "\r\n0\r\n\r\n")
           @logger&.info(request: request, response_headers: @response_headers)
           @done = true
         end
@@ -275,6 +303,22 @@ module Syntropy
         finish(req)
       ensure
         @machine.close_async(fd) if fd
+      end
+
+      # Compresses the given chunk according to the chosen compression method.
+      # Currently supports only Brotli compression.
+      #
+      # @param chunk [String]
+      # @return [String] compressed chunk
+      def compress_chunk(chunk)
+        case @content_encoding
+        when :brotli
+          compressed = @compressor.process(chunk)
+          compressed << @compressor.flush
+          compressed
+        else
+          raise Syntropy::Error, 'Invalid content encoding set'
+        end
       end
 
       # Closes the connection.

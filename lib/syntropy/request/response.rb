@@ -26,6 +26,10 @@ module Syntropy
       adapter.websocket_connection(self)
     end
 
+    def auto_compress!
+      adapter.auto_compress!(headers['accept-encoding'])
+    end
+
     # Responds with a redirect to the given URL. If a relative path is provided
     # as the URL, the absolute URL path will be calculated relative to the
     # current request's path.
