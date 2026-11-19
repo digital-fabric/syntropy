@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+div#container {
+  height: 100dvh;
+  width: min(100% - 2rem, 40rem);
+  margin-inline: auto;
+  padding-block: 2dvh;
+}
+
+div#board {
+  display: grid;
+  grid-template-columns: repeat(50, 1fr);
+  grid-template-rows: repeat(50, 1fr);
+  width: min(100% - 2rem , 40rem);
+  aspect-ratio: 1/1;
+  box-sizing: border-box;
+  border-top: 1px solid gray;
+  border-left: 1px solid gray;
+
+  cell {
+    display: block;
+    border-bottom: 1px solid gray;
+    border-right: 1px solid gray;
+
+    &.empty   { background-color: #eee }
+    &.black   { background-color: black }
+    &.red     { background-color: red }
+    &.blue    { background-color: blue }
+    &.green   { background-color: green }
+    &.orange  { background-color: orange }
+    &.fuchsia { background-color: fuchsia }
+    &.purple  { background-color: purple }
+  }
+}
