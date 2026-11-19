@@ -378,12 +378,9 @@ module Syntropy
 
       target[:last_modified] = mtime
       target[:last_modified_date] = Time.at(mtime).httpdate
-      target[:content] = buffer = String.new(capacity: size)
       target[:mime_type] = MimeTypes[File.extname(target[:fn])]
-      len = 0
-      while len < size
-        len += @machine.read(fd, buffer, size, len)
-      end
+      io = @machine.io(fd, :file)
+      target[:content] = buffer = io.read(size)
       target[:etag] = Digest::SHA1.hexdigest(buffer)
     ensure
       @machine.close_async(fd) if fd
