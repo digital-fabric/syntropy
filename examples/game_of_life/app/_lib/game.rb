@@ -12,15 +12,8 @@ def board
   @board
 end
 
-def each_update(&block)
-  mailbox = Fiber.current.mailbox
-  @subscribers << mailbox
-  loop do
-    board = @machine.shift(mailbox)
-    yield(board)
-  end
-ensure
-  @subscribers.delete(mailbox)
+def board_updates
+  @board_updates
 end
 
 def fill_cross(idx, value)
@@ -46,10 +39,6 @@ end
 
 def setup_board
   board = [nil] * (SIZE * SIZE)
-end
-
-def update_subscribers(board)
-  @subscribers.each { |m| @machine.push(m, board) }
 end
 
 def next_generation(board)
@@ -82,12 +71,12 @@ def get_live_neighbors(board, idx)
   live
 end
 
-@subscribers = Set.new
+@board_updates = @machine.broadcaster
 @board = setup_board
 @machine.spin do
   @machine.periodically(0.1) {
     @board = next_generation(@board)
-    update_subscribers(@board)
+    @board_updates.broadcast(@board)
   }
 rescue => e
   p e

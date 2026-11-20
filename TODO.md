@@ -10,6 +10,35 @@
   changed or not. So that means that we can drop the check and serve the file
   immediately.
 
+- Add brotli compression for static files. After reading the file, compress it
+  and keep the compressed content along the uncompressed content. When a client
+  accepts brotli content encoding, use thge compressed data and add a
+  `Content-Encoding` header.
+
+## Brotli compression resource reuse
+
+- Add a pool of reusable Brotli compressors, of two types: high quality (for use
+  for compressing static files), and low quality (for ad hoc usage for e.g. SSE
+  streams). Set high quality (8) and larger window size (20 - 1MB) for the high
+  quality compressors; lower quality (5) and smaller window size (16 - 64KB) for
+  the low quality compressors.
+
+- Change the request compression API: instead of `auto_compress!`, use
+  `auto_compress` with a block, e.g.:
+
+  ```ruby
+  export ->(req) {
+    req.auto_compress {
+      req.respond_sse {
+        @machine.periodically(1) { req.send_event('foo') }
+      }
+    }
+  }
+  ```
+
+  The `#auto_compress` method checks out a compressor, and at the end checks it
+  in.
+
 ## Analytics
 
 - Analytics

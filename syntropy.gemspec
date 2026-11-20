@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'extralite',     '~>3.1.3'
   s.add_dependency 'papercraft',    '~>3.2.2'
-  s.add_dependency 'uringmachine',  '~>1.0.8'
+  s.add_dependency 'uringmachine',  '~>1.0.9'
 
   s.add_dependency 'brotli'
 

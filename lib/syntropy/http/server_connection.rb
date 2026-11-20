@@ -176,7 +176,7 @@ module Syntropy
           case it
           when /^\s*br(;.+)?$/
             @content_encoding = :brotli
-            @compressor = Brotli::Compressor.new(quality: 6)
+            @compressor = Brotli::Compressor.new(quality: 5)
             (@response_headers ||= {})['Content-Encoding'] = 'br'
             return
           end
