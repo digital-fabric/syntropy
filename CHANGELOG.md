@@ -1,3 +1,7 @@
+# 0.52.1 2026-11-20
+
+- Fix static file serving
+
 # 0.52.0 2026-11-19
 
 - Add `Request#send_ds_signal_patch` for Datastar signal patching
