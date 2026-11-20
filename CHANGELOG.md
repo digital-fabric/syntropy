@@ -1,3 +1,7 @@
+# 0.54.0 2026-11-20
+
+- Update UringMachine
+
 # 0.53.0 2026-11-20
 
 - Update UringMachine (fix to reading big static files)
