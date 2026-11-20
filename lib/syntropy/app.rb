@@ -379,19 +379,10 @@ module Syntropy
       target[:last_modified] = mtime
       target[:last_modified_date] = Time.at(mtime).httpdate
       target[:mime_type] = MimeTypes[File.extname(target[:fn])]
-      target[:content] = buffer = read_static_file(fd, size)
+      target[:content] = buffer = @machine.io(fd, :file).read(size)
       target[:etag] = Digest::SHA1.hexdigest(buffer)
     ensure
       @machine.close_async(fd) if fd
-    end
-
-    def read_static_file(fd, size)
-      buffer = String.new(capacity: size)
-      len = 0
-      while len < size
-        len += @machine.read(fd, buffer, size, len)
-      end
-      buffer
     end
 
     # Returns a proc rendering the given markdown route.
