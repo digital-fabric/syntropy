@@ -1,3 +1,8 @@
+# 0.55.0 2026-11-21
+
+- Add `on_load`, `on_unload` hooks to modules
+- Add `@filename` to module ivars
+
 # 0.54.0 2026-11-20
 
 - Update UringMachine

@@ -3,10 +3,16 @@ template = import '/_templates/board'
 
 html_updates = @machine.broadcaster
 
-@machine.spin {
-  game.board_updates.each { |board|
-    html_updates.broadcast(template.render(board))
+on_load {
+  update_fiber = @machine.spin {
+    game.board_updates.each { |board|
+      html_updates.broadcast(template.render(board))
+    }
   }
+}
+
+on_unload {
+  @machine.terminate(update_fiber)
 }
 
 export ->(req) {

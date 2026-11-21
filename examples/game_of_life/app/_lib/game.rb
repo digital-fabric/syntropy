@@ -73,15 +73,17 @@ end
 
 @board_updates = @machine.broadcaster
 @board = setup_board
-@machine.spin do
-  @machine.periodically(0.1) {
-    @board = next_generation(@board)
-    @board_updates.broadcast(@board)
-  }
-rescue => e
-  p e
-  p e.backtrace
-  exit!
-end
 
+on_load {
+  update_fiber = @machine.spin do
+    @machine.periodically(0.1) {
+      @board = next_generation(@board)
+      @board_updates.broadcast(@board)
+    }
+  end
+}
+
+on_unload { @machine.terminate(update_fiber) }
+
+# Populate board
 5.times { fill_cross(rand(SIZE * SIZE), 'blue') }
