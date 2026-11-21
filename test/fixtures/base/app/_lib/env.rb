@@ -14,6 +14,10 @@ def app
   @app
 end
 
+def filename
+  @filename
+end
+
 def module_const
   MODULE
 end

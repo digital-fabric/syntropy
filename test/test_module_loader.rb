@@ -56,6 +56,7 @@ class ModuleLoaderTest < Minitest::Test
     assert_equal @machine, mod.machine
     assert_equal @loader, mod.module_loader
     assert_equal 42, mod.app
+    assert_equal File.join(@root, '_lib/env.rb'), mod.filename
 
     assert_equal mod, mod.module_const
     assert_equal @env.merge(module_loader: @loader, ref: '/_lib/env'), mod.env

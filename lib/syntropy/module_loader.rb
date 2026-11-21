@@ -292,6 +292,7 @@ module Syntropy
       @module_loader = env[:module_loader]
       @app = env[:app]
       @ref = env[:ref]
+      @filename = fn
 
       mp = env[:mount_path]
       @url = mp && (@ref == '/' ? mp : File.join(mp, @ref))
