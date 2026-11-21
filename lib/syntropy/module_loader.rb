@@ -306,7 +306,6 @@ module Syntropy
 
       apply_extensions(extensions)
       instance_eval(code, fn)
-      __invoke_on_load_hook__
     end
 
     attr_reader :__export_value__, :__dependencies__
@@ -319,13 +318,6 @@ module Syntropy
       @collection_module_p
     end
 
-    # Invokes the module's on_load hook if set
-    #
-    # @return [void]
-    def __invoke_on_load_hook__
-      @__on_load_hook__&.()
-    end
-
     # Invokes the module's on_unload hook if set
     #
     # @return [void]
@@ -334,15 +326,6 @@ module Syntropy
     end
 
     private
-
-    # Sets the module's on_load hook to the given block.
-    #
-    # @return [void]
-    def on_load(&hook)
-      raise Syntropy::Error, "No block given" if !hook
-
-      @__on_load_hook__ = hook
-    end
 
     # Sets the module's on_unload hook to the given block.
     #

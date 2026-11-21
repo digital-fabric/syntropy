@@ -1,3 +1,7 @@
+# 0.55.1 2026-11-21
+
+- Remove superfluous `on_load` hook
+
 # 0.55.0 2026-11-21
 
 - Add `on_load`, `on_unload` hooks to modules

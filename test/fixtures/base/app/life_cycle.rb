@@ -4,5 +4,5 @@ def loaded?
   @loaded
 end
 
-on_load { @loaded = true }
+@loaded = true
 on_unload { @loaded = false }

@@ -73,16 +73,12 @@ end
 
 @board_updates = @machine.broadcaster
 @board = setup_board
-
-on_load {
-  update_fiber = @machine.spin do
-    @machine.periodically(0.1) {
-      @board = next_generation(@board)
-      @board_updates.broadcast(@board)
-    }
-  end
+update_fiber = @machine.spin {
+  @machine.periodically(0.1) {
+    @board = next_generation(@board)
+    @board_updates.broadcast(@board)
+  }
 }
-
 on_unload { @machine.terminate(update_fiber) }
 
 # Populate board
