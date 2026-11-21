@@ -131,6 +131,7 @@ module Syntropy
       entry = @modules.delete(ref)
       return if !entry
 
+      entry[:module].__invoke_on_unload_hook__
       @fn_map.delete(entry[:fn])
       entry[:reverse_deps].each { invalidate_ref(it) }
     end
@@ -273,6 +274,7 @@ module Syntropy
   # - `@module_loader`: a reference to the module loader
   # - `@app`: a reference to the app
   # - `@ref`: the module's logical path (path relative to the app root)
+  # - `@filename`: the module's filename
   # - `@logger`: a reference to the app's logger
   #
   # In addition, the module code also has access to the `MODULE` constant which
@@ -304,6 +306,7 @@ module Syntropy
 
       apply_extensions(extensions)
       instance_eval(code, fn)
+      __invoke_on_load_hook__
     end
 
     attr_reader :__export_value__, :__dependencies__
@@ -316,14 +319,57 @@ module Syntropy
       @collection_module_p
     end
 
+    # Invokes the module's on_load hook if set
+    #
+    # @return [void]
+    def __invoke_on_load_hook__
+      @__on_load_hook__&.()
+    end
+
+    # Invokes the module's on_unload hook if set
+    #
+    # @return [void]
+    def __invoke_on_unload_hook__
+      @__on_unload_hook__&.()
+    end
+
     private
 
+    # Sets the module's on_load hook to the given block.
+    #
+    # @return [void]
+    def on_load(&hook)
+      raise Syntropy::Error, "No block given" if !hook
+
+      @__on_load_hook__ = hook
+    end
+
+    # Sets the module's on_unload hook to the given block.
+    #
+    # @return [void]
+    def on_unload(&hook)
+      raise Syntropy::Error, "No block given" if !hook
+
+      @__on_unload_hook__ = hook
+    end
+
+    # Marks the given method as private. If no method is given, all subsequent
+    # method definitions will become private.
+    #
+    # @param sym [Symbol, nil] method name, or nil
+    # @return [void]
     def private(sym = nil)
       sym ? singleton_class.send(:private, sym) : (@__private__ = true)
     end
 
+    # This hook marks the added method as private if preceded by a call to
+    # private without method name.
+    #
+    # @param sym [Symbol] method name
+    # @return [void]
     def singleton_method_added(sym)
       private(sym) if @__private__
+      super
     end
 
     # Exports the given value. This value will be used as the module's

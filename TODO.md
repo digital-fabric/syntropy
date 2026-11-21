@@ -1,3 +1,27 @@
+## Immediate
+
+- Add some lifecycle management to modules. The problem is that if we spin up a
+  fiber in a module, and later it is invalidated (reloaded), we want that fiber
+  to be gone. We can have hooks:
+
+  ```ruby
+  on_load {
+    updates_fiber = @machine.spin { ... }
+  }
+
+  on_unload {
+    @machine.terminate(updates_fiber)
+  }
+  ```
+
+  Another possibility is to have a helper that wraps the above:
+
+  ```ruby
+  spin_module_fiber { ... }
+  ```
+
+  We can do both.
+
 ## Serving static files
 
 - Rework how static files are served. Right now, we read and keep static file

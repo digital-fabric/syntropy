@@ -215,3 +215,32 @@ class ModuleExtensionsTest < Minitest::Test
     assert_raises(NoMethodError) { mod.baz }
   end
 end
+
+class ModuleLifeCycleHooksTest < Minitest::Test
+  def setup
+    @machine = UM.new
+    @root = File.join(__dir__, 'fixtures/base/app')
+    @env = { app_root: @root, baz: 42, machine: @machine, app: 42 }
+    @loader = Syntropy::ModuleLoader.new(@env)
+  end
+
+  def test_module_life_cycle_hooks
+    mod = @loader.load('life_cycle')
+    assert_equal true, mod.loaded?
+
+    fn = @loader.modules['/life_cycle'][:fn]
+    @loader.invalidate_fn(fn)
+
+    assert_equal false, mod.loaded?
+  end
+
+  def test_module_life_cycle_hooks_proc_export
+    mod = @loader.load('life_cycle_proc_export')
+    assert_equal true, mod.()
+
+    fn = @loader.modules['/life_cycle_proc_export'][:fn]
+    @loader.invalidate_fn(fn)
+
+    assert_equal false, mod.()
+  end
+end
